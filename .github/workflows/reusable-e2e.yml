@@ -4,33 +4,33 @@ on:
   workflow_call:
     inputs:
       node-version:
-        description: 'Node.js version to use'
+        description: "Node.js version to use"
         type: string
-        default: '20'
+        default: "20"
       working-directory:
-        description: 'Working directory for tests'
+        description: "Working directory for tests"
         type: string
-        default: '.'
+        default: "."
       browser:
-        description: 'Browser to use (chromium, firefox, webkit)'
+        description: "Browser to use (chromium, firefox, webkit)"
         type: string
-        default: 'chromium'
+        default: "chromium"
       base-url:
-        description: 'Base URL for tests (optional, for deployed previews)'
+        description: "Base URL for tests (optional, for deployed previews)"
         type: string
-        default: ''
+        default: ""
       start-command:
-        description: 'Command to start the dev server (if no base-url provided)'
+        description: "Command to start the dev server (if no base-url provided)"
         type: string
-        default: 'pnpm dev'
+        default: "pnpm dev"
       test-command:
-        description: 'Command to run E2E tests'
+        description: "Command to run E2E tests"
         type: string
-        default: 'pnpm test:e2e'
+        default: "pnpm test:e2e"
       shard:
         description: 'Shard index for parallel runs (e.g., "1/3")'
         type: string
-        default: ''
+        default: ""
 
 jobs:
   e2e:
@@ -51,7 +51,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node-version }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -62,26 +62,12 @@ jobs:
       - name: Run E2E tests (with dev server)
         if: inputs.base-url == ''
         run: |
-          # Start dev server in background
-          ${{ inputs.start-command }} &
-          DEV_PID=$!
-
-          # Wait for server to be ready
-          echo "Waiting for dev server to start..."
-          sleep 10
-
-          # Run tests
+          # Playwright will start the dev server via webServer config
           if [ -n "${{ inputs.shard }}" ]; then
             ${{ inputs.test-command }} --project=${{ inputs.browser }} --shard=${{ inputs.shard }}
           else
             ${{ inputs.test-command }} --project=${{ inputs.browser }}
           fi
-          TEST_EXIT=$?
-
-          # Cleanup
-          kill $DEV_PID 2>/dev/null || true
-
-          exit $TEST_EXIT
         env:
           CI: true
 
