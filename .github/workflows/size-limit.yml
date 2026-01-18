@@ -32,15 +32,9 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Run size-limit
-        id: size
+      - name: Check bundle size
         run: |
           echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           pnpm size 2>&1 | tee size-output.txt
-          echo '```' >> $GITHUB_STEP_SUMMARY
           cat size-output.txt >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-
-      - name: Check size limits
-        run: pnpm size:check

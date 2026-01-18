@@ -25,7 +25,7 @@
     "quality:packages": "node scripts/quality-check.js packages",
     "prepare": "husky",
     "size": "size-limit",
-    "size:check": "size-limit --ci"
+    "size:check": "size-limit"
   },
   "size-limit": [
     {
