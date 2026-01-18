@@ -42,11 +42,7 @@
       "description": "Testing tools",
       "groupName": "Testing tools",
       "matchPackageNames": ["vitest", "jsdom"],
-      "matchPackagePatterns": [
-        "^@testing-library/",
-        "^@vitest/",
-        "^@playwright/"
-      ]
+      "matchPackagePatterns": ["^@testing-library/", "^@vitest/"]
     },
     {
       "description": "ESLint ecosystem",

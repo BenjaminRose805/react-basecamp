@@ -11,6 +11,16 @@ reviews:
     base_branches:
       - main
 
+  # Paths to ignore
+  path_filters:
+    - "!**/*.lock"
+    - "!**/pnpm-lock.yaml"
+    - "!**/package-lock.json"
+    - "!**/.next/**"
+    - "!**/node_modules/**"
+    - "!**/dist/**"
+    - "!**/*.min.js"
+
   # Review profile - assertive for thorough feedback
   profile: assertive
 
@@ -102,29 +112,28 @@ reviews:
       enabled: false
     eslint:
       enabled: true
-      config_path: eslint.config.js
     # Security tools
     semgrep:
       enabled: true
     gitleaks:
       enabled: true
 
-# Pre-merge checks
-pre_merge:
-  title_check:
-    mode: warning
-  description_check:
-    mode: warning
-  docstring_coverage:
-    threshold: 80
-    mode: warning
+  # Pre-merge checks
+  pre_merge_checks:
+    title:
+      mode: warning
+    description:
+      mode: warning
+    docstrings:
+      threshold: 80
+      mode: warning
 
-# Finishing touches - on-demand generation
-finishing_touches:
-  docstrings:
-    enabled: true
-  unit_tests:
-    enabled: true
+  # Finishing touches - on-demand generation
+  finishing_touches:
+    docstrings:
+      enabled: true
+    unit_tests:
+      enabled: true
 
 # Knowledge base settings
 knowledge_base:
@@ -138,20 +147,9 @@ knowledge_base:
 chat:
   # Enable chat interactions
   auto_reply: true
-
-# Issue tracking integration (Linear)
-# Enables: PR validation against linked issues, one-click issue creation
-# Setup: Install Linear GitHub integration at https://linear.app/settings/integrations/github
-integrations:
-  linear:
-    enabled: true
-
-# Paths to ignore
-path_filters:
-  - "!**/*.lock"
-  - "!**/pnpm-lock.yaml"
-  - "!**/package-lock.json"
-  - "!**/.next/**"
-  - "!**/node_modules/**"
-  - "!**/dist/**"
-  - "!**/*.min.js"
+  # Issue tracking integration (Linear)
+  # Enables: PR validation against linked issues, one-click issue creation
+  # Setup: Install Linear GitHub integration at https://linear.app/settings/integrations/github
+  integrations:
+    linear:
+      usage: auto

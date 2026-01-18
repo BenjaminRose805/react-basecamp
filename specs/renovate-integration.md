@@ -100,7 +100,7 @@ Automate dependency updates with intelligent grouping to reduce PR noise while k
     "schedule:weekly"
   ],
   "packageManager": "pnpm",
-  "timezone": "America/New_York",
+  "timezone": "America/Chicago",
   "labels": ["dependencies"],
   "packageRules": [
     {

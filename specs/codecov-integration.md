@@ -138,7 +138,7 @@ flags:
 
 ### PR Comment Format
 
-```
+```text
 ## Coverage Report
 
 | Metric     | Coverage | Change  | Status |

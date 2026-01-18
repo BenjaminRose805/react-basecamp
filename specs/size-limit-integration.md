@@ -120,7 +120,7 @@ jobs:
 
 ### PR Comment Format
 
-```
+```text
 📦 Size Limit Report
 
 | Path                    | Size     | Change   | Status |
