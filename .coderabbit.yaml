@@ -17,6 +17,9 @@ reviews:
   # Request changes on high severity issues
   request_changes_workflow: true
 
+  # Validate PRs against linked issues
+  assess_linked_issues: true
+
   # High-level summary
   high_level_summary: true
   high_level_summary_placeholder: "@coderabbitai summary"
@@ -135,6 +138,13 @@ knowledge_base:
 chat:
   # Enable chat interactions
   auto_reply: true
+
+# Issue tracking integration (Linear)
+# Enables: PR validation against linked issues, one-click issue creation
+# Setup: Install Linear GitHub integration at https://linear.app/settings/integrations/github
+integrations:
+  linear:
+    enabled: true
 
 # Paths to ignore
 path_filters:

@@ -2,29 +2,33 @@ name: Tests
 
 on:
   workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        description: "Codecov upload token (required for private repos)"
+        required: false
     inputs:
       node-version:
-        description: 'Node.js version to use'
+        description: "Node.js version to use"
         type: string
-        default: '20'
+        default: "20"
       working-directory:
-        description: 'Working directory for tests'
+        description: "Working directory for tests"
         type: string
-        default: '.'
+        default: "."
       coverage-threshold-lines:
-        description: 'Minimum line coverage percentage'
+        description: "Minimum line coverage percentage"
         type: number
         default: 70
       coverage-threshold-branches:
-        description: 'Minimum branch coverage percentage'
+        description: "Minimum branch coverage percentage"
         type: number
         default: 60
       test-command:
-        description: 'Command to run tests'
+        description: "Command to run tests"
         type: string
-        default: 'pnpm test'
+        default: "pnpm test"
       upload-coverage:
-        description: 'Upload coverage report as artifact'
+        description: "Upload coverage report as artifact"
         type: boolean
         default: true
 
@@ -47,7 +51,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node-version }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -91,3 +95,13 @@ jobs:
           name: coverage-report
           path: ${{ inputs.working-directory }}/coverage/
           retention-days: 7
+
+      # Upload to Codecov (requires CODECOV_TOKEN secret for private repos)
+      - name: Upload coverage reports to Codecov
+        if: inputs.upload-coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ inputs.working-directory }}/coverage/lcov.info
+          flags: unit
+          fail_ci_if_error: false

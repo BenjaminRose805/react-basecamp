@@ -1,0 +1,78 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "group:monorepos",
+    "group:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    "schedule:weekly"
+  ],
+  "timezone": "America/Chicago",
+  "schedule": ["before 9am on Monday"],
+  "prConcurrentLimit": 10,
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "Auto-merge minor and patch updates (with 3-day delay for security)",
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true,
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "TypeScript type definitions",
+      "groupName": "TypeScript types",
+      "matchPackagePatterns": ["^@types/"]
+    },
+    {
+      "description": "React ecosystem",
+      "groupName": "React ecosystem",
+      "matchPackageNames": ["react", "react-dom"],
+      "matchPackagePatterns": ["^@types/react"]
+    },
+    {
+      "description": "Next.js ecosystem",
+      "groupName": "Next.js ecosystem",
+      "matchPackageNames": ["next", "eslint-config-next"],
+      "matchPackagePatterns": ["^@next/"]
+    },
+    {
+      "description": "Testing tools",
+      "groupName": "Testing tools",
+      "matchPackageNames": ["vitest", "jsdom"],
+      "matchPackagePatterns": [
+        "^@testing-library/",
+        "^@vitest/",
+        "^@playwright/"
+      ]
+    },
+    {
+      "description": "ESLint ecosystem",
+      "groupName": "ESLint ecosystem",
+      "matchPackageNames": ["eslint"],
+      "matchPackagePatterns": ["^eslint-", "^@eslint/"]
+    },
+    {
+      "description": "TypeScript tooling",
+      "groupName": "TypeScript tooling",
+      "matchPackageNames": ["typescript"],
+      "matchPackagePatterns": ["^typescript-eslint", "^@typescript-eslint/"]
+    },
+    {
+      "description": "Playwright",
+      "groupName": "Playwright",
+      "matchPackagePatterns": ["^@playwright/", "^playwright"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "schedule": []
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 9am on Monday"]
+  }
+}
