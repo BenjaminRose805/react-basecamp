@@ -83,7 +83,7 @@ jobs:
           CI: true
           BASE_URL: ${{ inputs.base-url }}
 
-      - name: Upload test results
+      - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -91,10 +91,10 @@ jobs:
           path: ${{ inputs.working-directory }}/playwright-report/
           retention-days: 7
 
-      - name: Upload test traces (on failure)
-        if: failure()
+      - name: Upload test results (traces, screenshots, videos)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-traces${{ inputs.shard && format('-{0}', inputs.shard) || '' }}
-          path: ${{ inputs.working-directory }}/test-results/
+          name: playwright-results${{ inputs.shard && format('-{0}', inputs.shard) || '' }}
+          path: ${{ inputs.working-directory }}/playwright-results/
           retention-days: 7

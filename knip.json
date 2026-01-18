@@ -8,13 +8,7 @@
     "**/*.d.ts",
     "e2e/**/*"
   ],
-  "ignoreDependencies": [
-    "@types/*",
-    "@testing-library/*",
-    "@vitejs/*",
-    "@vitest/*",
-    "@playwright/*"
-  ],
+  "ignoreDependencies": ["lint-staged", "madge", "jscpd"],
   "next": {
     "entry": ["src/app/**/page.tsx", "src/app/**/layout.tsx"]
   }
