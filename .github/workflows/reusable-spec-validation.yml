@@ -1,0 +1,190 @@
+name: Spec Validation
+
+on:
+  workflow_call:
+    inputs:
+      specs-directory:
+        description: 'Directory containing spec files'
+        type: string
+        default: 'specs/'
+      require-spec-for-features:
+        description: 'Require specs for feature branches'
+        type: boolean
+        default: true
+      spec-template-path:
+        description: 'Path to spec template for validation'
+        type: string
+        default: ''
+      feature-branch-pattern:
+        description: 'Regex pattern for feature branch names'
+        type: string
+        default: '^(feature|feat)/'
+
+jobs:
+  validate-specs:
+    name: Validate Specs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if feature branch
+        id: branch-check
+        run: |
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+          if echo "$BRANCH" | grep -qE '${{ inputs.feature-branch-pattern }}'; then
+            echo "is_feature=true" >> $GITHUB_OUTPUT
+            echo "This is a feature branch: $BRANCH"
+          else
+            echo "is_feature=false" >> $GITHUB_OUTPUT
+            echo "Not a feature branch: $BRANCH"
+          fi
+
+      - name: Find related spec
+        id: find-spec
+        run: |
+          BRANCH="${{ steps.branch-check.outputs.branch }}"
+          SPECS_DIR="${{ inputs.specs-directory }}"
+
+          # Extract feature name from branch (e.g., feature/user-auth -> user-auth)
+          FEATURE_NAME=$(echo "$BRANCH" | sed -E 's/^(feature|feat)\///' | sed 's/\//-/g')
+
+          echo "Looking for spec related to: $FEATURE_NAME"
+
+          # Search for matching spec file
+          SPEC_FILE=""
+          if [ -d "$SPECS_DIR" ]; then
+            SPEC_FILE=$(find "$SPECS_DIR" -name "*.md" -type f | xargs grep -l -i "$FEATURE_NAME" 2>/dev/null | head -1)
+
+            if [ -z "$SPEC_FILE" ]; then
+              # Try partial match on filename
+              SPEC_FILE=$(find "$SPECS_DIR" -name "*${FEATURE_NAME}*" -type f 2>/dev/null | head -1)
+            fi
+          fi
+
+          if [ -n "$SPEC_FILE" ]; then
+            echo "Found spec: $SPEC_FILE"
+            echo "spec_found=true" >> $GITHUB_OUTPUT
+            echo "spec_file=$SPEC_FILE" >> $GITHUB_OUTPUT
+          else
+            echo "No spec found for feature: $FEATURE_NAME"
+            echo "spec_found=false" >> $GITHUB_OUTPUT
+            echo "spec_file=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate spec format
+        if: steps.find-spec.outputs.spec_found == 'true'
+        id: validate-spec
+        run: |
+          SPEC_FILE="${{ steps.find-spec.outputs.spec_file }}"
+          ERRORS=""
+          WARNINGS=""
+
+          echo "Validating spec: $SPEC_FILE"
+
+          # Check for required sections
+          REQUIRED_SECTIONS=("Goal" "User Stories" "Success Criteria" "Technical Constraints" "Out of Scope")
+
+          for section in "${REQUIRED_SECTIONS[@]}"; do
+            if ! grep -qi "^##.*$section" "$SPEC_FILE"; then
+              ERRORS="$ERRORS\n- Missing required section: $section"
+            fi
+          done
+
+          # Check for optional but recommended sections
+          RECOMMENDED_SECTIONS=("Dependencies" "Risks")
+          for section in "${RECOMMENDED_SECTIONS[@]}"; do
+            if ! grep -qi "^##.*$section" "$SPEC_FILE"; then
+              WARNINGS="$WARNINGS\n- Consider adding section: $section"
+            fi
+          done
+
+          # Check for success criteria checkboxes
+          if ! grep -qE '^\s*-\s*\[[ x]\]' "$SPEC_FILE"; then
+            WARNINGS="$WARNINGS\n- Success criteria should use checkboxes (- [ ] or - [x])"
+          fi
+
+          if [ -n "$ERRORS" ]; then
+            echo "valid=false" >> $GITHUB_OUTPUT
+            echo "errors<<EOF" >> $GITHUB_OUTPUT
+            echo -e "$ERRORS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "valid=true" >> $GITHUB_OUTPUT
+            echo "errors=" >> $GITHUB_OUTPUT
+          fi
+
+          echo "warnings<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$WARNINGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post validation results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const isFeature = '${{ steps.branch-check.outputs.is_feature }}' === 'true';
+            const specFound = '${{ steps.find-spec.outputs.spec_found }}' === 'true';
+            const specFile = '${{ steps.find-spec.outputs.spec_file }}';
+            const specValid = '${{ steps.validate-spec.outputs.valid }}' === 'true';
+            const errors = `${{ steps.validate-spec.outputs.errors }}`;
+            const warnings = `${{ steps.validate-spec.outputs.warnings }}`;
+            const requireSpec = '${{ inputs.require-spec-for-features }}' === 'true';
+
+            let body = '## 📋 Spec Validation\n\n';
+
+            if (!isFeature) {
+              body += '✅ Not a feature branch - spec not required.\n';
+            } else if (specFound) {
+              body += `✅ Found spec: \`${specFile}\`\n\n`;
+
+              if (specValid) {
+                body += '✅ Spec format is valid.\n';
+              } else {
+                body += '❌ Spec format issues:\n' + errors + '\n';
+              }
+
+              if (warnings) {
+                body += '\n⚠️ Suggestions:\n' + warnings + '\n';
+              }
+            } else {
+              if (requireSpec) {
+                body += '❌ No spec found for this feature branch.\n\n';
+                body += 'Please create a spec file in `${{ inputs.specs-directory }}` before merging.\n';
+              } else {
+                body += '⚠️ No spec found for this feature branch.\n\n';
+                body += 'Consider creating a spec file in `${{ inputs.specs-directory }}`.\n';
+              }
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+      - name: Fail if spec required but missing
+        if: |
+          inputs.require-spec-for-features &&
+          steps.branch-check.outputs.is_feature == 'true' &&
+          steps.find-spec.outputs.spec_found == 'false'
+        run: |
+          echo "::error::Feature branch requires a spec file"
+          exit 1
+
+      - name: Fail if spec invalid
+        if: |
+          steps.find-spec.outputs.spec_found == 'true' &&
+          steps.validate-spec.outputs.valid == 'false'
+        run: |
+          echo "::error::Spec file has format issues"
+          exit 1

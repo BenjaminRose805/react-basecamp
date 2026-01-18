@@ -1,0 +1,88 @@
+name: Security Checks
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        type: string
+        default: '20'
+      working-directory:
+        description: 'Working directory for checks'
+        type: string
+        default: '.'
+      run-npm-audit:
+        description: 'Run npm audit for vulnerabilities'
+        type: boolean
+        default: true
+      run-gitleaks:
+        description: 'Run Gitleaks for secrets detection'
+        type: boolean
+        default: true
+      run-package-check:
+        description: 'Verify all packages exist in npm registry'
+        type: boolean
+        default: true
+      audit-level:
+        description: 'Minimum severity level to fail (low, moderate, high, critical)'
+        type: string
+        default: 'moderate'
+
+jobs:
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run npm audit
+        if: inputs.run-npm-audit
+        run: pnpm audit --audit-level=${{ inputs.audit-level }}
+        continue-on-error: true
+
+      - name: Run Gitleaks
+        if: inputs.run-gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run package existence check
+        if: inputs.run-package-check
+        run: pnpm quality-check packages
+
+      - name: Check for lockfile integrity
+        run: |
+          echo "Verifying lockfile integrity..."
+          pnpm install --frozen-lockfile --ignore-scripts
+          if ! git diff --exit-code pnpm-lock.yaml; then
+            echo "::error::Lockfile is out of sync with package.json"
+            exit 1
+          fi
+          echo "Lockfile integrity verified!"
+
+      - name: Dependency review (PR only)
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: ${{ inputs.audit-level }}

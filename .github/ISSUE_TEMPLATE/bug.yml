@@ -1,0 +1,57 @@
+name: Bug Report
+description: Report a bug (no spec needed for clear bugs)
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report
+
+        Bugs with clear reproduction steps don't need a spec.
+        For complex bugs affecting multiple systems, consider creating a spec.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What's the bug?
+      placeholder: When I click X, Y happens instead of Z.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this?
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, relevant versions
+      placeholder: |
+        - Browser: Chrome 120
+        - OS: macOS 14.2
+        - Node: 20.x
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Screenshots, error messages, logs

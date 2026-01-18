@@ -1,0 +1,119 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        type: string
+        default: '20'
+      working-directory:
+        description: 'Working directory for build'
+        type: string
+        default: '.'
+      build-command:
+        description: 'Command to run the build'
+        type: string
+        default: 'pnpm build'
+      run-lighthouse:
+        description: 'Run Lighthouse audit after build'
+        type: boolean
+        default: false
+      lighthouse-url:
+        description: 'URL to audit with Lighthouse'
+        type: string
+        default: ''
+      upload-build:
+        description: 'Upload build output as artifact'
+        type: boolean
+        default: false
+      build-output-path:
+        description: 'Path to build output for artifact upload'
+        type: string
+        default: '.next'
+
+jobs:
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run production build
+        run: ${{ inputs.build-command }}
+        env:
+          NODE_ENV: production
+
+      - name: Analyze bundle size
+        run: |
+          echo "## Bundle Analysis" >> $GITHUB_STEP_SUMMARY
+
+          if [ -d ".next" ]; then
+            # Next.js build analysis
+            echo "### Next.js Build Output" >> $GITHUB_STEP_SUMMARY
+
+            if [ -f ".next/build-manifest.json" ]; then
+              echo "Build manifest found" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            # Show page sizes if available
+            if [ -d ".next/server/pages" ]; then
+              echo "#### Server Pages" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              find .next/server/pages -name "*.js" -exec du -h {} \; | sort -h >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+            fi
+
+            # Show static chunks
+            if [ -d ".next/static/chunks" ]; then
+              echo "#### Static Chunks (Top 10)" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              find .next/static/chunks -name "*.js" -exec du -h {} \; | sort -rh | head -10 >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+
+              TOTAL_SIZE=$(find .next/static/chunks -name "*.js" -exec du -cb {} \; | tail -1 | cut -f1)
+              TOTAL_MB=$(echo "scale=2; $TOTAL_SIZE / 1048576" | bc)
+              echo "**Total JS bundle size: ${TOTAL_MB} MB**" >> $GITHUB_STEP_SUMMARY
+            fi
+          elif [ -d "dist" ]; then
+            # Generic dist folder analysis
+            echo "### Build Output (dist/)" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            du -sh dist/* 2>/dev/null | sort -rh | head -20 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Run Lighthouse audit
+        if: inputs.run-lighthouse && inputs.lighthouse-url != ''
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: ${{ inputs.lighthouse-url }}
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Upload build artifact
+        if: inputs.upload-build
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: ${{ inputs.working-directory }}/${{ inputs.build-output-path }}
+          retention-days: 7

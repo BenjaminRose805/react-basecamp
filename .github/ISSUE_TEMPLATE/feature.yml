@@ -1,0 +1,65 @@
+name: Feature Request
+description: Propose a new feature with a specification
+title: "[Feature]: "
+labels: ["enhancement", "needs-spec"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+
+        Before submitting, check if a spec already exists in `specs/`.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What are we building and why? (1-2 sentences)
+      placeholder: Allow users to... so that they can...
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-stories
+    attributes:
+      label: User Stories
+      description: Who uses this and how?
+      placeholder: |
+        - As a [role], I can [action] so that [benefit].
+        - As a [role], I can [action] so that [benefit].
+    validations:
+      required: true
+
+  - type: textarea
+    id: success-criteria
+    attributes:
+      label: Success Criteria
+      description: How do we know it's done? (measurable criteria)
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      description: What are we explicitly NOT building?
+      placeholder: |
+        - Feature X (will be a separate issue)
+        - Edge case Y (not needed for MVP)
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other context, mockups, or references?
+
+  - type: checkboxes
+    id: spec-checklist
+    attributes:
+      label: Spec Checklist
+      options:
+        - label: I have checked that no existing spec covers this feature
+        - label: I am willing to create a detailed spec in `specs/` before implementation

@@ -1,0 +1,95 @@
+name: Tests
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        type: string
+        default: '20'
+      working-directory:
+        description: 'Working directory for tests'
+        type: string
+        default: '.'
+      coverage-threshold-lines:
+        description: 'Minimum line coverage percentage'
+        type: number
+        default: 70
+      coverage-threshold-branches:
+        description: 'Minimum branch coverage percentage'
+        type: number
+        default: 60
+      test-command:
+        description: 'Command to run tests'
+        type: string
+        default: 'pnpm test'
+      upload-coverage:
+        description: 'Upload coverage report as artifact'
+        type: boolean
+        default: true
+
+jobs:
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: ${{ inputs.test-command }} -- --coverage
+        env:
+          CI: true
+
+      - name: Check coverage thresholds
+        run: |
+          echo "Checking coverage thresholds..."
+          echo "Required: ${{ inputs.coverage-threshold-lines }}% lines, ${{ inputs.coverage-threshold-branches }}% branches"
+
+          # Parse coverage from coverage-summary.json if it exists
+          if [ -f coverage/coverage-summary.json ]; then
+            LINES=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+            BRANCHES=$(jq '.total.branches.pct' coverage/coverage-summary.json)
+
+            echo "Actual: ${LINES}% lines, ${BRANCHES}% branches"
+
+            if (( $(echo "$LINES < ${{ inputs.coverage-threshold-lines }}" | bc -l) )); then
+              echo "::error::Line coverage ${LINES}% is below threshold ${{ inputs.coverage-threshold-lines }}%"
+              exit 1
+            fi
+
+            if (( $(echo "$BRANCHES < ${{ inputs.coverage-threshold-branches }}" | bc -l) )); then
+              echo "::error::Branch coverage ${BRANCHES}% is below threshold ${{ inputs.coverage-threshold-branches }}%"
+              exit 1
+            fi
+
+            echo "Coverage thresholds met!"
+          else
+            echo "::warning::No coverage-summary.json found, skipping threshold check"
+          fi
+
+      - name: Upload coverage report
+        if: inputs.upload-coverage && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ${{ inputs.working-directory }}/coverage/
+          retention-days: 7

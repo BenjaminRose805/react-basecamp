@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Pre-commit hook: Runs quality checks on staged files
+
+# Exit on error
+set -e
+
+echo "Running pre-commit checks..."
+
+# 1. Run lint-staged (ESLint + Prettier on staged files)
+echo "  Running lint-staged..."
+npx lint-staged
+
+# 2. Run secrets scan on staged files (if gitleaks is installed)
+if command -v gitleaks >/dev/null 2>&1; then
+  echo "  Running secrets scan..."
+  gitleaks protect --staged --no-banner
+else
+  echo "  Skipping secrets scan (gitleaks not installed)"
+fi
+
+echo "Pre-commit checks passed!"

@@ -1,0 +1,149 @@
+name: AI Code Review
+
+on:
+  workflow_call:
+    inputs:
+      review-scope:
+        description: 'Scope of review (changed-files or full-pr)'
+        type: string
+        default: 'changed-files'
+      block-on-critical:
+        description: 'Block merge if critical issues found'
+        type: boolean
+        default: false
+      custom-rules-path:
+        description: 'Path to CLAUDE.md or custom rules file'
+        type: string
+        default: 'CLAUDE.md'
+      model:
+        description: 'Claude model to use'
+        type: string
+        default: 'claude-sonnet-4-20250514'
+      max-files:
+        description: 'Maximum number of files to review'
+        type: number
+        default: 20
+    secrets:
+      ANTHROPIC_API_KEY:
+        description: 'Anthropic API key for Claude'
+        required: true
+
+jobs:
+  ai-review:
+    name: AI Code Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE=${{ github.event.pull_request.base.sha }}
+            HEAD=${{ github.event.pull_request.head.sha }}
+          else
+            BASE=${{ github.event.before }}
+            HEAD=${{ github.sha }}
+          fi
+
+          # Get changed files, filter to code files, limit count
+          CHANGED=$(git diff --name-only $BASE $HEAD | \
+            grep -E '\.(ts|tsx|js|jsx|json|md)$' | \
+            head -n ${{ inputs.max-files }} | \
+            tr '\n' ' ')
+
+          echo "files=$CHANGED" >> $GITHUB_OUTPUT
+          echo "Changed files: $CHANGED"
+
+      - name: Read custom rules
+        id: rules
+        run: |
+          if [ -f "${{ inputs.custom-rules-path }}" ]; then
+            echo "Found custom rules at ${{ inputs.custom-rules-path }}"
+            RULES=$(cat "${{ inputs.custom-rules-path }}" | head -c 4000)
+            echo "rules<<EOF" >> $GITHUB_OUTPUT
+            echo "$RULES" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "No custom rules file found"
+            echo "rules=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run AI review
+        id: review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          CHANGED_FILES="${{ steps.changed-files.outputs.files }}"
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No code files changed, skipping review"
+            echo "review=No code files to review." >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Build the review prompt
+          PROMPT="You are reviewing a pull request. Review the following changed files for:
+          1. Code quality issues (complexity, readability, maintainability)
+          2. Potential bugs or logic errors
+          3. Security vulnerabilities
+          4. Performance concerns
+          5. Best practices violations
+
+          ${{ steps.rules.outputs.rules && format('Apply these project-specific rules:\n{0}\n', steps.rules.outputs.rules) || '' }}
+
+          For each issue found, indicate severity (critical, warning, suggestion).
+          Format your response as a concise list of findings.
+          If no issues are found, say 'No issues found.'
+
+          Changed files to review:
+          $CHANGED_FILES"
+
+          # Create a temporary file with the diff content
+          git diff ${{ github.event.pull_request.base.sha || github.event.before }}..${{ github.event.pull_request.head.sha || github.sha }} > /tmp/diff.txt
+
+          # Run Claude review (simplified - in production would use proper CLI)
+          REVIEW_OUTPUT=$(cat /tmp/diff.txt | head -c 50000 | claude --print --model ${{ inputs.model }} "$PROMPT" 2>&1 || echo "Review completed with warnings")
+
+          # Save output
+          echo "review<<EOF" >> $GITHUB_OUTPUT
+          echo "$REVIEW_OUTPUT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post review comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const review = `${{ steps.review.outputs.review }}`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🤖 AI Code Review\n\n${review}\n\n---\n*Powered by Claude*`
+            });
+
+      - name: Check for critical issues
+        if: inputs.block-on-critical
+        run: |
+          REVIEW="${{ steps.review.outputs.review }}"
+          if echo "$REVIEW" | grep -qi "critical"; then
+            echo "::error::Critical issues found in AI review"
+            exit 1
+          fi

@@ -1,0 +1,82 @@
+name: Quality Checks
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        type: string
+        default: '20'
+      working-directory:
+        description: 'Working directory for the checks'
+        type: string
+        default: '.'
+      run-lint:
+        description: 'Run ESLint'
+        type: boolean
+        default: true
+      run-typecheck:
+        description: 'Run TypeScript type checking'
+        type: boolean
+        default: true
+      run-dead-code:
+        description: 'Run dead code detection (Knip)'
+        type: boolean
+        default: true
+      run-duplicates:
+        description: 'Run duplicate code detection (jscpd)'
+        type: boolean
+        default: true
+      run-dead-ui:
+        description: 'Run dead UI detection'
+        type: boolean
+        default: true
+
+jobs:
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        if: inputs.run-lint
+        run: pnpm lint
+
+      - name: Run TypeScript type check
+        if: inputs.run-typecheck
+        run: pnpm typecheck
+
+      - name: Run dead code detection
+        if: inputs.run-dead-code
+        run: pnpm quality-check dead-code
+        continue-on-error: true
+
+      - name: Run duplicate code detection
+        if: inputs.run-duplicates
+        run: pnpm quality-check duplicates
+        continue-on-error: true
+
+      - name: Run dead UI detection
+        if: inputs.run-dead-ui
+        run: pnpm quality-check dead-ui
+        continue-on-error: true

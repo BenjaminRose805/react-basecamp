@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Pre-push hook: Runs comprehensive checks before pushing
+
+# Exit on error
+set -e
+
+echo "Running pre-push checks..."
+
+# 1. Block direct pushes to main/master
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+PROTECTED_BRANCHES="main master"
+
+for branch in $PROTECTED_BRANCHES; do
+  if [ "$CURRENT_BRANCH" = "$branch" ]; then
+    echo "Error: Direct pushes to '$branch' are not allowed."
+    echo "Please create a feature branch and open a pull request."
+    exit 1
+  fi
+done
+
+# 2. Run typecheck
+echo "  Running typecheck..."
+pnpm run typecheck
+
+# 3. Run tests
+echo "  Running tests..."
+pnpm run test:run
+
+echo "Pre-push checks passed!"

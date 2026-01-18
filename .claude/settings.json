@@ -1,0 +1,39 @@
+{
+  "$schema": "https://claude.ai/schemas/settings.json",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "event": "Edit",
+        "pattern": "\\.(ts|tsx)$",
+        "command": "npx tsc --noEmit --pretty",
+        "description": "Type-check after editing TypeScript files"
+      },
+      {
+        "event": "Edit",
+        "pattern": "\\.(ts|tsx|js|jsx)$",
+        "command": "npx eslint --fix \"$CLAUDE_FILE\"",
+        "description": "Lint and fix after editing JS/TS files"
+      },
+      {
+        "event": "Edit",
+        "pattern": "\\.(ts|tsx|js|jsx|json|css|scss|md)$",
+        "command": "npx prettier --write \"$CLAUDE_FILE\"",
+        "description": "Format after editing supported files"
+      },
+      {
+        "event": "Edit",
+        "pattern": "src/.*\\.(ts|tsx)$",
+        "command": "npx vitest related \"$CLAUDE_FILE\" --run --passWithNoTests",
+        "description": "Run related tests after editing source files"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "event": "Bash",
+        "pattern": "^git commit",
+        "command": "pnpm run lint && pnpm run typecheck",
+        "description": "Run lint and typecheck before committing"
+      }
+    ]
+  }
+}
