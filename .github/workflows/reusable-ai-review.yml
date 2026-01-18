@@ -4,28 +4,28 @@ on:
   workflow_call:
     inputs:
       review-scope:
-        description: 'Scope of review (changed-files or full-pr)'
+        description: "Scope of review (changed-files or full-pr)"
         type: string
-        default: 'changed-files'
+        default: "changed-files"
       block-on-critical:
-        description: 'Block merge if critical issues found'
+        description: "Block merge if critical issues found"
         type: boolean
         default: false
       custom-rules-path:
-        description: 'Path to CLAUDE.md or custom rules file'
+        description: "Path to CLAUDE.md or custom rules file"
         type: string
-        default: 'CLAUDE.md'
+        default: "CLAUDE.md"
       model:
-        description: 'Claude model to use'
+        description: "Claude model to use (sonnet, opus, or full model name)"
         type: string
-        default: 'claude-sonnet-4-20250514'
+        default: "sonnet"
       max-files:
-        description: 'Maximum number of files to review'
+        description: "Maximum number of files to review"
         type: number
         default: 20
     secrets:
       ANTHROPIC_API_KEY:
-        description: 'Anthropic API key for Claude'
+        description: "Anthropic API key for Claude"
         required: true
 
 jobs:
@@ -42,13 +42,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+        run: pnpm add -g @anthropic-ai/claude-code
 
       - name: Get changed files
         id: changed-files
@@ -117,8 +121,16 @@ jobs:
           # Create a temporary file with the diff content
           git diff ${{ github.event.pull_request.base.sha || github.event.before }}..${{ github.event.pull_request.head.sha || github.sha }} > /tmp/diff.txt
 
-          # Run Claude review (simplified - in production would use proper CLI)
-          REVIEW_OUTPUT=$(cat /tmp/diff.txt | head -c 50000 | claude --print --model ${{ inputs.model }} "$PROMPT" 2>&1 || echo "Review completed with warnings")
+          # Run Claude review
+          set +e
+          REVIEW_OUTPUT=$(cat /tmp/diff.txt | head -c 50000 | claude --print --model ${{ inputs.model }} "$PROMPT" 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Claude review failed with exit code $EXIT_CODE"
+            REVIEW_OUTPUT="⚠️ AI review could not be completed. Error: $REVIEW_OUTPUT"
+          fi
 
           # Save output
           echo "review<<EOF" >> $GITHUB_OUTPUT

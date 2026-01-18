@@ -4,28 +4,28 @@ on:
   workflow_call:
     inputs:
       include-test-plan:
-        description: 'Include test plan in description'
+        description: "Include test plan in description"
         type: boolean
         default: true
       link-to-specs:
-        description: 'Link to related spec files'
+        description: "Link to related spec files"
         type: boolean
         default: true
       max-length:
-        description: 'Maximum length of generated description'
+        description: "Maximum length of generated description"
         type: number
         default: 1000
       specs-directory:
-        description: 'Directory containing spec files'
+        description: "Directory containing spec files"
         type: string
-        default: 'specs/'
+        default: "specs/"
       model:
-        description: 'Claude model to use'
+        description: "Claude model to use (sonnet, opus, or full model name)"
         type: string
-        default: 'claude-sonnet-4-20250514'
+        default: "sonnet"
     secrets:
       ANTHROPIC_API_KEY:
-        description: 'Anthropic API key for Claude'
+        description: "Anthropic API key for Claude"
         required: true
 
 jobs:
@@ -42,13 +42,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+        run: pnpm add -g @anthropic-ai/claude-code
 
       - name: Get PR information
         id: pr-info
@@ -129,7 +133,15 @@ jobs:
           Keep it concise and focused on the 'what' and 'why'."
 
           # Generate with Claude
-          DESCRIPTION=$(echo "$PROMPT" | claude --print --model ${{ inputs.model }} 2>&1 || echo "Unable to generate description")
+          set +e
+          DESCRIPTION=$(echo "$PROMPT" | claude --print --model ${{ inputs.model }} 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Claude description generation failed with exit code $EXIT_CODE"
+            DESCRIPTION="⚠️ AI description could not be generated. Please write manually."
+          fi
 
           # Truncate if needed
           DESCRIPTION=$(echo "$DESCRIPTION" | head -c ${{ inputs.max-length }})

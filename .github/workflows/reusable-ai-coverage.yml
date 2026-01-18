@@ -4,28 +4,28 @@ on:
   workflow_call:
     inputs:
       coverage-report-path:
-        description: 'Path to coverage report (lcov.info)'
+        description: "Path to coverage report (lcov.info)"
         type: string
-        default: 'coverage/lcov.info'
+        default: "coverage/lcov.info"
       suggest-tests:
-        description: 'Generate test suggestions for uncovered code'
+        description: "Generate test suggestions for uncovered code"
         type: boolean
         default: true
       max-suggestions:
-        description: 'Maximum number of test suggestions'
+        description: "Maximum number of test suggestions"
         type: number
         default: 5
       working-directory:
-        description: 'Working directory'
+        description: "Working directory"
         type: string
-        default: '.'
+        default: "."
       model:
-        description: 'Claude model to use'
+        description: "Claude model to use (sonnet, opus, or full model name)"
         type: string
-        default: 'claude-sonnet-4-20250514'
+        default: "sonnet"
     secrets:
       ANTHROPIC_API_KEY:
-        description: 'Anthropic API key for Claude'
+        description: "Anthropic API key for Claude"
         required: true
 
 jobs:
@@ -42,10 +42,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Download coverage artifact
         uses: actions/download-artifact@v4
@@ -55,7 +59,7 @@ jobs:
         continue-on-error: true
 
       - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+        run: pnpm add -g @anthropic-ai/claude-code
 
       - name: Parse coverage report
         id: parse-coverage
@@ -162,7 +166,15 @@ jobs:
 
           Format as a numbered list. Focus on the most impactful tests."
 
-          SUGGESTIONS=$(echo "$PROMPT" | claude --print --model ${{ inputs.model }} 2>&1 | head -c 2000 || echo "Unable to generate suggestions")
+          set +e
+          SUGGESTIONS=$(echo "$PROMPT" | claude --print --model ${{ inputs.model }} 2>&1 | head -c 2000)
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Claude coverage analysis failed with exit code $EXIT_CODE"
+            SUGGESTIONS="⚠️ AI test suggestions could not be generated."
+          fi
 
           echo "suggestions<<EOF" >> $GITHUB_OUTPUT
           echo "$SUGGESTIONS" >> $GITHUB_OUTPUT

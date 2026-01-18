@@ -4,32 +4,32 @@ on:
   workflow_call:
     inputs:
       version:
-        description: 'Version for the release'
+        description: "Version for the release"
         type: string
         required: true
       include-specs:
-        description: 'Include links to related specs'
+        description: "Include links to related specs"
         type: boolean
         default: true
       group-by-type:
-        description: 'Group changes by type (feat, fix, etc.)'
+        description: "Group changes by type (feat, fix, etc.)"
         type: boolean
         default: true
       create-release:
-        description: 'Create GitHub release with changelog'
+        description: "Create GitHub release with changelog"
         type: boolean
         default: false
       specs-directory:
-        description: 'Directory containing spec files'
+        description: "Directory containing spec files"
         type: string
-        default: 'specs/'
+        default: "specs/"
       model:
-        description: 'Claude model to use'
+        description: "Claude model to use (sonnet, opus, or full model name)"
         type: string
-        default: 'claude-sonnet-4-20250514'
+        default: "sonnet"
     secrets:
       ANTHROPIC_API_KEY:
-        description: 'Anthropic API key for Claude'
+        description: "Anthropic API key for Claude"
         required: true
 
 jobs:
@@ -45,13 +45,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+        run: pnpm add -g @anthropic-ai/claude-code
 
       - name: Get commits since last tag
         id: commits
@@ -135,7 +139,15 @@ jobs:
 
           Make the descriptions user-friendly and focus on impact, not implementation details."
 
-          CHANGELOG=$(echo "$PROMPT" | claude --print --model ${{ inputs.model }} 2>&1 | head -c 4000 || echo "Unable to generate changelog")
+          set +e
+          CHANGELOG=$(echo "$PROMPT" | claude --print --model ${{ inputs.model }} 2>&1 | head -c 4000)
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Claude changelog generation failed with exit code $EXIT_CODE"
+            CHANGELOG="⚠️ AI changelog could not be generated. Please write manually."
+          fi
 
           # Add specs section if available
           if [ -n "$SPECS" ] && [ "${{ inputs.include-specs }}" = "true" ]; then
