@@ -1,28 +1,29 @@
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import path from "path";
+
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
   test: {
     // Environment
-    environment: 'jsdom',
+    environment: "jsdom",
     globals: true,
 
     // Setup files
-    setupFiles: ['./vitest.setup.ts'],
+    setupFiles: ["./vitest.setup.ts"],
 
     // Include patterns
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
 
     // Exclude patterns
-    exclude: ['node_modules', 'dist', '.next', 'e2e'],
+    exclude: ["node_modules", "dist", ".next", "e2e"],
 
     // Coverage configuration
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      reportsDirectory: './coverage',
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      reportsDirectory: "./coverage",
 
       // Coverage thresholds
       thresholds: {
@@ -33,24 +34,20 @@ export default defineConfig({
       },
 
       // Files to include in coverage
-      include: ['src/**/*.{ts,tsx}'],
+      include: ["src/**/*.{ts,tsx}"],
 
       // Files to exclude from coverage
       exclude: [
-        'src/**/*.d.ts',
-        'src/**/*.test.{ts,tsx}',
-        'src/**/*.spec.{ts,tsx}',
-        'src/**/index.ts',
-        'src/**/*.stories.{ts,tsx}',
+        "src/**/*.d.ts",
+        "src/**/*.test.{ts,tsx}",
+        "src/**/*.spec.{ts,tsx}",
+        "src/**/index.ts",
+        "src/**/*.stories.{ts,tsx}",
       ],
     },
 
     // Reporter configuration
-    reporters: ['default'],
-
-    // Watch mode configuration
-    watch: true,
-    watchExclude: ['node_modules', 'dist', '.next'],
+    reporters: ["default"],
 
     // Timeout for tests (ms)
     testTimeout: 10000,
@@ -63,7 +60,7 @@ export default defineConfig({
   // Path aliases (matches tsconfig paths)
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });

@@ -1,34 +1,38 @@
-import { Button } from '@/components/ui/Button';
+import { Button } from "@/components/ui/Button";
+
+const features = [
+  "Next.js 15 with App Router",
+  "TypeScript with strict mode",
+  "ESLint + Prettier pre-configured",
+  "Vitest for unit testing",
+  "Playwright for E2E testing",
+  "Husky git hooks",
+  "Claude Code integration",
+];
 
 export default function HomePage() {
   return (
     <main className="container">
       <h1>Welcome to My App</h1>
       <p>
-        This project is configured with{' '}
+        This project uses{" "}
         <a
           href="https://github.com/benjaminrose/react-basecamp"
           target="_blank"
           rel="noopener noreferrer"
         >
           react-basecamp
-        </a>{' '}
+        </a>{" "}
         tooling.
       </p>
-
       <section>
         <h2>Features</h2>
         <ul>
-          <li>Next.js 15 with App Router</li>
-          <li>TypeScript with strict mode</li>
-          <li>ESLint + Prettier pre-configured</li>
-          <li>Vitest for unit testing</li>
-          <li>Playwright for E2E testing</li>
-          <li>Husky git hooks</li>
-          <li>Claude Code integration</li>
+          {features.map((feature) => (
+            <li key={feature}>{feature}</li>
+          ))}
         </ul>
       </section>
-
       <section>
         <h2>Example Component</h2>
         <Button>Click me</Button>

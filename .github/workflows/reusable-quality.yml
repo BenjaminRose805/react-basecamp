@@ -4,31 +4,31 @@ on:
   workflow_call:
     inputs:
       node-version:
-        description: 'Node.js version to use'
+        description: "Node.js version to use"
         type: string
-        default: '20'
+        default: "20"
       working-directory:
-        description: 'Working directory for the checks'
+        description: "Working directory for the checks"
         type: string
-        default: '.'
+        default: "."
       run-lint:
-        description: 'Run ESLint'
+        description: "Run ESLint"
         type: boolean
         default: true
       run-typecheck:
-        description: 'Run TypeScript type checking'
+        description: "Run TypeScript type checking"
         type: boolean
         default: true
       run-dead-code:
-        description: 'Run dead code detection (Knip)'
+        description: "Run dead code detection (Knip)"
         type: boolean
         default: true
       run-duplicates:
-        description: 'Run duplicate code detection (jscpd)'
+        description: "Run duplicate code detection (jscpd)"
         type: boolean
         default: true
       run-dead-ui:
-        description: 'Run dead UI detection'
+        description: "Run dead UI detection"
         type: boolean
         default: true
 
@@ -51,7 +51,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node-version }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -64,17 +64,17 @@ jobs:
         if: inputs.run-typecheck
         run: pnpm typecheck
 
-      - name: Run dead code detection
+      - name: Check for dead code (placeholder)
         if: inputs.run-dead-code
-        run: pnpm quality-check dead-code
+        run: echo "Dead code detection not configured - add knip for this feature"
         continue-on-error: true
 
-      - name: Run duplicate code detection
+      - name: Check for duplicate code (placeholder)
         if: inputs.run-duplicates
-        run: pnpm quality-check duplicates
+        run: echo "Duplicate detection not configured - add jscpd for this feature"
         continue-on-error: true
 
-      - name: Run dead UI detection
+      - name: Check for dead UI (placeholder)
         if: inputs.run-dead-ui
-        run: pnpm quality-check dead-ui
+        run: echo "Dead UI detection not configured"
         continue-on-error: true

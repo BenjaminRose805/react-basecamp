@@ -1,6 +1,6 @@
-import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
-import { afterEach, vi } from 'vitest';
+import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach, vi } from "vitest";
 
 // Cleanup after each test
 afterEach(() => {
@@ -8,7 +8,7 @@ afterEach(() => {
 });
 
 // Mock window.matchMedia (required for components using media queries)
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
@@ -25,38 +25,48 @@ Object.defineProperty(window, 'matchMedia', {
 // Mock IntersectionObserver (required for lazy loading, infinite scroll, etc.)
 class MockIntersectionObserver {
   readonly root: Element | null = null;
-  readonly rootMargin: string = '';
+  readonly rootMargin: string = "";
   readonly thresholds: ReadonlyArray<number> = [];
 
-  constructor() {}
-  disconnect(): void {}
-  observe(): void {}
-  unobserve(): void {}
+  disconnect(): void {
+    // Mock implementation - no action needed
+  }
+  observe(): void {
+    // Mock implementation - no action needed
+  }
+  unobserve(): void {
+    // Mock implementation - no action needed
+  }
   takeRecords(): IntersectionObserverEntry[] {
     return [];
   }
 }
 
-Object.defineProperty(window, 'IntersectionObserver', {
+Object.defineProperty(window, "IntersectionObserver", {
   writable: true,
   value: MockIntersectionObserver,
 });
 
 // Mock ResizeObserver (required for components that observe size changes)
 class MockResizeObserver {
-  constructor() {}
-  disconnect(): void {}
-  observe(): void {}
-  unobserve(): void {}
+  disconnect(): void {
+    // Mock implementation - no action needed
+  }
+  observe(): void {
+    // Mock implementation - no action needed
+  }
+  unobserve(): void {
+    // Mock implementation - no action needed
+  }
 }
 
-Object.defineProperty(window, 'ResizeObserver', {
+Object.defineProperty(window, "ResizeObserver", {
   writable: true,
   value: MockResizeObserver,
 });
 
 // Mock scrollTo (prevents errors in components that scroll)
-Object.defineProperty(window, 'scrollTo', {
+Object.defineProperty(window, "scrollTo", {
   writable: true,
   value: vi.fn(),
 });
