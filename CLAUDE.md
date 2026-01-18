@@ -22,6 +22,14 @@ pnpm test:e2e         # Run E2E tests
 pnpm lint             # Run ESLint
 pnpm typecheck        # Run TypeScript checks
 pnpm format           # Format with Prettier
+
+# Quality checks
+pnpm quality          # Run all quality checks
+pnpm quality:dead-code    # Find unused code (Knip)
+pnpm quality:duplicates   # Find duplicate code (jscpd)
+pnpm quality:circular     # Find circular dependencies (Madge)
+pnpm quality:dead-ui      # Find empty handlers, placeholder links
+pnpm quality:packages     # Verify all packages exist in npm
 ```
 
 ## Project Structure

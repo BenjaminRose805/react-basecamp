@@ -27,4 +27,12 @@ pnpm run typecheck
 echo "  Running tests..."
 pnpm run test:run
 
+# 4. Run dead code check
+echo "  Running dead code check..."
+pnpm run quality:dead-code || echo "  Warning: Dead code check found issues (non-blocking)"
+
+# 5. Run circular dependency check
+echo "  Running circular dependency check..."
+pnpm run quality:circular
+
 echo "Pre-push checks passed!"

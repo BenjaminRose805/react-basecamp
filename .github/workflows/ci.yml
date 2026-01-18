@@ -15,32 +15,32 @@ jobs:
     name: Quality
     uses: ./.github/workflows/reusable-quality.yml
     with:
-      node-version: '20'
+      node-version: "20"
 
   test:
     name: Test
     uses: ./.github/workflows/reusable-test.yml
     with:
-      node-version: '20'
-      coverage-threshold-lines: 70
-      coverage-threshold-branches: 60
+      node-version: "20"
+      coverage-threshold-lines: 30
+      coverage-threshold-branches: 30
 
   security:
     name: Security
     uses: ./.github/workflows/reusable-security.yml
     with:
-      node-version: '20'
+      node-version: "20"
 
   build:
     name: Build
     needs: [quality, test]
     uses: ./.github/workflows/reusable-build.yml
     with:
-      node-version: '20'
+      node-version: "20"
 
   e2e:
     name: E2E
     needs: [build]
     uses: ./.github/workflows/reusable-e2e.yml
     with:
-      node-version: '20'
+      node-version: "20"

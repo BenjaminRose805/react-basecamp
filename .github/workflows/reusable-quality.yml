@@ -64,17 +64,21 @@ jobs:
         if: inputs.run-typecheck
         run: pnpm typecheck
 
-      - name: Check for dead code (placeholder)
+      - name: Check for dead code (Knip)
         if: inputs.run-dead-code
-        run: echo "Dead code detection not configured - add knip for this feature"
+        run: pnpm quality:dead-code
         continue-on-error: true
 
-      - name: Check for duplicate code (placeholder)
+      - name: Check for duplicate code (jscpd)
         if: inputs.run-duplicates
-        run: echo "Duplicate detection not configured - add jscpd for this feature"
+        run: pnpm quality:duplicates
         continue-on-error: true
 
-      - name: Check for dead UI (placeholder)
+      - name: Check for dead UI
         if: inputs.run-dead-ui
-        run: echo "Dead UI detection not configured"
+        run: pnpm quality:dead-ui
+        continue-on-error: true
+
+      - name: Check for circular dependencies
+        run: pnpm quality:circular
         continue-on-error: true

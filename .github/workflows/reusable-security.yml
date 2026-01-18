@@ -65,10 +65,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check package integrity
+      - name: Verify packages exist in npm registry
         if: inputs.run-package-check
-        run: echo "Package existence check not configured"
-        continue-on-error: true
+        run: pnpm quality:packages
 
       - name: Check for lockfile integrity
         run: |

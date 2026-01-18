@@ -16,18 +16,24 @@ pnpm dev
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start development server |
-| `pnpm build` | Create production build |
-| `pnpm start` | Start production server |
-| `pnpm test` | Run unit tests (watch mode) |
-| `pnpm test:run` | Run unit tests once |
-| `pnpm test:coverage` | Run tests with coverage |
-| `pnpm test:e2e` | Run E2E tests |
-| `pnpm lint` | Run ESLint |
-| `pnpm typecheck` | Run TypeScript checks |
-| `pnpm format` | Format code with Prettier |
+| Command                   | Description                            |
+| ------------------------- | -------------------------------------- |
+| `pnpm dev`                | Start development server               |
+| `pnpm build`              | Create production build                |
+| `pnpm start`              | Start production server                |
+| `pnpm test`               | Run unit tests (watch mode)            |
+| `pnpm test:run`           | Run unit tests once                    |
+| `pnpm test:coverage`      | Run tests with coverage                |
+| `pnpm test:e2e`           | Run E2E tests                          |
+| `pnpm lint`               | Run ESLint                             |
+| `pnpm typecheck`          | Run TypeScript checks                  |
+| `pnpm format`             | Format code with Prettier              |
+| `pnpm quality`            | Run all quality checks                 |
+| `pnpm quality:dead-code`  | Find unused code (Knip)                |
+| `pnpm quality:duplicates` | Find duplicate code (jscpd)            |
+| `pnpm quality:circular`   | Find circular dependencies (Madge)     |
+| `pnpm quality:dead-ui`    | Find empty handlers, placeholder links |
+| `pnpm quality:packages`   | Verify packages exist in npm registry  |
 
 ## Project Structure
 
@@ -73,13 +79,20 @@ pnpm test:e2e:ui       # Interactive mode
 ### 3. Quality Checks
 
 ```bash
-# Run all checks
-pnpm quality-check
+# Run all quality checks
+pnpm quality
 
 # Individual checks
-pnpm lint              # ESLint
-pnpm typecheck         # TypeScript
-pnpm format:check      # Prettier
+pnpm quality:dead-code     # Find unused code (Knip)
+pnpm quality:duplicates    # Find duplicate code (jscpd)
+pnpm quality:circular      # Find circular dependencies (Madge)
+pnpm quality:dead-ui       # Find empty handlers, placeholder links
+pnpm quality:packages      # Verify packages exist in npm registry
+
+# Code quality
+pnpm lint                  # ESLint
+pnpm typecheck             # TypeScript
+pnpm format:check          # Prettier
 ```
 
 ## Configuration
