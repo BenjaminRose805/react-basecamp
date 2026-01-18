@@ -63,4 +63,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+
+  // Ensure React uses development bundles in tests (required for React 19 + testing-library)
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("test"),
+  },
 });
