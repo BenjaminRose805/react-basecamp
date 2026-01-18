@@ -9,25 +9,15 @@ permissions:
   pull-requests: write
 
 jobs:
-  # AI code review on PRs
-  ai-review:
-    name: AI Code Review
-    uses: ./.github/workflows/reusable-ai-review.yml
-    secrets:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  # AI code review handled by CodeRabbit (GitHub App)
+  # Install at: https://github.com/apps/coderabbitai
 
   # Validate that specs exist for feature PRs
   spec-validation:
     name: Spec Validation
     uses: ./.github/workflows/reusable-spec-validation.yml
     with:
-      specs-directory: 'specs'
+      specs-directory: "specs"
       require-spec-for-features: true
 
-  # Generate PR description from changes
-  pr-description:
-    name: Generate PR Description
-    if: github.event.action == 'opened'
-    uses: ./.github/workflows/reusable-ai-pr-description.yml
-    secrets:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  # PR description generation handled by CodeRabbit (GitHub App)

@@ -1,0 +1,83 @@
+# CodeRabbit Configuration
+# Docs: https://docs.coderabbit.ai/guides/configure-coderabbit
+
+language: en-US
+
+reviews:
+  # Enable auto-review on PRs
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+
+  # Review profile
+  profile: chill
+
+  # Request changes on high severity issues
+  request_changes_workflow: true
+
+  # High-level summary
+  high_level_summary: true
+  high_level_summary_placeholder: "@coderabbitai summary"
+
+  # Review status in PR
+  review_status: true
+
+  # Poem in review (fun touch)
+  poem: false
+
+  # Collapse walkthrough after certain length
+  collapse_walkthrough: true
+
+  # Path-based instructions
+  path_instructions:
+    - path: "src/components/**/*"
+      instructions: |
+        Review React components for:
+        - Proper TypeScript types
+        - Accessibility (a11y) best practices
+        - Component composition patterns
+        - Avoid inline styles, use Tailwind classes
+
+    - path: "src/app/**/*"
+      instructions: |
+        Review Next.js App Router code for:
+        - Proper use of Server vs Client Components
+        - Correct metadata exports
+        - Server Actions security (validate inputs)
+
+    - path: "**/*.test.{ts,tsx}"
+      instructions: |
+        Review tests for:
+        - Meaningful test descriptions
+        - Proper use of testing-library queries
+        - No implementation details in tests
+
+  # Tools to use
+  tools:
+    # Built-in tools
+    shellcheck:
+      enabled: true
+    markdownlint:
+      enabled: true
+    # Language-specific
+    biome:
+      enabled: false
+    eslint:
+      enabled: true
+      config_path: eslint.config.js
+
+chat:
+  # Enable chat interactions
+  auto_reply: true
+
+# Paths to ignore
+path_filters:
+  - "!**/*.lock"
+  - "!**/pnpm-lock.yaml"
+  - "!**/package-lock.json"
+  - "!**/.next/**"
+  - "!**/node_modules/**"
+  - "!**/dist/**"
+  - "!**/*.min.js"

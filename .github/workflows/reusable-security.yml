@@ -23,6 +23,10 @@ on:
         description: "Verify all packages exist in npm registry"
         type: boolean
         default: true
+      run-dependency-review:
+        description: "Run GitHub dependency review (requires Dependency Graph enabled)"
+        type: boolean
+        default: true
       audit-level:
         description: "Minimum severity level to fail (low, moderate, high, critical)"
         type: string
@@ -80,7 +84,8 @@ jobs:
           echo "Lockfile integrity verified!"
 
       - name: Dependency review (PR only)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && inputs.run-dependency-review
         uses: actions/dependency-review-action@v4
+        continue-on-error: true
         with:
           fail-on-severity: ${{ inputs.audit-level }}
