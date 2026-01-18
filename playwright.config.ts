@@ -81,10 +81,13 @@ export default defineConfig({
 
   // Local dev server configuration
   webServer: {
-    command: "pnpm run dev",
+    command: "NODE_ENV=development pnpm run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
+    env: {
+      NODE_ENV: "development",
+    },
   },
 
   // Output directory for test artifacts
