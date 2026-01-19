@@ -23,8 +23,22 @@
     "quality:circular": "node scripts/quality-check.js circular",
     "quality:dead-ui": "node scripts/quality-check.js dead-ui",
     "quality:packages": "node scripts/quality-check.js packages",
-    "prepare": "husky"
+    "prepare": "husky",
+    "size": "size-limit",
+    "size:check": "size-limit"
   },
+  "size-limit": [
+    {
+      "name": "First Load JS (shared)",
+      "path": ".next/static/chunks/main-*.js",
+      "limit": "100 KB"
+    },
+    {
+      "name": "First Load JS (app)",
+      "path": ".next/static/chunks/app/page-*.js",
+      "limit": "50 KB"
+    }
+  ],
   "dependencies": {
     "next": "^15.1.0",
     "react": "^19.0.0",
@@ -60,7 +74,9 @@
     "prettier": "^3.4.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.19.0",
-    "vitest": "^2.1.0"
+    "vitest": "^2.1.0",
+    "@size-limit/preset-app": "^11.0.0",
+    "size-limit": "^11.0.0"
   },
   "packageManager": "pnpm@9.15.0",
   "engines": {

@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   quality:
     name: Quality
@@ -24,6 +27,8 @@ jobs:
       node-version: "20"
       coverage-threshold-lines: 30
       coverage-threshold-branches: 30
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   security:
     name: Security

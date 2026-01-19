@@ -11,11 +11,24 @@ reviews:
     base_branches:
       - main
 
-  # Review profile
-  profile: chill
+  # Paths to ignore
+  path_filters:
+    - "!**/*.lock"
+    - "!**/pnpm-lock.yaml"
+    - "!**/package-lock.json"
+    - "!**/.next/**"
+    - "!**/node_modules/**"
+    - "!**/dist/**"
+    - "!**/*.min.js"
+
+  # Review profile - assertive for thorough feedback
+  profile: assertive
 
   # Request changes on high severity issues
   request_changes_workflow: true
+
+  # Validate PRs against linked issues
+  assess_linked_issues: true
 
   # High-level summary
   high_level_summary: true
@@ -35,26 +48,59 @@ reviews:
     - path: "src/components/**/*"
       instructions: |
         Review React components for:
-        - Proper TypeScript types
-        - Accessibility (a11y) best practices
-        - Component composition patterns
+        - Proper TypeScript types (no `any`, prefer explicit types)
+        - Accessibility (a11y) best practices (ARIA labels, keyboard nav)
+        - Component composition patterns (prefer composition over inheritance)
         - Avoid inline styles, use Tailwind classes
+        - Ensure components are properly memoized when needed
 
     - path: "src/app/**/*"
       instructions: |
         Review Next.js App Router code for:
-        - Proper use of Server vs Client Components
-        - Correct metadata exports
-        - Server Actions security (validate inputs)
+        - Proper use of Server vs Client Components ('use client' directive)
+        - Correct metadata exports for SEO
+        - Server Actions security (validate all inputs, use zod)
+        - Proper error boundaries and loading states
+        - Correct use of route handlers and middleware
 
     - path: "**/*.test.{ts,tsx}"
       instructions: |
-        Review tests for:
-        - Meaningful test descriptions
-        - Proper use of testing-library queries
-        - No implementation details in tests
+        Review unit tests for:
+        - Meaningful test descriptions (describe what, not how)
+        - Proper use of testing-library queries (prefer getByRole, getByLabelText)
+        - No implementation details in tests (test behavior, not internals)
+        - Proper setup/teardown patterns
+        - Good coverage of edge cases
 
-  # Tools to use
+    - path: "src/lib/**/*"
+      instructions: |
+        Review utility functions for:
+        - Pure functions where possible (no side effects)
+        - Proper error handling (throw typed errors, use Result pattern)
+        - TypeScript generics used appropriately
+        - Functions should be small and focused (max-lines-per-function: 30)
+        - Comprehensive JSDoc comments for public APIs
+
+    - path: "src/actions/**/*"
+      instructions: |
+        Review Server Actions for:
+        - Input validation with zod schemas (CRITICAL for security)
+        - Proper authentication checks before any data mutation
+        - Authorization verification for resource access
+        - Rate limiting considerations
+        - Proper error responses (don't leak internal details)
+        - Database transaction handling where needed
+
+    - path: "e2e/**/*"
+      instructions: |
+        Review E2E tests for:
+        - Proper use of Playwright locators (prefer getByRole, getByTestId)
+        - Avoid flaky selectors (no xpath, avoid nth-child)
+        - Proper wait strategies (waitForSelector, waitForResponse)
+        - Test isolation (tests should not depend on each other)
+        - Meaningful assertions that verify user-visible behavior
+
+  # Tools configuration
   tools:
     # Built-in tools
     shellcheck:
@@ -66,18 +112,44 @@ reviews:
       enabled: false
     eslint:
       enabled: true
-      config_path: eslint.config.js
+    # Security tools
+    semgrep:
+      enabled: true
+    gitleaks:
+      enabled: true
+
+  # Pre-merge checks
+  pre_merge_checks:
+    title:
+      mode: warning
+    description:
+      mode: warning
+    docstrings:
+      threshold: 80
+      mode: warning
+
+  # Finishing touches - on-demand generation
+  finishing_touches:
+    docstrings:
+      enabled: true
+    unit_tests:
+      enabled: true
+
+# Knowledge base settings
+knowledge_base:
+  learnings:
+    scope: auto
+  web_search:
+    enabled: true
+  code_guidelines:
+    enabled: true
 
 chat:
   # Enable chat interactions
   auto_reply: true
-
-# Paths to ignore
-path_filters:
-  - "!**/*.lock"
-  - "!**/pnpm-lock.yaml"
-  - "!**/package-lock.json"
-  - "!**/.next/**"
-  - "!**/node_modules/**"
-  - "!**/dist/**"
-  - "!**/*.min.js"
+  # Issue tracking integration (Linear)
+  # Enables: PR validation against linked issues, one-click issue creation
+  # Setup: Install Linear GitHub integration at https://linear.app/settings/integrations/github
+  integrations:
+    linear:
+      usage: auto
