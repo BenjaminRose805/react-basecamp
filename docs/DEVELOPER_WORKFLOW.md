@@ -121,7 +121,9 @@ Use conventional commits with AI co-authorship:
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-**Types:** `feat`, `fix`, `docs`, `test`, `refactor`, `chore`, `perf`, `ci`
+### Types
+
+`feat`, `fix`, `docs`, `test`, `refactor`, `chore`, `perf`, `ci`
 
 **Examples:**
 
@@ -440,7 +442,7 @@ A key feature of spec-workflow is **implementation logging**. Every agent that w
 3. **Enables reuse** - Test fixtures, mocks, and utilities are discoverable
 4. **Tracks progress** - See what was built across sessions
 
-**Example: Test researcher finding existing fixtures**
+### Example: Test researcher finding existing fixtures
 
 ```bash
 # AI searches implementation logs before writing tests:

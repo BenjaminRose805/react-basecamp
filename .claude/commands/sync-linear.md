@@ -4,7 +4,7 @@ Synchronize spec-workflow specs with Linear issues.
 
 ## Usage
 
-```
+```text
 /sync-linear                  # Show sync status
 /sync-linear [feature]        # Sync specific feature
 /sync-linear --create-missing # Create issues for orphan specs

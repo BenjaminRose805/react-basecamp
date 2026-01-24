@@ -41,7 +41,7 @@ linear         # Create/link bug issues
 - `browser_network_requests` - **Monitor network traffic** (debug API issues)
 - `browser_console_messages` - Check for JavaScript errors
 
-**github usage:**
+**GitHub usage:**
 
 - Search for related bug reports
 - Check if issue was previously fixed (regression)

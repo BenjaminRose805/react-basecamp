@@ -14,7 +14,7 @@ github  # PR and issue management
 linear  # Check/update linked Linear issues
 ```
 
-**Required github tools:**
+**Required GitHub tools:**
 
 - `pull_request_read` - **Read PR details** (CRITICAL - use method: "get", "get_files", "get_status", "get_comments", "get_reviews")
   - method: "get" - Get PR title, description, base/head

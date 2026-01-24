@@ -115,8 +115,8 @@ Follow this guidance.
 **BEFORE implementing**, search for existing code:
 
 ```bash
-# Search implementation logs for related artifacts
-grep -r "prompt\|router" .spec-workflow/specs/*/Implementation\ Logs/
+# Search implementation logs and templates for related artifacts
+grep -r "prompt\|router" .spec-workflow/ 2>/dev/null
 ```
 
 This prevents:
