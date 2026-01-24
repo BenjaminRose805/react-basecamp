@@ -8,7 +8,7 @@ Creates implementation-ready specs from a distill research brief using the spec-
 
 ## MCP Servers
 
-```
+```text
 spec-workflow  # Full SDD workflow with dashboard and approvals
 ```
 
@@ -145,7 +145,7 @@ Tasks MUST follow this exact format for the dashboard to parse them:
 
 ## Approval Flow
 
-```
+```text
 Create document → approvals(action: "request", filePath: "...") →
 Poll status → User approves in dashboard →
 approvals(action: "delete") → Next document

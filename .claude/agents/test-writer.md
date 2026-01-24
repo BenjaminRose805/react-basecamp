@@ -99,49 +99,48 @@ If sanity checks fail, fix issues before returning.
 **After writing tests, call `log-implementation`:**
 
 ```typescript
-log -
-  implementation({
-    specName: "feature-name",
-    taskId: "test-suite",
-    summary: "Created unit tests for [feature]",
-    artifacts: {
-      testSuites: [
-        {
-          file: "src/components/Button.test.tsx",
-          describes: ["Button", "when clicked", "when disabled"],
-          testCount: 8,
-        },
-      ],
-      fixtures: [
-        {
-          name: "mockUser",
-          file: "src/test/fixtures/user.ts",
-          type: "mock data",
-        },
-      ],
-      mocks: [
-        {
-          name: "mockApiClient",
-          file: "src/test/mocks/api.ts",
-          mocks: ["fetchUser", "updateUser"],
-        },
-      ],
-      helpers: [
-        {
-          name: "renderWithProviders",
-          file: "src/test/utils.tsx",
-          purpose: "Wraps component with test providers",
-        },
-      ],
-    },
-    filesCreated: ["src/components/Button.test.tsx"],
-    filesModified: [],
-    statistics: {
-      testsAdded: 8,
-      fixturesAdded: 1,
-      mocksAdded: 1,
-    },
-  });
+logImplementation({
+  specName: "feature-name",
+  taskId: "test-suite",
+  summary: "Created unit tests for [feature]",
+  artifacts: {
+    testSuites: [
+      {
+        file: "src/components/Button.test.tsx",
+        describes: ["Button", "when clicked", "when disabled"],
+        testCount: 8,
+      },
+    ],
+    fixtures: [
+      {
+        name: "mockUser",
+        file: "src/test/fixtures/user.ts",
+        type: "mock data",
+      },
+    ],
+    mocks: [
+      {
+        name: "mockApiClient",
+        file: "src/test/mocks/api.ts",
+        mocks: ["fetchUser", "updateUser"],
+      },
+    ],
+    helpers: [
+      {
+        name: "renderWithProviders",
+        file: "src/test/utils.tsx",
+        purpose: "Wraps component with test providers",
+      },
+    ],
+  },
+  filesCreated: ["src/components/Button.test.tsx"],
+  filesModified: [],
+  statistics: {
+    testsAdded: 8,
+    fixturesAdded: 1,
+    mocksAdded: 1,
+  },
+});
 ```
 
 **This enables:**

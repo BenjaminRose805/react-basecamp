@@ -16,12 +16,13 @@ linear  # Check/update linked Linear issues
 
 **Required github tools:**
 
-- `get_pull_request` - Get PR details (title, description, base/head)
-- `get_pull_request_files` - **Get list of changed files** (CRITICAL for review)
-- `get_pull_request_status` - Check CI/check status
-- `get_pull_request_comments` - See existing discussion and feedback
-- `get_pull_request_reviews` - Check previous reviews and their status
-- `create_pull_request_review` - **Submit actual GitHub review** (CRITICAL - approve/request changes)
+- `pull_request_read` - **Read PR details** (CRITICAL - use method: "get", "get_files", "get_status", "get_comments", "get_reviews")
+  - method: "get" - Get PR title, description, base/head
+  - method: "get_files" - Get list of changed files (CRITICAL for review)
+  - method: "get_status" - Check CI/check status
+  - method: "get_comments" - See existing discussion and feedback
+  - method: "get_reviews" - Check previous reviews and their status
+- `pull_request_review_write` - **Submit actual GitHub review** (CRITICAL - use method: "create" to approve/request changes)
 - `list_commits` - Review commit history in the PR
 
 **linear usage:**

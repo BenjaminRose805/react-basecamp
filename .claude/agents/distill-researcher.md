@@ -125,14 +125,14 @@ For each source, extract:
 
 ### 3. Check Implementation History
 
-Search spec-workflow implementation logs for related work:
+Search spec-workflow for related work:
 
 ```bash
-# Find related implementations
-grep -r "apiEndpoints\|components\|functions" .spec-workflow/specs/*/Implementation\ Logs/
+# Find related implementations in spec templates
+rg -n "apiEndpoints|components|functions" .spec-workflow/templates/
 
-# Search for specific patterns
-grep -r "[feature-keyword]" .spec-workflow/specs/*/Implementation\ Logs/
+# Search for specific patterns in existing specs
+rg -n "[feature-keyword]" .spec-workflow/specs/
 ```
 
 **Look for:**
@@ -156,9 +156,9 @@ Check for:
 
 Clarify:
 
-- What entities does this feature OWN vs REFERENCE?
-- What APIs does this feature EXPOSE vs CONSUME?
-- What's the minimum viable scope?
+- Which entities are owned versus referenced by this feature?
+- Which APIs will be exposed and which will be consumed?
+- Define the minimum viable scope for implementation.
 
 ### 6. Output Research Brief
 

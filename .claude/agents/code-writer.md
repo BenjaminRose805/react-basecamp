@@ -14,7 +14,7 @@ If research was skipped or returned `STOP`, do not proceed with implementation.
 
 ## MCP Servers
 
-```
+```text
 spec-workflow  # Task tracking and implementation logging
 cclsp          # TypeScript LSP for code intelligence
 next-devtools  # Next.js dev server errors and documentation
@@ -123,39 +123,38 @@ This prevents:
 **CRITICAL:** After completing each task, call `log-implementation`:
 
 ```typescript
-log -
-  implementation({
-    specName: "prompt-manager-crud",
-    taskId: "2",
-    summary: "Created tRPC router with CRUD operations",
+logImplementation({
+  specName: "prompt-manager-crud",
+  taskId: "2",
+  summary: "Created tRPC router with CRUD operations",
 
-    artifacts: {
-      apiEndpoints: [
-        {
-          method: "POST",
-          path: "/api/trpc/prompt.create",
-          purpose: "Create a new prompt",
-          requestFormat: "{ name: string, content: string }",
-          responseFormat: "Prompt",
-          location: "src/server/routers/prompt.ts:32",
-        },
-        // ... all endpoints
-      ],
-      components: [
-        // Any UI components created
-      ],
-      functions: [
-        // Any utility functions created
-      ],
-      integrations: [
-        // How frontend connects to backend
-      ],
-    },
+  artifacts: {
+    apiEndpoints: [
+      {
+        method: "POST",
+        path: "/api/trpc/prompt.create",
+        purpose: "Create a new prompt",
+        requestFormat: "{ name: string, content: string }",
+        responseFormat: "Prompt",
+        location: "src/server/routers/prompt.ts:32",
+      },
+      // ... all endpoints
+    ],
+    components: [
+      // Any UI components created
+    ],
+    functions: [
+      // Any utility functions created
+    ],
+    integrations: [
+      // How frontend connects to backend
+    ],
+  },
 
-    filesCreated: ["src/server/routers/prompt.ts"],
-    filesModified: ["src/server/routers/index.ts"],
-    statistics: { linesAdded: 150, linesRemoved: 0 },
-  });
+  filesCreated: ["src/server/routers/prompt.ts"],
+  filesModified: ["src/server/routers/index.ts"],
+  statistics: { linesAdded: 150, linesRemoved: 0 },
+});
 ```
 
 **Include ALL artifacts** - this is a searchable knowledge base for future agents.

@@ -8,7 +8,7 @@ Validates specifications created via spec-workflow MCP server.
 
 ## MCP Servers
 
-```
+```text
 spec-workflow  # Full SDD workflow with dashboard
 cclsp          # TypeScript LSP for code intelligence
 ```

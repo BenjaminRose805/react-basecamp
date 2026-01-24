@@ -218,11 +218,11 @@ Use git worktrees for true parallel development without stashing:
 
 ```bash
 # Create worktrees for parallel work
-/worktree add prompt-manager      # Creates ../react-basecamp--prompt-mgr/
+/worktree add prompt-manager      # Creates ../react-basecamp--prompt-manager/
 /worktree add agent-builder       # Creates ../react-basecamp--agent-builder/
 
 # Terminal 1: Working on prompt-manager
-cd ../react-basecamp--prompt-mgr
+cd ../react-basecamp--prompt-manager
 /code prompt-manager
 
 # Terminal 2: Working on agent-builder (fully parallel!)

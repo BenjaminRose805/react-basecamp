@@ -8,10 +8,10 @@ Analyzes existing UI components and patterns before building new UI.
 
 ## MCP Servers
 
-```
+```text
 spec-workflow  # Search implementation logs for existing components
 figma          # Design file access (https://mcp.figma.com/mcp)
-shadcn         # Component registry (57 components, 100+ blocks)
+shadcn         # Component registry (use list_items_in_registries for current inventory)
 playwright     # Browser automation for visual inspection
 cclsp          # TypeScript LSP for code intelligence
 context7       # Up-to-date library documentation

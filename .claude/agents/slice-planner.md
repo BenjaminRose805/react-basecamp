@@ -8,7 +8,7 @@ Refines slice boundaries and creates a detailed plan for user approval.
 
 ## MCP Servers
 
-```
+```text
 spec-workflow  # Will create specs after approval
 ```
 

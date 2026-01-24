@@ -18,22 +18,22 @@ Use this document to track progress on integrating underutilized MCP tools into 
 
 ### 1. **spec-workflow** (5 tools)
 
-| Tool                  | Purpose                    | Currently Used By                                      | Gap?                           |
-| --------------------- | -------------------------- | ------------------------------------------------------ | ------------------------------ |
-| `spec-workflow-guide` | Load workflow instructions | spec-writer, distill-spec-writer, slice-creator        | No                             |
-| `steering-guide`      | Steering document creation | None                                                   | Yes                            |
-| `spec-status`         | Check spec progress        | code-writer, spec-writer                               | Partial - QA agents should use |
-| `approvals`           | Request dashboard approval | spec-writer, distill-spec-writer, slice-creator        | No                             |
-| `log-implementation`  | Record artifacts           | code-writer, test-writer, ui-builder, security-auditor | No                             |
+| Tool                  | Purpose                    | Currently Used By                                                                                       | Gap? |
+| --------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------- | ---- |
+| `spec-workflow-guide` | Load workflow instructions | spec-writer, distill-spec-writer, slice-creator                                                         | No   |
+| `steering-guide`      | Steering document creation | None                                                                                                    | Yes  |
+| `spec-status`         | Check spec progress        | code-writer, code-qa, spec-writer, spec-qa, distill-spec-writer, test-writer, ui-builder, slice-creator | No   |
+| `approvals`           | Request dashboard approval | spec-writer, distill-spec-writer, slice-creator                                                         | No   |
+| `log-implementation`  | Record artifacts           | code-writer, test-writer, ui-builder, security-auditor                                                  | No   |
 
 ### 2. **vitest** (4 tools)
 
-| Tool               | Purpose                               | Currently Used By                       | Gap?                             |
-| ------------------ | ------------------------------------- | --------------------------------------- | -------------------------------- |
-| `set_project_root` | Initialize project context            | Not explicitly documented               | Yes                              |
-| `list_tests`       | Discover test files                   | None                                    | Yes - test-researcher should use |
-| `run_tests`        | Execute tests with AI-friendly output | test-writer, test-qa, code-qa, debugger | No                               |
-| `analyze_coverage` | Line-by-line coverage analysis        | None                                    | Yes - test-qa should use         |
+| Tool               | Purpose                               | Currently Used By                       | Gap? |
+| ------------------ | ------------------------------------- | --------------------------------------- | ---- |
+| `set_project_root` | Initialize project context            | Not explicitly documented               | Yes  |
+| `list_tests`       | Discover test files                   | test-researcher                         | No   |
+| `run_tests`        | Execute tests with AI-friendly output | test-writer, test-qa, code-qa, debugger | No   |
+| `analyze_coverage` | Line-by-line coverage analysis        | test-qa                                 | No   |
 
 ### 3. **cclsp** (11 tools)
 
@@ -127,34 +127,34 @@ Use this document to track progress on integrating underutilized MCP tools into 
 
 ### 8. **github** (21 tools)
 
-| Tool                         | Purpose               | Currently Used By     | Gap?                            |
-| ---------------------------- | --------------------- | --------------------- | ------------------------------- |
-| `create_or_update_file`      | Create/update file    | None                  | N/A (use Write tool)            |
-| `search_repositories`        | Search repos          | None                  | Low priority                    |
-| `create_repository`          | Create repo           | None                  | N/A                             |
-| `get_file_contents`          | Get file from repo    | None                  | Yes - pr-reviewer could use     |
-| `push_files`                 | Push multiple files   | None                  | Low priority                    |
-| `create_issue`               | Create issue          | None                  | Yes - debugger should use       |
-| `create_pull_request`        | Create PR             | pr-reviewer           | No                              |
-| `fork_repository`            | Fork repo             | None                  | N/A                             |
-| `create_branch`              | Create branch         | None                  | Low priority                    |
-| `list_commits`               | List commits          | pr-reviewer           | No                              |
-| `list_issues`                | List issues           | debugger, pr-reviewer | No                              |
-| `update_issue`               | Update issue          | None                  | Yes - debugger should use       |
-| `add_issue_comment`          | Comment on issue      | None                  | Yes - debugger should use       |
-| `search_code`                | Search code in GitHub | None                  | Low priority                    |
-| `search_issues`              | Search issues         | debugger              | No                              |
-| `search_users`               | Search users          | None                  | N/A                             |
-| `get_issue`                  | Get issue details     | debugger              | No                              |
-| `get_pull_request`           | Get PR details        | pr-reviewer           | No                              |
-| `list_pull_requests`         | List PRs              | None                  | Low priority                    |
-| `create_pull_request_review` | Create review         | None                  | **HIGH** - pr-reviewer must use |
-| `merge_pull_request`         | Merge PR              | None                  | N/A (manual)                    |
-| `get_pull_request_files`     | Get PR files          | None                  | Yes - pr-reviewer should use    |
-| `get_pull_request_status`    | Get PR checks         | None                  | Yes - pr-reviewer should use    |
-| `update_pull_request_branch` | Update PR branch      | None                  | Low priority                    |
-| `get_pull_request_comments`  | Get PR comments       | None                  | Yes - pr-reviewer should use    |
-| `get_pull_request_reviews`   | Get existing reviews  | None                  | Yes - pr-reviewer should use    |
+| Tool                         | Purpose               | Currently Used By     | Gap?                        |
+| ---------------------------- | --------------------- | --------------------- | --------------------------- |
+| `create_or_update_file`      | Create/update file    | None                  | N/A (use Write tool)        |
+| `search_repositories`        | Search repos          | None                  | Low priority                |
+| `create_repository`          | Create repo           | None                  | N/A                         |
+| `get_file_contents`          | Get file from repo    | None                  | Yes - pr-reviewer could use |
+| `push_files`                 | Push multiple files   | None                  | Low priority                |
+| `create_issue`               | Create issue          | None                  | Yes - debugger should use   |
+| `create_pull_request`        | Create PR             | pr-reviewer           | No                          |
+| `fork_repository`            | Fork repo             | None                  | N/A                         |
+| `create_branch`              | Create branch         | None                  | Low priority                |
+| `list_commits`               | List commits          | pr-reviewer           | No                          |
+| `list_issues`                | List issues           | debugger, pr-reviewer | No                          |
+| `update_issue`               | Update issue          | debugger              | No                          |
+| `add_issue_comment`          | Comment on issue      | debugger              | No                          |
+| `search_code`                | Search code in GitHub | None                  | Low priority                |
+| `search_issues`              | Search issues         | debugger              | No                          |
+| `search_users`               | Search users          | None                  | N/A                         |
+| `get_issue`                  | Get issue details     | debugger              | No                          |
+| `get_pull_request`           | Get PR details        | pr-reviewer           | No                          |
+| `list_pull_requests`         | List PRs              | None                  | Low priority                |
+| `create_pull_request_review` | Create review         | pr-reviewer           | No                          |
+| `merge_pull_request`         | Merge PR              | None                  | N/A (manual)                |
+| `get_pull_request_files`     | Get PR files          | pr-reviewer           | No                          |
+| `get_pull_request_status`    | Get PR checks         | pr-reviewer           | No                          |
+| `update_pull_request_branch` | Update PR branch      | None                  | Low priority                |
+| `get_pull_request_comments`  | Get PR comments       | pr-reviewer           | No                          |
+| `get_pull_request_reviews`   | Get existing reviews  | pr-reviewer           | No                          |
 
 ### 9. **linear** (18 tools)
 
@@ -256,21 +256,27 @@ Use this document to track progress on integrating underutilized MCP tools into 
 
 Track implementation by checking off items above and noting the PR/commit that addressed each gap.
 
-| Date       | Agent            | Tool Added                                                                                                                                                    | PR/Commit |
-| ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 2026-01-24 | debugger         | `analyze_issue_with_seer`, `get_incoming_calls`, `get_outgoing_calls`, `browser_network_requests`, `get_trace_details`, `search_issue_events`, `update_issue` | pending   |
-| 2026-01-24 | pr-reviewer      | `create_pull_request_review`, `get_pull_request_files`, `get_pull_request_status`, `get_pull_request_comments`, `get_pull_request_reviews`                    | pending   |
-| 2026-01-24 | test-researcher  | `list_tests`                                                                                                                                                  | pending   |
-| 2026-01-24 | test-qa          | `analyze_coverage`                                                                                                                                            | pending   |
-| 2026-01-24 | ui-qa            | `browser_snapshot`, `browser_console_messages`, `get_audit_checklist`                                                                                         | pending   |
-| 2026-01-24 | ui-builder       | `get_item_examples_from_registries`, `browser_resize`, `browser_hover`, `get_code_connect_map`, `add_code_connect_map`                                        | pending   |
-| 2026-01-24 | code-qa          | `spec-status`                                                                                                                                                 | pending   |
-| 2026-01-24 | code-writer      | `rename_symbol`, `nextjs_docs`                                                                                                                                | pending   |
-| 2026-01-24 | code-researcher  | `find_workspace_symbols`, `find_implementation`                                                                                                               | pending   |
-| 2026-01-24 | security-auditor | `search_events`                                                                                                                                               | pending   |
-| 2026-01-24 | spec-writer      | `generate_diagram`                                                                                                                                            | pending   |
-| 2026-01-24 | slice-creator    | `create_project`, `create_issue`                                                                                                                              | pending   |
-| 2026-01-24 | ui-researcher    | `create_design_system_rules`                                                                                                                                  | pending   |
+### Status Key
+
+- **✓ in checklist** = Tool added to agent definition in this PR
+- **pending** = PR awaiting review/merge
+- **PR number** = Merged to main
+
+| Date       | Agent            | Tool Added                                                                                                                                              | PR/Commit |
+| ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 2026-01-24 | debugger         | `analyze_issue_with_seer`, `get_incoming_calls`, `get_outgoing_calls`, `browser_network_requests`, `get_trace_details`, `search_events`, `update_issue` | pending   |
+| 2026-01-24 | pr-reviewer      | `create_pull_request_review`, `get_pull_request_files`, `get_pull_request_status`, `get_pull_request_comments`, `get_pull_request_reviews`              | pending   |
+| 2026-01-24 | test-researcher  | `list_tests`                                                                                                                                            | pending   |
+| 2026-01-24 | test-qa          | `analyze_coverage`                                                                                                                                      | pending   |
+| 2026-01-24 | ui-qa            | `browser_snapshot`, `browser_console_messages`, `get_audit_checklist`                                                                                   | pending   |
+| 2026-01-24 | ui-builder       | `get_item_examples_from_registries`, `browser_resize`, `browser_hover`, `get_code_connect_map`, `add_code_connect_map`                                  | pending   |
+| 2026-01-24 | code-qa          | `spec-status`                                                                                                                                           | pending   |
+| 2026-01-24 | code-writer      | `rename_symbol`, `nextjs_docs`                                                                                                                          | pending   |
+| 2026-01-24 | code-researcher  | `find_workspace_symbols`, `find_implementation`                                                                                                         | pending   |
+| 2026-01-24 | security-auditor | `search_events`                                                                                                                                         | pending   |
+| 2026-01-24 | spec-writer      | `generate_diagram`                                                                                                                                      | pending   |
+| 2026-01-24 | slice-creator    | `create_project`, `create_issue`                                                                                                                        | pending   |
+| 2026-01-24 | ui-researcher    | `create_design_system_rules`                                                                                                                            | pending   |
 
 ---
 

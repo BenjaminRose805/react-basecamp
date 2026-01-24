@@ -8,7 +8,7 @@ Creates specs for each approved slice using spec-workflow.
 
 ## MCP Servers
 
-```
+```text
 spec-workflow  # Create specs with dashboard integration
 linear         # Project management (optional)
 ```
@@ -183,7 +183,7 @@ Start with: `/test {feature}-crud`
 
 If slices are independent (same build order number), can create specs in parallel:
 
-```
+```text
 {feature}-variables and {feature}-folders both depend only on {feature}-crud
 → Can create both specs simultaneously
 ```

@@ -88,11 +88,11 @@ Focus on:
 
 ### Step 1: Check Previous Findings
 
-**FIRST**, search implementation logs for previously identified vulnerabilities:
+**FIRST**, search for previously identified vulnerabilities:
 
 ```bash
-# Search for previous security findings
-grep -r "securityFindings\|vulnerabilities" .spec-workflow/specs/*/Implementation\ Logs/
+# Search for previous security findings in spec templates
+rg -n "securityFindings|vulnerabilities" .spec-workflow/templates/
 ```
 
 **Look for:**

@@ -24,7 +24,7 @@ linear         # Create/link bug issues
 - `search_issues` - Find related errors and patterns
 - `analyze_issue_with_seer` - **AI root cause analysis** (CRITICAL - use for complex bugs)
 - `get_trace_details` - View distributed traces for multi-service debugging
-- `search_issue_events` - Filter and analyze specific events within an issue
+- `search_events` - **Aggregate error statistics** (AI-powered, requires OPENAI_API_KEY)
 - `update_issue` - Mark issues as resolved after fix
 
 **Required cclsp tools:**

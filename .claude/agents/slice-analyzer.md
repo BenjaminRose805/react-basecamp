@@ -155,14 +155,14 @@ Group capabilities into vertical slices:
 
 ### 5. Check Implementation History
 
-Search spec-workflow implementation logs for insights:
+Search spec-workflow for insights:
 
 ```bash
-# Find similar features that were already sliced
-grep -r "capabilities\|slices" .spec-workflow/specs/*/Implementation\ Logs/
+# Find similar features that were already sliced (with context)
+rg -n -C3 -g '!node_modules' "capabilities|slices" .spec-workflow/specs/
 
-# Learn from related implementations
-grep -r "[feature-keyword]" .spec-workflow/specs/*/
+# Learn from related implementations (case-insensitive, with context)
+rg -n -C3 -S -g '!node_modules' "[feature-keyword]" .spec-workflow/specs/
 ```
 
 **Look for:**

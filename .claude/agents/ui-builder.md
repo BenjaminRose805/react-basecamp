@@ -127,41 +127,40 @@ If sanity checks fail, fix issues before returning.
 **After building the component, call `log-implementation`:**
 
 ```typescript
-log -
-  implementation({
-    specName: "feature-name",
-    taskId: "ui-component",
-    summary: "Created [ComponentName] component",
-    artifacts: {
-      components: [
-        {
-          name: "ComponentName",
-          file: "src/components/ui/ComponentName.tsx",
-          props: ["variant", "size", "disabled"],
-          variants: ["default", "primary", "secondary"],
-        },
-      ],
-      styles: [
-        {
-          file: "src/components/ui/ComponentName.module.css",
-          tokens: ["--color-primary", "--spacing-md"],
-        },
-      ],
-      patterns: [
-        {
-          name: "Compound component",
-          example: "<Card><Card.Header /><Card.Body /></Card>",
-        },
-      ],
-    },
-    filesCreated: ["src/components/ui/ComponentName.tsx"],
-    filesModified: [],
-    statistics: {
-      componentsAdded: 1,
-      variantsImplemented: 3,
-      statesImplemented: 5,
-    },
-  });
+logImplementation({
+  specName: "feature-name",
+  taskId: "ui-component",
+  summary: "Created [ComponentName] component",
+  artifacts: {
+    components: [
+      {
+        name: "ComponentName",
+        file: "src/components/ui/ComponentName.tsx",
+        props: ["variant", "size", "disabled"],
+        variants: ["default", "primary", "secondary"],
+      },
+    ],
+    styles: [
+      {
+        file: "src/components/ui/ComponentName.module.css",
+        tokens: ["--color-primary", "--spacing-md"],
+      },
+    ],
+    patterns: [
+      {
+        name: "Compound component",
+        example: "<Card><Card.Header /><Card.Body /></Card>",
+      },
+    ],
+  },
+  filesCreated: ["src/components/ui/ComponentName.tsx"],
+  filesModified: [],
+  statistics: {
+    componentsAdded: 1,
+    variantsImplemented: 3,
+    statesImplemented: 5,
+  },
+});
 ```
 
 **This enables:**

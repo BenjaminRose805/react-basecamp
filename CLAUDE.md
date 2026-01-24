@@ -339,7 +339,7 @@ Bridges comprehensive design documentation to implementation-ready specs.
 
 **Agents:** See `.claude/agents/distill-*.md`
 
-```
+```text
 distill-researcher
 ├── Reads: docs/specs/{feature}.md
 ├── Reads: docs/architecture/data-models.md
@@ -350,11 +350,16 @@ distill-researcher
 
 distill-spec-writer
 ├── Inputs: Research brief
-├── Template: specs/spec-template.md
-└── Outputs: specs/{feature}.md (max 2 pages)
+├── Templates: .spec-workflow/templates/*.md
+├── Outputs: .spec-workflow/specs/{feature}/
+│   ├── requirements.md (EARS format, dashboard approval)
+│   ├── design.md (architecture, dashboard approval)
+│   └── tasks.md (with _Prompt fields, dashboard approval)
+└── Dashboard: http://localhost:5000
 
 distill-qa
 ├── Validates: Template compliance
+├── Validates: Dashboard approvals obtained
 ├── Validates: Source traceability
 ├── Validates: Internal consistency
 └── Reports: PASS or FAIL with issues
@@ -556,10 +561,10 @@ Work on multiple features simultaneously using git worktrees.
 
 ```
 ~/basecamp/
-├── react-basecamp/              # Main worktree (main branch)
-├── react-basecamp--prompt-mgr/  # Worktree for prompt-manager
-├── react-basecamp--workflow/    # Worktree for workflow feature
-└── docs/                        # Design docs (shared)
+├── react-basecamp/                  # Main worktree (main branch)
+├── react-basecamp--prompt-manager/  # Worktree for prompt-manager
+├── react-basecamp--workflow/        # Worktree for workflow feature
+└── docs/                            # Design docs (shared)
 ```
 
 **Example workflow:**
@@ -567,7 +572,7 @@ Work on multiple features simultaneously using git worktrees.
 ```bash
 # Terminal 1: Main feature
 /worktree add prompt-manager
-cd ../react-basecamp--prompt-mgr
+cd ../react-basecamp--prompt-manager
 /code prompt-manager
 
 # Terminal 2: Quick bug fix (in main repo)
