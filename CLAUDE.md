@@ -26,6 +26,11 @@ You MAY answer simple questions directly (e.g., "What framework is this?" or "Wh
 | `/review [PR]`       | —                                             | pr-reviewer                                           |
 | `/verify [scope]`    | `build`, `types`, `lint`, `tests`, `security` | verification-loop (pre-PR checks)                     |
 | `/context [mode]`    | `dev`, `review`, `research`                   | context-loader (switch working mode)                  |
+| `/branch [action]`   | `start`, `switch`, `sync`, `list`, `cleanup`  | Git branch management (always start here)             |
+| `/worktree [action]` | `add`, `remove`, `switch`, `status`           | Parallel development with git worktrees               |
+| `/commit`            | —                                             | Create conventional commit                            |
+| `/pr`                | `draft`                                       | Create pull request                                   |
+| `/status [scope]`    | `git`, `tasks`, `tests`, `phase`              | Development status overview                           |
 
 ### Subcommand Usage
 
@@ -476,16 +481,145 @@ Multi-phase verification before creating a PR. Runs all quality gates.
 | Tests    | All pass, 70%+ coverage    | Yes      |
 | Security | No secrets, no console.log | Yes      |
 
+### /branch - Git Branch Management
+
+**CRITICAL: Always use `/branch start` before any new work.**
+
+Manages git branches with enforced conventions. Never work directly on main.
+
+**Usage:**
+
+```bash
+/branch                        # Show current branch status
+/branch start <feature>        # Create and switch to feature branch
+/branch switch <branch>        # Switch to existing branch
+/branch sync                   # Sync current branch with main
+/branch list                   # List all branches
+/branch cleanup                # Delete merged branches
+```
+
+**Branch naming conventions:**
+
+| Prefix      | Use For           | Example                  |
+| ----------- | ----------------- | ------------------------ |
+| `feature/`  | New features      | `feature/prompt-manager` |
+| `fix/`      | Bug fixes         | `fix/auth-timeout`       |
+| `refactor/` | Code improvements | `refactor/api-cleanup`   |
+| `docs/`     | Documentation     | `docs/api-reference`     |
+
+**Integration with workflow:**
+
+```
+/branch start prompt-manager    # Step 0: ALWAYS start here
+    ↓
+/distill prompt-manager         # Step 1: Create spec
+    ↓
+/test prompt-manager            # Step 2: Write tests
+    ↓
+/code prompt-manager            # Step 3: Implement
+    ↓
+/branch sync                    # Step 4: Sync with main
+    ↓
+/verify → /pr                   # Step 5-6: Verify and PR
+```
+
+### /worktree - Parallel Development
+
+Work on multiple features simultaneously using git worktrees.
+
+**Why worktrees?**
+
+- Work on feature A while feature B's tests run
+- No stashing or losing state when switching
+- Review PRs while coding in another branch
+- Compare implementations side-by-side
+
+**Usage:**
+
+```bash
+/worktree                       # List all worktrees
+/worktree add <feature>         # Create worktree for feature
+/worktree remove <feature>      # Remove worktree (keeps branch)
+/worktree status                # Status of all worktrees
+/worktree switch <feature>      # Tell Claude to work in different worktree
+```
+
+**Directory structure:**
+
+```
+~/basecamp/
+├── react-basecamp/              # Main worktree (main branch)
+├── react-basecamp--prompt-mgr/  # Worktree for prompt-manager
+├── react-basecamp--workflow/    # Worktree for workflow feature
+└── docs/                        # Design docs (shared)
+```
+
+**Example workflow:**
+
+```bash
+# Terminal 1: Main feature
+/worktree add prompt-manager
+cd ../react-basecamp--prompt-mgr
+/code prompt-manager
+
+# Terminal 2: Quick bug fix (in main repo)
+cd ../react-basecamp
+/branch start fix/auth-bug
+/code fix/auth-bug
+/pr
+```
+
+### /commit - Create Conventional Commits
+
+Creates well-formatted commits following conventional commit spec.
+
+**Usage:**
+
+```bash
+/commit                    # Analyze staged changes, create commit
+/commit --amend            # Amend last commit (use carefully)
+```
+
+**Commit types:** `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `ci`
+
+### /pr - Create Pull Request
+
+Creates PR with comprehensive description based on all commits in branch.
+
+**Usage:**
+
+```bash
+/pr                        # Create PR from current branch
+/pr draft                  # Create as draft PR
+```
+
+### /status - Development Status
+
+Shows current work state, progress, and suggested next actions.
+
+**Usage:**
+
+```bash
+/status                    # Full status overview
+/status git                # Git status only
+/status tasks              # Task list only
+/status phase              # Current phase with next suggestion
+```
+
 ### Methodology Summary
 
-| Command    | Methodology | For                                 |
-| ---------- | ----------- | ----------------------------------- |
-| `/distill` | SDD         | Converting design docs to specs     |
-| `/spec`    | SDD         | Writing new specs from scratch      |
-| `/test`    | TDD         | Writing tests before implementation |
-| `/eval`    | EDD         | Evaluating LLM outputs              |
-| `/code`    | TDD         | Implementing until tests pass       |
-| `/verify`  | —           | Pre-PR verification                 |
+| Command     | Methodology | For                                 |
+| ----------- | ----------- | ----------------------------------- |
+| `/branch`   | —           | Git branch management (start here)  |
+| `/worktree` | —           | Parallel development                |
+| `/distill`  | SDD         | Converting design docs to specs     |
+| `/spec`     | SDD         | Writing new specs from scratch      |
+| `/test`     | TDD         | Writing tests before implementation |
+| `/eval`     | EDD         | Evaluating LLM outputs              |
+| `/code`     | TDD         | Implementing until tests pass       |
+| `/verify`   | —           | Pre-PR verification                 |
+| `/commit`   | —           | Create conventional commit          |
+| `/pr`       | —           | Create pull request                 |
 
 ---
 

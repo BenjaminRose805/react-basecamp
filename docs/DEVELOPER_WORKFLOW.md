@@ -59,16 +59,38 @@ This workflow combines four methodologies:
 
 **Direct pushes to `main` are blocked.** The pre-push hook enforces this automatically.
 
+### Git Commands
+
+Use these commands to manage git state throughout your workflow:
+
+| Command                   | Purpose                           |
+| ------------------------- | --------------------------------- |
+| `/branch`                 | Show current branch status        |
+| `/branch start <feature>` | Create and switch to new branch   |
+| `/branch switch <name>`   | Switch to existing branch         |
+| `/branch sync`            | Sync with main (rebase)           |
+| `/branch cleanup`         | Delete merged branches            |
+| `/worktree add <feature>` | Create worktree for parallel work |
+| `/worktree status`        | Status of all worktrees           |
+| `/commit`                 | Create conventional commit        |
+| `/pr`                     | Create pull request               |
+| `/status`                 | Full development status           |
+
 ### Starting a Feature
 
-**Step 1: Create a feature branch FIRST**
+**Step 1: Create a feature branch using `/branch`**
 
 ```bash
-# Before doing ANY work, create a branch
-git checkout main
-git pull origin main
-git checkout -b feature/prompt-manager
+# Use the /branch command to create your feature branch
+/branch start prompt-manager
 ```
+
+This will:
+
+- Ensure you're starting from a clean state
+- Pull latest main
+- Create `feature/prompt-manager` branch
+- Switch to the new branch
 
 **Step 2: Then start the AI workflow**
 
@@ -114,10 +136,11 @@ test: add integration tests for workflow router
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  1. CREATE BRANCH (you do this manually)                                    │
+│  1. CREATE BRANCH (use /branch command)                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  git checkout main && git pull                                              │
-│  git checkout -b feature/prompt-manager                                     │
+│  /branch start prompt-manager                                               │
+│                                                                             │
+│  Creates feature/prompt-manager and switches to it                          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -129,7 +152,7 @@ test: add integration tests for workflow router
 │  /code prompt-manager       → Implements (TDD green)                        │
 │  /ui PromptEditor           → Builds UI                                     │
 │                                                                             │
-│  AI commits as it works (atomic commits per task)                           │
+│  Use /commit when ready to commit changes                                   │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -142,10 +165,10 @@ test: add integration tests for workflow router
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  4. PUSH & PR (AI creates, you approve)                                     │
+│  4. SYNC & PR (use /branch sync and /pr)                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  git push -u origin feature/prompt-manager                                  │
-│  /review                    → Creates PR with summary                       │
+│  /branch sync               → Rebase on latest main                         │
+│  /pr                        → Push and create PR with summary               │
 │                                                                             │
 │  Pre-push hook runs: typecheck, tests, dead code, circular deps             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -156,7 +179,7 @@ test: add integration tests for workflow router
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  Review PR in GitHub                                                        │
 │  Approve and merge (squash recommended)                                     │
-│  Delete feature branch                                                      │
+│  /branch cleanup            → Delete merged branches locally                │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -189,18 +212,48 @@ You can also ask AI to commit at any point:
 "Commit the current progress"
 ```
 
-### Handling Multiple Features
+### Handling Multiple Features (Worktrees)
 
-Work on one feature branch at a time per terminal:
+Use git worktrees for true parallel development without stashing:
 
 ```bash
+# Create worktrees for parallel work
+/worktree add prompt-manager      # Creates ../react-basecamp--prompt-mgr/
+/worktree add agent-builder       # Creates ../react-basecamp--agent-builder/
+
 # Terminal 1: Working on prompt-manager
-git checkout feature/prompt-manager
+cd ../react-basecamp--prompt-mgr
 /code prompt-manager
 
-# Terminal 2: Can review a different PR
-git checkout feature/agent-builder
-# Just reading/reviewing, not implementing
+# Terminal 2: Working on agent-builder (fully parallel!)
+cd ../react-basecamp--agent-builder
+/code agent-builder
+
+# Terminal 3: Quick bug fix in main repo
+cd ../react-basecamp
+/branch start fix/auth-bug
+/code fix/auth-bug
+/pr
+```
+
+**Why worktrees?**
+
+- No stashing or context switching
+- Each worktree has independent working directory
+- Run tests in one while coding in another
+- Compare implementations side-by-side
+
+**Check worktree status:**
+
+```bash
+/worktree status    # Shows status of all worktrees
+```
+
+**Cleanup after merge:**
+
+```bash
+/worktree remove prompt-manager   # Removes worktree (branch preserved)
+/branch cleanup                   # Deletes merged branches
 ```
 
 ### Recovery Commands
@@ -208,17 +261,18 @@ git checkout feature/agent-builder
 If something goes wrong:
 
 ```bash
+# Check current status
+/status git
+
 # Undo last commit, keep changes
 git reset --soft HEAD~1
 
 # Discard all uncommitted changes
 git checkout -- .
 
-# Start fresh from main
-git checkout main
-git pull
-git branch -D feature/broken-branch
-git checkout -b feature/fresh-start
+# Start fresh
+/branch switch main
+/branch start fresh-attempt
 ```
 
 ### Branch Cleanup
@@ -226,9 +280,27 @@ git checkout -b feature/fresh-start
 After PR is merged:
 
 ```bash
-git checkout main
-git pull
-git branch -d feature/prompt-manager  # Delete local branch
+# Use /branch cleanup to delete all merged branches
+/branch cleanup
+
+# Or delete a specific branch
+/branch switch main
+git branch -d feature/prompt-manager
+```
+
+### Worktree Cleanup
+
+After feature is complete:
+
+```bash
+# List all worktrees
+/worktree
+
+# Remove worktree (keeps branch for PR)
+/worktree remove prompt-manager
+
+# After PR merges, clean up the branch
+/branch cleanup
 ```
 
 ---
@@ -942,8 +1014,7 @@ pnpm eval agent-builder --smoke   # Quick check
 
 ```bash
 # 0. CREATE BRANCH FIRST (always!)
-git checkout main && git pull
-git checkout -b feature/prompt-manager
+/branch start prompt-manager
 
 # 1. Create implementation spec from design docs
 /distill prompt-manager
@@ -970,19 +1041,21 @@ git checkout -b feature/prompt-manager
 # 6. Security scan
 /security
 
-# 7. Push and create PR
-git push -u origin feature/prompt-manager
-/review
+# 7. Sync with main and create PR
+/branch sync
+/pr
 # → Review and approve in GitHub
-# → Squash merge, delete branch
+# → Squash merge
+
+# 8. Cleanup
+/branch cleanup
 ```
 
 ### Example 2: Agent Builder (With LLM - Needs Evals)
 
 ```bash
 # 0. CREATE BRANCH FIRST
-git checkout main && git pull
-git checkout -b feature/agent-builder
+/branch start agent-builder
 
 # 1. Create implementation spec
 /distill agent-builder
@@ -1010,18 +1083,20 @@ pnpm eval agent-builder
 /verify
 /security
 
-# 8. Push and create PR
-git push -u origin feature/agent-builder
-/review
+# 8. Sync and create PR
+/branch sync
+/pr
 # → Review and approve in GitHub
+
+# 9. Cleanup after merge
+/branch cleanup
 ```
 
 ### Example 3: Bug Fix
 
 ```bash
-# 0. CREATE BRANCH FIRST
-git checkout main && git pull
-git checkout -b fix/prompt-variable-persistence
+# 0. CREATE BRANCH (use fix/ prefix for bugs)
+/branch start fix/prompt-variable-persistence
 
 # 1. Investigate the bug
 /debug "Prompt variables not saving correctly"
@@ -1037,10 +1112,47 @@ git checkout -b fix/prompt-variable-persistence
 # 4. Verify
 /verify
 
-# 5. Push and create PR
-git push -u origin fix/prompt-variable-persistence
-/review
+# 5. Create PR
+/branch sync
+/pr
 # → Review and approve in GitHub
+
+# 6. Cleanup
+/branch cleanup
+```
+
+### Example 4: Parallel Development with Worktrees
+
+```bash
+# Working on multiple features simultaneously
+
+# Create worktrees for each feature
+/worktree add prompt-manager
+/worktree add agent-builder
+
+# Terminal 1: Work on prompt-manager
+cd ../react-basecamp--prompt-mgr
+/distill prompt-manager
+/test prompt-manager
+/code prompt-manager
+
+# Terminal 2: Work on agent-builder (truly parallel!)
+cd ../react-basecamp--agent-builder
+/distill agent-builder
+/eval agent-builder
+/code agent-builder
+
+# Check status of all worktrees
+/worktree status
+
+# When prompt-manager is ready
+cd ../react-basecamp--prompt-mgr
+/verify
+/pr
+
+# Cleanup after merge
+/worktree remove prompt-manager
+/branch cleanup
 ```
 
 ---
