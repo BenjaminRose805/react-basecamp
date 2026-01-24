@@ -1,112 +1,213 @@
 {
-  "$schema": "https://claude.ai/schemas/settings.json",
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "hooks": {
     "SessionStart": [
       {
-        "command": "node .claude/scripts/hooks/session-start.cjs",
-        "description": "Load previous context and detect package manager on new session"
+        "matcher": {},
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/session-start.cjs"
+          }
+        ]
       }
     ],
     "Stop": [
       {
-        "command": "node .claude/scripts/hooks/session-end.cjs",
-        "description": "Persist session state on end"
+        "matcher": {},
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/session-end.cjs"
+          }
+        ]
       },
       {
-        "command": "node .claude/scripts/hooks/evaluate-session.cjs",
-        "description": "Evaluate session for extractable patterns"
+        "matcher": {},
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/evaluate-session.cjs"
+          }
+        ]
       },
       {
-        "command": "node -e \"const{execSync}=require('child_process');const fs=require('fs');try{execSync('git rev-parse --git-dir',{stdio:'pipe'})}catch{process.exit(0)}try{const files=execSync('git diff --name-only HEAD',{encoding:'utf8',stdio:['pipe','pipe','pipe']}).split('\\n').filter(f=>/\\.(ts|tsx|js|jsx)$/.test(f)&&fs.existsSync(f));let found=false;for(const f of files){if(fs.readFileSync(f,'utf8').includes('console.log')){console.error('[Hook] WARNING: console.log in '+f);found=true}}if(found)console.error('[Hook] Remove before committing')}catch(e){}\"",
-        "description": "Final check for console.log in modified files"
+        "matcher": {},
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const{execSync}=require('child_process');const fs=require('fs');try{execSync('git rev-parse --git-dir',{stdio:'pipe'})}catch{process.exit(0)}try{const files=execSync('git diff --name-only HEAD',{encoding:'utf8',stdio:['pipe','pipe','pipe']}).split('\\n').filter(f=>/\\.(ts|tsx|js|jsx)$/.test(f)&&fs.existsSync(f));let found=false;for(const f of files){if(fs.readFileSync(f,'utf8').includes('console.log')){console.error('[Hook] WARNING: console.log in '+f);found=true}}if(found)console.error('[Hook] Remove before committing')}catch(e){}\""
+          }
+        ]
       }
     ],
     "PreCompact": [
       {
-        "command": "node .claude/scripts/hooks/pre-compact.cjs",
-        "description": "Save state before context compaction"
+        "matcher": {},
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/pre-compact.cjs"
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
-        "event": "Bash",
-        "pattern": "^git commit",
-        "command": "pnpm run lint && pnpm run typecheck",
-        "description": "Run lint and typecheck before committing"
+        "matcher": {
+          "tools": ["Bash"],
+          "command_pattern": "^git commit"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm run lint && pnpm run typecheck"
+          }
+        ]
       },
       {
-        "event": "Bash",
-        "pattern": "^git push",
-        "command": "node -e \"console.error('[Hook] Pushing to remote...');console.error('[Hook] Ensure all tests pass and PR is ready')\"",
-        "description": "Reminder before git push"
+        "matcher": {
+          "tools": ["Bash"],
+          "command_pattern": "^git push"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"console.error('[Hook] Pushing to remote...');console.error('[Hook] Ensure all tests pass and PR is ready')\""
+          }
+        ]
       },
       {
-        "event": "Bash",
-        "pattern": "(npm run dev|pnpm( run)? dev|yarn dev|bun run dev)",
-        "command": "node -e \"console.error('[Hook] TIP: Consider running dev server in tmux for log access');console.error('[Hook] Use: tmux new-session -d -s dev \\\"pnpm dev\\\"')\"",
-        "description": "Remind to use tmux for dev servers"
+        "matcher": {
+          "tools": ["Bash"],
+          "command_pattern": "(npm run dev|pnpm( run)? dev|yarn dev|bun run dev)"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"console.error('[Hook] TIP: Consider running dev server in tmux for log access');console.error('[Hook] Use: tmux new-session -d -s dev \\\"pnpm dev\\\"')\""
+          }
+        ]
       },
       {
-        "event": "Bash",
-        "pattern": "(pnpm (install|test)|npm (install|test)|vitest|playwright)",
-        "command": "node -e \"if(!process.env.TMUX){console.error('[Hook] TIP: Consider tmux for long-running commands');console.error('[Hook] tmux new -s dev | tmux attach -t dev')}\"",
-        "description": "Suggest tmux for long-running commands"
+        "matcher": {
+          "tools": ["Bash"],
+          "command_pattern": "(pnpm (install|test)|npm (install|test)|vitest|playwright)"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"if(!process.env.TMUX){console.error('[Hook] TIP: Consider tmux for long-running commands');console.error('[Hook] tmux new -s dev | tmux attach -t dev')}\""
+          }
+        ]
       },
       {
-        "event": "Write",
-        "pattern": "\\.(md|txt)$",
-        "command": "node -e \"const p=process.env.CLAUDE_FILE||'';if(/\\.(md|txt)$/.test(p)&&!/(README|CLAUDE|AGENTS|CONTRIBUTING|SKILL|spec-template)\\.md$/.test(p)&&!/\\/(specs|rules|contexts|commands|agents|skills)\\//.test(p)){console.error('[Hook] WARNING: Creating doc file: '+p);console.error('[Hook] Prefer README.md or existing doc locations')}\"",
-        "description": "Warn about creating random documentation files"
+        "matcher": {
+          "tools": ["Write"],
+          "file_pattern": "\\.(md|txt)$"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const p=process.env.CLAUDE_FILE||'';if(/\\.(md|txt)$/.test(p)&&!/(README|CLAUDE|AGENTS|CONTRIBUTING|SKILL|spec-template)\\.md$/.test(p)&&!/\\/(specs|rules|contexts|commands|agents|skills)\\//.test(p)){console.error('[Hook] WARNING: Creating doc file: '+p);console.error('[Hook] Prefer README.md or existing doc locations')}\""
+          }
+        ]
       },
       {
-        "event": "Edit",
-        "pattern": ".*",
-        "command": "node .claude/scripts/hooks/suggest-compact.cjs",
-        "description": "Suggest manual compaction at logical intervals"
+        "matcher": {
+          "tools": ["Edit"]
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/suggest-compact.cjs"
+          }
+        ]
       },
       {
-        "event": "Write",
-        "pattern": ".*",
-        "command": "node .claude/scripts/hooks/suggest-compact.cjs",
-        "description": "Suggest manual compaction at logical intervals"
+        "matcher": {
+          "tools": ["Write"]
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/suggest-compact.cjs"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "event": "Edit",
-        "pattern": "\\.(ts|tsx)$",
-        "command": "npx tsc --noEmit --pretty",
-        "description": "Type-check after editing TypeScript files"
+        "matcher": {
+          "tools": ["Edit"],
+          "file_pattern": "\\.(ts|tsx)$"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsc --noEmit --pretty"
+          }
+        ]
       },
       {
-        "event": "Edit",
-        "pattern": "\\.(ts|tsx|js|jsx)$",
-        "command": "npx eslint --fix \"$CLAUDE_FILE\"",
-        "description": "Lint and fix after editing JS/TS files"
+        "matcher": {
+          "tools": ["Edit"],
+          "file_pattern": "\\.(ts|tsx|js|jsx)$"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx eslint --fix \"$CLAUDE_FILE\""
+          }
+        ]
       },
       {
-        "event": "Edit",
-        "pattern": "\\.(ts|tsx|js|jsx|json|css|scss|md)$",
-        "command": "npx prettier --write \"$CLAUDE_FILE\"",
-        "description": "Format after editing supported files"
+        "matcher": {
+          "tools": ["Edit"],
+          "file_pattern": "\\.(ts|tsx|js|jsx|json|css|scss|md)$"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx prettier --write \"$CLAUDE_FILE\""
+          }
+        ]
       },
       {
-        "event": "Edit",
-        "pattern": "src/.*\\.(ts|tsx)$",
-        "command": "npx vitest related \"$CLAUDE_FILE\" --run --passWithNoTests",
-        "description": "Run related tests after editing source files"
+        "matcher": {
+          "tools": ["Edit"],
+          "file_pattern": "src/.*\\.(ts|tsx)$"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx vitest related \"$CLAUDE_FILE\" --run --passWithNoTests"
+          }
+        ]
       },
       {
-        "event": "Edit",
-        "pattern": "\\.(ts|tsx|js|jsx)$",
-        "command": "node -e \"const fs=require('fs');const p=process.env.CLAUDE_FILE;if(p&&fs.existsSync(p)){const c=fs.readFileSync(p,'utf8');const lines=c.split('\\n');const matches=[];lines.forEach((l,idx)=>{if(/console\\.log/.test(l))matches.push((idx+1)+': '+l.trim())});if(matches.length){console.error('[Hook] WARNING: console.log found in '+p);matches.slice(0,5).forEach(m=>console.error(m));console.error('[Hook] Remove console.log before committing')}}\"",
-        "description": "Warn about console.log statements after edits"
+        "matcher": {
+          "tools": ["Edit"],
+          "file_pattern": "\\.(ts|tsx|js|jsx)$"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const fs=require('fs');const p=process.env.CLAUDE_FILE;if(p&&fs.existsSync(p)){const c=fs.readFileSync(p,'utf8');const lines=c.split('\\n');const matches=[];lines.forEach((l,idx)=>{if(/console\\.log/.test(l))matches.push((idx+1)+': '+l.trim())});if(matches.length){console.error('[Hook] WARNING: console.log found in '+p);matches.slice(0,5).forEach(m=>console.error(m));console.error('[Hook] Remove console.log before committing')}}\""
+          }
+        ]
       },
       {
-        "event": "Bash",
-        "pattern": "gh pr create",
-        "command": "node -e \"const out=process.env.CLAUDE_TOOL_OUTPUT||'';const m=out.match(/https:\\/\\/github.com\\/[^\\s]+\\/pull\\/\\d+/);if(m){console.error('[Hook] PR created: '+m[0]);console.error('[Hook] To view: gh pr view '+m[0].split('/').pop())}\"",
-        "description": "Log PR URL after creation"
+        "matcher": {
+          "tools": ["Bash"],
+          "command_pattern": "gh pr create"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const out=process.env.CLAUDE_TOOL_OUTPUT||'';const m=out.match(/https:\\/\\/github.com\\/[^\\s]+\\/pull\\/\\d+/);if(m){console.error('[Hook] PR created: '+m[0]);console.error('[Hook] To view: gh pr view '+m[0].split('/').pop())}\""
+          }
+        ]
       }
     ]
   }
