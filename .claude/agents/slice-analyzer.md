@@ -56,7 +56,7 @@ Read design docs and extract all user capabilities, then suggest how to slice a 
 
 **For design docs (default):**
 
-```
+```text
 Primary:
 - docs/specs/{feature}.md           # UI specification
 - docs/architecture/data-models.md  # Entity definitions

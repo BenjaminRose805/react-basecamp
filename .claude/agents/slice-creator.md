@@ -60,7 +60,7 @@ For each slice (in dependency order):
 
 #### 3.1 Create Spec Directory
 
-```
+```text
 .spec-workflow/specs/{feature}-{slice-name}/
 ```
 

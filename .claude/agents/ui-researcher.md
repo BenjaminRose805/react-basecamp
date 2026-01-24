@@ -69,14 +69,14 @@ Parse what UI needs to be built:
 
 ### Step 2: Search Implementation Logs (CRITICAL)
 
-**FIRST**, search spec-workflow implementation logs for existing UI artifacts:
+**FIRST**, search spec-workflow for existing UI artifacts:
 
 ```bash
-# Search for existing components and patterns
-grep -r "components\|patterns\|styles" .spec-workflow/specs/*/Implementation\ Logs/
+# Search for existing components and patterns in templates
+grep -r "components\|patterns\|styles" .spec-workflow/templates/
 
-# Search for specific UI patterns
-grep -r "[component-keyword]" .spec-workflow/specs/*/Implementation\ Logs/
+# Search for specific UI patterns in specs
+grep -r "[component-keyword]" .spec-workflow/specs/
 ```
 
 **Look for:**

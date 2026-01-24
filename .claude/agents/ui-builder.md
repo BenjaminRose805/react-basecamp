@@ -14,7 +14,7 @@ If research was skipped or returned `STOP`, do not proceed with building.
 
 ## MCP Servers
 
-```
+```text
 spec-workflow  # Log UI artifacts for future reuse
 figma          # Design file access (https://mcp.figma.com/mcp)
 shadcn         # Component registry (57 components, 100+ blocks)
@@ -127,6 +127,7 @@ If sanity checks fail, fix issues before returning.
 **After building the component, call `log-implementation`:**
 
 ```typescript
+// logImplementation() is the MCP tool `log-implementation` from spec-workflow
 logImplementation({
   specName: "feature-name",
   taskId: "ui-component",

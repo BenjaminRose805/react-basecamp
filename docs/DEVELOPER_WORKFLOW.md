@@ -1177,7 +1177,7 @@ pnpm eval agent-builder
 /worktree add agent-builder
 
 # Terminal 1: Work on prompt-manager
-cd ../react-basecamp--prompt-mgr
+cd ../react-basecamp--prompt-manager
 /distill prompt-manager
 /test prompt-manager
 /code prompt-manager
@@ -1192,7 +1192,7 @@ cd ../react-basecamp--agent-builder
 /worktree status
 
 # When prompt-manager is ready
-cd ../react-basecamp--prompt-mgr
+cd ../react-basecamp--prompt-manager
 /verify
 /pr
 

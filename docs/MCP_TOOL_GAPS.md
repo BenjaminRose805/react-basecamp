@@ -262,21 +262,21 @@ Track implementation by checking off items above and noting the PR/commit that a
 - **pending** = PR awaiting review/merge
 - **PR number** = Merged to main
 
-| Date       | Agent            | Tool Added                                                                                                                                              | PR/Commit |
-| ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 2026-01-24 | debugger         | `analyze_issue_with_seer`, `get_incoming_calls`, `get_outgoing_calls`, `browser_network_requests`, `get_trace_details`, `search_events`, `update_issue` | pending   |
-| 2026-01-24 | pr-reviewer      | `create_pull_request_review`, `get_pull_request_files`, `get_pull_request_status`, `get_pull_request_comments`, `get_pull_request_reviews`              | pending   |
-| 2026-01-24 | test-researcher  | `list_tests`                                                                                                                                            | pending   |
-| 2026-01-24 | test-qa          | `analyze_coverage`                                                                                                                                      | pending   |
-| 2026-01-24 | ui-qa            | `browser_snapshot`, `browser_console_messages`, `get_audit_checklist`                                                                                   | pending   |
-| 2026-01-24 | ui-builder       | `get_item_examples_from_registries`, `browser_resize`, `browser_hover`, `get_code_connect_map`, `add_code_connect_map`                                  | pending   |
-| 2026-01-24 | code-qa          | `spec-status`                                                                                                                                           | pending   |
-| 2026-01-24 | code-writer      | `rename_symbol`, `nextjs_docs`                                                                                                                          | pending   |
-| 2026-01-24 | code-researcher  | `find_workspace_symbols`, `find_implementation`                                                                                                         | pending   |
-| 2026-01-24 | security-auditor | `search_events`                                                                                                                                         | pending   |
-| 2026-01-24 | spec-writer      | `generate_diagram`                                                                                                                                      | pending   |
-| 2026-01-24 | slice-creator    | `create_project`, `create_issue`                                                                                                                        | pending   |
-| 2026-01-24 | ui-researcher    | `create_design_system_rules`                                                                                                                            | pending   |
+| Date       | Agent            | Tool Added                                                                                                                                                    | PR/Commit |
+| ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 2026-01-24 | debugger         | `analyze_issue_with_seer`, `get_incoming_calls`, `get_outgoing_calls`, `browser_network_requests`, `get_trace_details`, `search_issue_events`, `update_issue` | pending   |
+| 2026-01-24 | pr-reviewer      | `create_pull_request_review`, `get_pull_request_files`, `get_pull_request_status`, `get_pull_request_comments`, `get_pull_request_reviews`                    | pending   |
+| 2026-01-24 | test-researcher  | `list_tests`                                                                                                                                                  | pending   |
+| 2026-01-24 | test-qa          | `analyze_coverage`                                                                                                                                            | pending   |
+| 2026-01-24 | ui-qa            | `browser_snapshot`, `browser_console_messages`, `get_audit_checklist`                                                                                         | pending   |
+| 2026-01-24 | ui-builder       | `get_item_examples_from_registries`, `browser_resize`, `browser_hover`, `get_code_connect_map`, `add_code_connect_map`                                        | pending   |
+| 2026-01-24 | code-qa          | `spec-status`                                                                                                                                                 | pending   |
+| 2026-01-24 | code-writer      | `rename_symbol`, `nextjs_docs`                                                                                                                                | pending   |
+| 2026-01-24 | code-researcher  | `find_workspace_symbols`, `find_implementation`                                                                                                               | pending   |
+| 2026-01-24 | security-auditor | `search_events`                                                                                                                                               | pending   |
+| 2026-01-24 | spec-writer      | `generate_diagram`                                                                                                                                            | pending   |
+| 2026-01-24 | slice-creator    | `create_project`                                                                                                                                              | pending   |
+| 2026-01-24 | ui-researcher    | `create_design_system_rules`                                                                                                                                  | pending   |
 
 ---
 
@@ -284,5 +284,5 @@ Track implementation by checking off items above and noting the PR/commit that a
 
 1. **Before updating an agent**: Check this document to see if there are recommended tools to add
 2. **After adding a tool**: Check off the item and add an entry to the Implementation Progress table
-3. **Periodic review**: Review Low Priority items quarterly to see if they've become more relevant
+3. **Periodic review**: Review Low-Priority items quarterly to see if they've become more relevant
 4. **New MCP servers**: When adding new MCP servers, update this document with their tools and gap analysis

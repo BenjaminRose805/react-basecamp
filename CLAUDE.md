@@ -522,7 +522,7 @@ Manages git branches with enforced conventions. Never work directly on main.
 
 **Integration with workflow:**
 
-```
+```bash
 /branch start prompt-manager    # Step 0: ALWAYS start here
     ↓
 /distill prompt-manager         # Step 1: Create spec
@@ -559,12 +559,12 @@ Work on multiple features simultaneously using git worktrees.
 
 **Directory structure:**
 
-```
+```text
 ~/basecamp/
-├── react-basecamp/                  # Main worktree (main branch)
-├── react-basecamp--prompt-manager/  # Worktree for prompt-manager
-├── react-basecamp--workflow/        # Worktree for workflow feature
-└── docs/                            # Design docs (shared)
+├── react-basecamp/                   # Main worktree (main branch)
+├── react-basecamp--prompt-manager/   # Worktree for prompt-manager
+├── react-basecamp--workflow-designer/ # Worktree for workflow feature
+└── docs/                             # Design docs (shared)
 ```
 
 **Example workflow:**
@@ -882,13 +882,13 @@ The AI Development Platform design docs are located at `~/basecamp/docs/`:
 
 Interactive tools available during development:
 
-| Tool                        | URL/Command           | Purpose                                       |
-| --------------------------- | --------------------- | --------------------------------------------- |
-| **Spec Workflow Dashboard** | http://localhost:5000 | Spec management, approvals, progress tracking |
-| **Next.js Dev Server**      | http://localhost:3000 | Your application                              |
-| **Vitest UI**               | `pnpm test:ui`        | Interactive test runner                       |
-| **Playwright UI**           | `pnpm test:e2e --ui`  | E2E test visualization                        |
-| **Prisma Studio**           | `pnpm prisma studio`  | Database browser                              |
+| Tool                        | URL/Command                             | Purpose                                       |
+| --------------------------- | --------------------------------------- | --------------------------------------------- |
+| **Spec Workflow Dashboard** | [localhost:5000](http://localhost:5000) | Spec management, approvals, progress tracking |
+| **Next.js Dev Server**      | [localhost:3000](http://localhost:3000) | Your application                              |
+| **Vitest UI**               | `pnpm test:ui`                          | Interactive test runner                       |
+| **Playwright UI**           | `pnpm test:e2e --ui`                    | E2E test visualization                        |
+| **Prisma Studio**           | `pnpm prisma studio`                    | Database browser                              |
 
 ### Your Interaction Points
 

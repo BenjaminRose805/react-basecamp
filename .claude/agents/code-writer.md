@@ -123,6 +123,7 @@ This prevents:
 **CRITICAL:** After completing each task, call `log-implementation`:
 
 ```typescript
+// logImplementation() is the MCP tool `log-implementation` from spec-workflow
 logImplementation({
   specName: "prompt-manager-crud",
   taskId: "2",

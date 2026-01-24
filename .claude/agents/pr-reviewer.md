@@ -47,11 +47,11 @@ This agent runs AFTER `/debug`, `/security`, and QA have passed.
 ### Step 1: Understand the PR
 
 1. Use `github` tools to gather context:
-   - `get_pull_request` - Get title, description, base/head branches
-   - `get_pull_request_files` - **Get all changed files** (essential for review scope)
-   - `get_pull_request_status` - Check if CI/tests are passing
-   - `get_pull_request_comments` - Review existing discussion
-   - `get_pull_request_reviews` - Check if others have reviewed
+   - `pull_request_read` with method: "get" - Get title, description, base/head branches
+   - `pull_request_read` with method: "get_files" - **Get all changed files** (essential for review scope)
+   - `pull_request_read` with method: "get_status" - Check if CI/tests are passing
+   - `pull_request_read` with method: "get_comments" - Review existing discussion
+   - `pull_request_read` with method: "get_reviews" - Check if others have reviewed
    - `list_commits` - Understand the commit history
 
 2. Understand the goal:
@@ -100,7 +100,7 @@ This agent runs AFTER `/debug`, `/security`, and QA have passed.
 
 ### Step 4: Submit Review
 
-**CRITICAL:** Use `create_pull_request_review` to submit your review to GitHub.
+**CRITICAL:** Use `pull_request_review_write` with method: "create" to submit your review to GitHub.
 
 Review events:
 

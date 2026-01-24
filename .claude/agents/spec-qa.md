@@ -13,9 +13,7 @@ spec-workflow  # Full SDD workflow with dashboard
 cclsp          # TypeScript LSP for code intelligence
 ```
 
-**Required spec-workflow tools:**
-
-- `spec-status` - Check spec progress and phase status
+**Note:** The `spec-status` tool is planned but not yet available. Until implemented, manually check spec files in `.spec-workflow/specs/{feature}/`.
 
 ## Instructions
 
@@ -174,7 +172,8 @@ Run `/spec [feature]` to fix these issues, then `/spec qa` again
 ### Tasks Document (CRITICAL)
 
 - [ ] Tasks follow exact format:
-  ```
+
+  ```markdown
   - [ ] 1. Task title
     - File: path/to/file
     - Description
@@ -183,6 +182,7 @@ Run `/spec [feature]` to fix these issues, then `/spec qa` again
     - _Requirements: ..._
     - _Prompt: Role: ... | Task: ... | Restrictions: ... | Success: ..._
   ```
+
 - [ ] All tasks have \_Prompt field
 - [ ] All tasks are <2 hours
 - [ ] Tasks cover all requirements
