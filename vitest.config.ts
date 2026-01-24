@@ -43,6 +43,15 @@ export default defineConfig({
         "src/**/*.spec.{ts,tsx}",
         "src/**/index.ts",
         "src/**/*.stories.{ts,tsx}",
+        // Generated/boilerplate code
+        "src/components/ui/**", // shadcn/ui generated components
+        "src/hooks/use-toast.ts", // shadcn/ui toast hook
+        "src/app/**", // Next.js pages (need E2E tests)
+        "src/server/routers/**", // tRPC routers (need integration tests)
+        "src/server/trpc.ts", // tRPC setup
+        "src/lib/trpc/**", // tRPC client
+        "src/lib/eval/**", // Eval framework (not used yet)
+        "src/types/**", // Type definitions only
       ],
     },
 

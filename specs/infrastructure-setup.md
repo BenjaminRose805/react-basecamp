@@ -19,7 +19,14 @@ Set up the foundational infrastructure for the AI Development Platform, enabling
 - Authentication/authorization
 - Production deployment configuration
 
-## Acceptance Criteria
+## User Stories
+
+- As a developer, I want a database schema so that I can persist application data
+- As a developer, I want type-safe API routes so that I can build features with confidence
+- As a developer, I want pre-built UI components so that I can build interfaces quickly
+- As a developer, I want Claude Code agents so that AI can assist with development tasks
+
+## Success Criteria
 
 - [x] Prisma schema defines all required models (User, WorkItem, Prompt, Agent, Workflow, Execution, Task, etc.)
 - [x] tRPC routers provide CRUD operations for core entities
@@ -27,6 +34,13 @@ Set up the foundational infrastructure for the AI Development Platform, enabling
 - [x] TypeScript type checking passes
 - [x] ESLint passes with no errors
 - [x] Production build succeeds
+
+## Technical Constraints
+
+- Must use SQLite for development (PostgreSQL-ready for production)
+- Must maintain TypeScript strict mode
+- Must pass all ESLint rules without disabling
+- Must work with Next.js 15 App Router
 
 ## Technical Approach
 
