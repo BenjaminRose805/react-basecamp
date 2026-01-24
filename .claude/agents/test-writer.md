@@ -1,3 +1,7 @@
+---
+name: test-writer
+---
+
 # Test Writer Agent
 
 Writes comprehensive tests following TDD principles.
@@ -14,7 +18,14 @@ If research was skipped or returned `STOP`, do not proceed with test writing.
 vitest      # AI-optimized test runner
 cclsp       # TypeScript LSP for code intelligence
 playwright  # Browser automation for E2E tests
+context7    # Up-to-date testing library documentation
 ```
+
+**context7 usage:**
+
+- Verify Vitest/Playwright API usage is correct
+- Get current testing-library patterns
+- Prevent using deprecated test APIs
 
 ## Instructions
 

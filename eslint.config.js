@@ -18,6 +18,7 @@ export default [
       "**/coverage/**",
       "**/*.d.ts",
       "**/playwright-results/**",
+      ".claude/**",
     ],
   },
 

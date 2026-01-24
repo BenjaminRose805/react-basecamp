@@ -25,17 +25,18 @@ module.exports = {
     assert: {
       assertions: {
         // Category scores (0-1 scale, so 0.9 = 90%)
-        'categories:performance': ['warn', { minScore: 0.9 }],
+        // Accessibility and performance are blocking (error), others are warnings
+        'categories:performance': ['error', { minScore: 0.8 }],
         'categories:accessibility': ['error', { minScore: 0.95 }],
         'categories:best-practices': ['warn', { minScore: 0.9 }],
         'categories:seo': ['warn', { minScore: 0.9 }],
 
-        // Core Web Vitals
-        'largest-contentful-paint': ['warn', { maxNumericValue: 2500 }],
-        'cumulative-layout-shift': ['warn', { maxNumericValue: 0.1 }],
-        'total-blocking-time': ['warn', { maxNumericValue: 300 }],
+        // Core Web Vitals - blocking thresholds
+        'largest-contentful-paint': ['error', { maxNumericValue: 2500 }],
+        'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
+        'total-blocking-time': ['error', { maxNumericValue: 300 }],
 
-        // Other important metrics
+        // Other important metrics - warnings
         'first-contentful-paint': ['warn', { maxNumericValue: 1800 }],
         'speed-index': ['warn', { maxNumericValue: 3400 }],
       },

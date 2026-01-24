@@ -43,3 +43,9 @@ next-env.d.ts
 # Misc
 *.pem
 .vercel
+
+/src/generated/prisma
+.env*.local
+
+# Sentry Config File
+.env.sentry-build-plugin

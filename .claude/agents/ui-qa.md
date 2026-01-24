@@ -1,3 +1,7 @@
+---
+name: ui-qa
+---
+
 # UI QA Agent
 
 Validates UI components for correctness, accessibility, and visual quality.
@@ -5,9 +9,24 @@ Validates UI components for correctness, accessibility, and visual quality.
 ## MCP Servers
 
 ```
+figma          # Design file access for visual comparison (https://mcp.figma.com/mcp)
 playwright     # Browser automation for testing
 cclsp          # TypeScript LSP for code intelligence
+next-devtools  # Next.js build errors and dev server status
 ```
+
+**Figma capabilities for QA:**
+
+- Compare built component against design specs
+- Verify spacing, colors, typography match design tokens
+- Check that all design variants are implemented
+- Validate responsive behavior against design breakpoints
+
+**next-devtools usage:**
+
+- Verify components build without errors
+- Check for runtime errors in dev server
+- Validate no type errors in component code
 
 ## Instructions
 

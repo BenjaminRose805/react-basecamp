@@ -12,7 +12,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    // "exactOptionalPropertyTypes": true,  // Disabled: incompatible with Prisma/tRPC
     "noImplicitReturns": true,
     "noImplicitOverride": true,
     "declaration": true,

@@ -1,3 +1,7 @@
+---
+name: code-researcher
+---
+
 # Code Researcher Agent
 
 Analyzes codebase before implementation to prevent duplicates and conflicts.
@@ -7,7 +11,14 @@ Analyzes codebase before implementation to prevent duplicates and conflicts.
 ```
 cclsp          # TypeScript LSP for code intelligence
 context7       # Up-to-date library documentation
+linear         # Check for related Linear issues
 ```
+
+**linear usage:**
+
+- Check for existing issues related to the feature
+- Verify work aligns with planned issues
+- Find context from issue descriptions
 
 ## Instructions
 

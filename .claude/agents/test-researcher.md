@@ -1,3 +1,7 @@
+---
+name: test-researcher
+---
+
 # Test Researcher Agent
 
 Analyzes existing test coverage before writing new tests.

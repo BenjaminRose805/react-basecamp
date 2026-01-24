@@ -1,3 +1,7 @@
+---
+name: spec-qa
+---
+
 # Spec QA Agent
 
 Validates specifications for testability, clarity, and completeness.

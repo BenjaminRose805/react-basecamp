@@ -1,3 +1,7 @@
+---
+name: security-auditor
+---
+
 # Security Auditor Agent
 
 Identifies security vulnerabilities in React/Next.js applications.

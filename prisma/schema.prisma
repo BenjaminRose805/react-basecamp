@@ -1,0 +1,373 @@
+// Prisma schema for AI Development Platform
+// Based on ~/basecamp/docs/architecture/database-schema.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum WorkItemType {
+  epic
+  story
+  task
+  spike
+  bug
+  milestone
+}
+
+enum WorkItemStatus {
+  draft
+  ready
+  in_progress
+  done
+}
+
+enum Priority {
+  low
+  medium
+  high
+  critical
+}
+
+enum WorkflowNodeType {
+  start
+  agent
+  human
+  condition
+  end
+}
+
+enum ExecutionStatus {
+  running
+  completed
+  failed
+}
+
+enum NodeStateStatus {
+  pending
+  running
+  completed
+  failed
+  skipped
+}
+
+enum TaskStatus {
+  pending
+  in_progress
+  completed
+  expired
+}
+
+enum MessageSenderType {
+  user
+  agent
+  system
+}
+
+enum AgentStatus {
+  draft
+  published
+}
+
+enum WorkflowMode {
+  testing
+  production
+}
+
+enum AgentSessionStatus {
+  active
+  completed
+  failed
+}
+
+// =============================================================================
+// CORE MODELS
+// =============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  isLocal   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model WorkItem {
+  id                 String         @id @default(cuid())
+  title              String
+  type               WorkItemType
+  status             WorkItemStatus @default(draft)
+  priority           Priority       @default(medium)
+  assignee           String?
+  labels             Json           @default("[]")
+  description        String         @default("")
+  requirements       Json           @default("[]")
+  acceptanceCriteria Json           @default("[]")
+
+  // Hierarchy
+  parentId String?
+  parent   WorkItem?  @relation("WorkItemHierarchy", fields: [parentId], references: [id])
+  children WorkItem[] @relation("WorkItemHierarchy")
+
+  // Dependencies
+  dependsOn    WorkItemDependency[] @relation("DependsOn")
+  dependedOnBy WorkItemDependency[] @relation("DependedOnBy")
+
+  // Execution
+  executionConfig    Json?
+  currentExecutionId String?  @unique
+  currentExecution   Execution?  @relation("CurrentExecution", fields: [currentExecutionId], references: [id])
+  executions         Execution[] @relation("ExecutionHistory")
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+
+  // Relations
+  tasks   Task[]
+  threads Thread[]
+
+  @@index([status])
+  @@index([type])
+  @@index([priority])
+  @@index([parentId])
+  @@index([assignee])
+  @@index([currentExecutionId])
+  @@index([createdAt])
+}
+
+model WorkItemDependency {
+  id           String   @id @default(cuid())
+  dependentId  String
+  dependencyId String
+  dependent    WorkItem @relation("DependsOn", fields: [dependentId], references: [id], onDelete: Cascade)
+  dependency   WorkItem @relation("DependedOnBy", fields: [dependencyId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@unique([dependentId, dependencyId])
+  @@index([dependentId])
+  @@index([dependencyId])
+}
+
+// =============================================================================
+// PROMPT & AGENT
+// =============================================================================
+
+model Prompt {
+  id            String        @id @default(cuid())
+  name          String
+  content       String
+  variables     Json          @default("[]")
+  version       String        @default("1.0.0")
+  parentVersion String?
+  tags          Json          @default("[]")
+  folderId      String?
+  folder        PromptFolder? @relation(fields: [folderId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  agents        Agent[]
+
+  @@index([name])
+  @@index([folderId])
+}
+
+model PromptFolder {
+  id        String         @id @default(cuid())
+  name      String
+  parentId  String?
+  parent    PromptFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children  PromptFolder[] @relation("FolderHierarchy")
+  prompts   Prompt[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([parentId])
+}
+
+model Agent {
+  id             String      @id @default(cuid())
+  name           String
+  description    String      @default("")
+  status         AgentStatus @default(draft)
+  systemPromptId String?
+  systemPrompt   Prompt?     @relation(fields: [systemPromptId], references: [id])
+  tools          Json        @default("[]")
+  modelConfig    Json
+  version        String      @default("1.0.0")
+  publishedAt    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([name])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+// =============================================================================
+// WORKFLOW
+// =============================================================================
+
+model Workflow {
+  id          String       @id @default(cuid())
+  name        String
+  description String       @default("")
+  mode        WorkflowMode @default(testing)
+  nodes       Json         @default("[]")
+  edges       Json         @default("[]")
+  inputs      Json         @default("{\"fields\":[]}")
+  outputs     Json         @default("{\"fields\":[]}")
+  version     String       @default("1.0.0")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  executions  Execution[]
+
+  @@index([name])
+  @@index([mode])
+}
+
+// =============================================================================
+// EXECUTION
+// =============================================================================
+
+model Execution {
+  id             String          @id @default(cuid())
+  workflowId     String
+  workflow       Workflow        @relation(fields: [workflowId], references: [id])
+  workItemId     String?
+  workItem       WorkItem?       @relation("ExecutionHistory", fields: [workItemId], references: [id])
+  triggeredBy    String
+  status         ExecutionStatus @default(running)
+  inputs         Json            @default("{}")
+  outputs        Json?
+  notifyUsers    Json            @default("[]")
+  startedAt      DateTime        @default(now())
+  completedAt    DateTime?
+  error          Json?
+  nodeStates     NodeState[]
+  agentSessions  AgentSession[]
+  tasks          Task[]
+  threads        Thread[]
+  currentForItem WorkItem?       @relation("CurrentExecution")
+
+  @@index([triggeredBy])
+  @@index([status])
+  @@index([workflowId])
+  @@index([workItemId])
+  @@index([startedAt])
+}
+
+model NodeState {
+  id          String          @id @default(cuid())
+  executionId String
+  execution   Execution       @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  nodeId      String
+  status      NodeStateStatus @default(pending)
+  inputs      Json            @default("{}")
+  outputs     Json?
+  startedAt   DateTime?
+  completedAt DateTime?
+  retryCount  Int             @default(0)
+  error       Json?
+
+  @@unique([executionId, nodeId])
+  @@index([executionId])
+  @@index([status])
+}
+
+model AgentSession {
+  id          String             @id @default(cuid())
+  agentId     String
+  executionId String
+  execution   Execution          @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  nodeId      String
+  status      AgentSessionStatus @default(active)
+  messages    Json               @default("[]")
+  tokenUsage  Json               @default("{\"input\":0,\"output\":0}")
+  createdAt   DateTime           @default(now())
+  completedAt DateTime?
+
+  @@index([executionId])
+  @@index([agentId])
+  @@index([status])
+}
+
+// =============================================================================
+// TASK
+// =============================================================================
+
+model Task {
+  id           String     @id @default(cuid())
+  title        String
+  instructions String     @default("")
+  context      Json?
+  workItemId   String?
+  workItem     WorkItem?  @relation(fields: [workItemId], references: [id])
+  executionId  String?
+  execution    Execution? @relation(fields: [executionId], references: [id])
+  nodeId       String?
+  priority     Priority   @default(medium)
+  dueDate      DateTime?
+  status       TaskStatus @default(pending)
+  result       Json?
+  completedAt  DateTime?
+  completedBy  String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([status])
+  @@index([dueDate])
+  @@index([executionId])
+  @@index([workItemId])
+}
+
+// =============================================================================
+// COMMUNICATION
+// =============================================================================
+
+model Thread {
+  id          String     @id @default(cuid())
+  workItemId  String?
+  workItem    WorkItem?  @relation(fields: [workItemId], references: [id])
+  executionId String?
+  execution   Execution? @relation(fields: [executionId], references: [id])
+  agentId     String?
+  title       String?
+  pinned      Boolean    @default(false)
+  archived    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  messages    Message[]
+
+  @@index([workItemId])
+  @@index([executionId])
+  @@index([archived])
+  @@index([updatedAt])
+}
+
+model Message {
+  id          String            @id @default(cuid())
+  threadId    String
+  thread      Thread            @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderType  MessageSenderType
+  senderId    String?
+  content     String
+  attachments Json              @default("[]")
+  metadata    Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([threadId])
+  @@index([createdAt])
+}

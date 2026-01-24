@@ -1,3 +1,7 @@
+---
+name: code-qa
+---
+
 # Code QA Agent
 
 Validates code implementation for correctness, integration, and quality.
@@ -8,7 +12,14 @@ Validates code implementation for correctness, integration, and quality.
 cclsp          # TypeScript LSP for code intelligence
 vitest         # Test runner
 next-devtools  # Next.js dev server errors
+sentry         # Production error monitoring (https://mcp.sentry.dev/mcp)
 ```
+
+**sentry usage:**
+
+- Verify code changes resolve reported production errors
+- Check if similar errors exist that should be addressed
+- Validate fix doesn't introduce new error patterns
 
 ## Instructions
 

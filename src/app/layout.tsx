@@ -1,9 +1,11 @@
-import type { Metadata } from 'next';
-import './globals.css';
+import { Providers } from "./providers";
+
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'My App',
-  description: 'A Next.js application with react-basecamp tooling',
+  title: "AI Development Platform",
+  description: "Unified platform for AI-assisted software development",
 };
 
 export default function RootLayout({
@@ -13,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

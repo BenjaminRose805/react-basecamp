@@ -87,7 +87,7 @@ AI-optimized test runner for TDD workflows.
 **Setup:**
 
 ```bash
-claude mcp add vitest -- npx vitest-mcp
+claude mcp add vitest -- npx @djankies/vitest-mcp
 ```
 
 **Capabilities:**
@@ -113,7 +113,7 @@ GitHub integration for PR reviews, issues, and repository management.
 **Setup:**
 
 ```bash
-claude mcp add github -- npx @anthropic/mcp-github
+claude mcp add github -- npx @modelcontextprotocol/server-github
 ```
 
 **Capabilities:**
@@ -134,14 +134,43 @@ claude mcp add github -- npx @anthropic/mcp-github
 
 ## Recommended MCP Servers
 
-### 6. Context7 MCP
+### 6. Linear MCP
+
+Issue tracking and project management for connecting code work to Linear issues.
+
+**Setup:**
+
+```bash
+claude mcp add linear -- npx @anthropic/linear-mcp@latest
+```
+
+**Capabilities:**
+
+| Tool           | What It Does                          |
+| -------------- | ------------------------------------- |
+| `list_issues`  | List and filter issues by team/status |
+| `get_issue`    | Get issue details and attachments     |
+| `create_issue` | Create new issues                     |
+| `update_issue` | Update issue status and fields        |
+| `list_teams`   | List teams in workspace               |
+| `list_cycles`  | List sprint cycles                    |
+
+**Benefits:**
+
+- Claude can check issue requirements before implementing
+- Create issues for bugs discovered during development
+- Link PRs to issues with `Fixes BAS-XXX` pattern
+- Update issue status as work progresses
+- Research agent uses to check for existing/related issues
+
+### 7. Context7 MCP
 
 Up-to-date library documentation to prevent hallucinated APIs.
 
 **Setup:**
 
 ```bash
-claude mcp add context7 -- npx context7-mcp
+claude mcp add context7 -- npx @context7/mcp-server
 ```
 
 **Capabilities:**
@@ -181,9 +210,35 @@ claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
 - Root cause analysis with full context
 - Can suggest fixes based on error patterns
 
+### 8. Figma MCP
+
+Bridge between Figma designs and React code generation.
+
+**Setup:**
+
+```bash
+claude mcp add --transport http figma https://mcp.figma.com/mcp
+```
+
+**Capabilities:**
+
+| Tool               | What It Does                                    |
+| ------------------ | ----------------------------------------------- |
+| `get_frame_layout` | Get layout info from selected Figma frames      |
+| `get_tokens`       | Get design tokens (colors, typography, spacing) |
+| `get_components`   | Get component structure and variants            |
+| `get_breakpoints`  | Get responsive design breakpoints               |
+
+**Benefits:**
+
+- Claude can see design specs while building UI
+- Design tokens are used directly in implementation
+- Verify built components match designs
+- Works with Figma Design, FigJam, and Make files
+
 ## Documentation MCP Servers
 
-### 8. AWS Code Documentation Generator
+### 9. AWS Code Documentation Generator
 
 Auto-generate comprehensive documentation from code.
 
@@ -207,7 +262,7 @@ claude mcp add docs-generator -- npx @aws/mcp-docs-generator
 - Consistent documentation format
 - Keeps docs in sync with code changes
 
-### 9. MCP Docs Service
+### 10. MCP Docs Service
 
 Documentation management with structured markdown.
 
@@ -234,7 +289,7 @@ claude mcp add mcp-docs -- npx mcp-docs-service
 
 ## TDD/SDD MCP Servers
 
-### 10. Spec Workflow MCP (Recommended for SDD)
+### 11. Spec Workflow MCP (Recommended for SDD)
 
 Complete spec-driven development workflow with real-time dashboard.
 
@@ -271,7 +326,7 @@ claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest .
 - "List my specs"
 - "Execute task 1.2 in spec user-auth"
 
-### 11. Test Runner MCP (Multi-Framework TDD)
+### 12. Test Runner MCP (Multi-Framework TDD)
 
 Universal test runner supporting 7 testing frameworks.
 
@@ -310,7 +365,7 @@ claude mcp add test-runner -- npx @anthropic/mcp-test-runner
 
 **Skip if:** Your project only uses Vitest (use Vitest MCP instead)
 
-### 12. Markdownify MCP
+### 13. Markdownify MCP
 
 Convert various file types and web content to Markdown.
 
@@ -335,7 +390,7 @@ claude mcp add markdownify -- npx markdownify-mcp
 - Convert legacy docs for LLM processing
 - Prepare content for RAG systems
 
-### 13. ADR Analysis MCP
+### 14. ADR Analysis MCP
 
 Architectural Decision Records for spec-driven development.
 
@@ -361,20 +416,6 @@ claude mcp add adr -- npx adr-analysis-mcp
 - Track technical debt and trade-offs
 
 ## Optional MCP Servers
-
-### 14. Figma MCP (for design-to-code)
-
-Bridge between Figma designs and React code generation.
-
-**Setup:** Download from [Figma Dev Mode](https://www.figma.com/developers) and run locally.
-
-**Capabilities:**
-
-| Tool            | What It Does                                    |
-| --------------- | ----------------------------------------------- |
-| `get_code`      | Get React/Tailwind code for selected Figma node |
-| `get_image`     | Export images from Figma                        |
-| `get_variables` | Get design tokens and variables                 |
 
 ### 15. Storybook MCP (for component libraries)
 
@@ -408,20 +449,26 @@ claude mcp add next-devtools -- npx -y next-devtools-mcp@latest
 claude mcp add playwright -- npx @playwright/mcp@latest
 
 # Vitest (for TDD)
-claude mcp add vitest -- npx vitest-mcp
+claude mcp add vitest -- npx @djankies/vitest-mcp
 
 # GitHub (for PR reviews)
-claude mcp add github -- npx @anthropic/mcp-github
+claude mcp add github -- npx @modelcontextprotocol/server-github
 ```
 
 ## Recommended Setup
 
 ```bash
+# Linear (issue tracking)
+claude mcp add linear -- npx @anthropic/linear-mcp@latest
+
 # Context7 (prevents hallucinated APIs)
-claude mcp add context7 -- npx context7-mcp
+claude mcp add context7 -- npx @context7/mcp-server
 
 # Sentry (production error monitoring)
 claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
+
+# Figma (design-to-code workflow)
+claude mcp add --transport http figma https://mcp.figma.com/mcp
 
 # Spec Workflow (for SDD - includes web dashboard)
 claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest .
@@ -471,15 +518,16 @@ You should see all configured servers listed.
 | playwright     | Required    | Browser testing, UI verification                |
 | vitest         | Required    | TDD workflow, test running, coverage            |
 | github         | Required    | PR reviews, issues, repository management       |
+| linear         | Recommended | Issue tracking, link PRs to issues, workflows   |
 | context7       | Recommended | Up-to-date library docs, prevent hallucinations |
 | sentry         | Recommended | Production error debugging                      |
+| figma          | Recommended | Design-to-code workflow, design tokens          |
 | spec-workflow  | Recommended | Spec-driven development with dashboard          |
 | docs-generator | Optional    | Auto-generate documentation                     |
 | mcp-docs       | Optional    | Documentation management                        |
 | test-runner    | Optional    | Polyglot projects only (overlaps with vitest)   |
 | markdownify    | Optional    | Convert files/URLs to Markdown                  |
 | adr            | Optional    | Architectural decision records                  |
-| figma          | Optional    | Design-to-code workflow                         |
 | storybook      | Optional    | Component library context                       |
 
 ## SDD/TDD Workflow

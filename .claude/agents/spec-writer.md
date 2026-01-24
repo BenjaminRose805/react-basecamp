@@ -1,3 +1,7 @@
+---
+name: spec-writer
+---
+
 # Spec Writer Agent
 
 Creates and manages feature specifications for spec-driven development.

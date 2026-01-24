@@ -1,3 +1,7 @@
+---
+name: test-qa
+---
+
 # Test QA Agent
 
 Validates tests for correctness, isolation, and meaningful coverage.
@@ -7,7 +11,14 @@ Validates tests for correctness, isolation, and meaningful coverage.
 ```
 vitest         # Test runner
 cclsp          # TypeScript LSP for code intelligence
+playwright     # Browser automation for E2E test validation
 ```
+
+**playwright usage:**
+
+- Verify E2E tests run correctly
+- Check browser-based tests for flakiness
+- Validate test scenarios in real browser
 
 ## Instructions
 

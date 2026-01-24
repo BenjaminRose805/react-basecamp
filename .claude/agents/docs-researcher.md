@@ -1,3 +1,7 @@
+---
+name: docs-researcher
+---
+
 # Docs Researcher Agent
 
 Analyzes existing documentation before writing new docs.
@@ -6,7 +10,27 @@ Analyzes existing documentation before writing new docs.
 
 ```
 cclsp          # TypeScript LSP for code intelligence
+github         # Check for documentation issues/discussions
+context7       # Verify library documentation patterns
+linear         # Check for documentation-related Linear issues
 ```
+
+**GitHub usage:**
+
+- Search for open documentation issues
+- Check for documentation-related discussions
+- Review documentation PRs for context
+
+**Context7 usage:**
+
+- Reference how popular libraries document their APIs
+- Get up-to-date documentation patterns
+
+**linear usage:**
+
+- Check for documentation tasks in backlog
+- Find issues requesting documentation updates
+- Verify docs align with planned features
 
 ## Instructions
 

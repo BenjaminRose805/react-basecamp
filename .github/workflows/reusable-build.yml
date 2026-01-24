@@ -4,33 +4,33 @@ on:
   workflow_call:
     inputs:
       node-version:
-        description: 'Node.js version to use'
+        description: "Node.js version to use"
         type: string
-        default: '20'
+        default: "20"
       working-directory:
-        description: 'Working directory for build'
+        description: "Working directory for build"
         type: string
-        default: '.'
+        default: "."
       build-command:
-        description: 'Command to run the build'
+        description: "Command to run the build"
         type: string
-        default: 'pnpm build'
+        default: "pnpm build"
       run-lighthouse:
-        description: 'Run Lighthouse audit after build'
+        description: "Run Lighthouse audit after build"
         type: boolean
         default: false
       lighthouse-url:
-        description: 'URL to audit with Lighthouse'
+        description: "URL to audit with Lighthouse"
         type: string
-        default: ''
+        default: ""
       upload-build:
-        description: 'Upload build output as artifact'
+        description: "Upload build output as artifact"
         type: boolean
         default: false
       build-output-path:
-        description: 'Path to build output for artifact upload'
+        description: "Path to build output for artifact upload"
         type: string
-        default: '.next'
+        default: ".next"
 
 jobs:
   build:
@@ -51,10 +51,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node-version }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate
 
       - name: Run production build
         run: ${{ inputs.build-command }}
