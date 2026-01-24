@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "cclsp": {
+      "command": "npx",
+      "args": ["-y", "cclsp"],
+      "env": {
+        "CCLSP_CONFIG_PATH": ".claude/cclsp.json"
+      }
+    },
+    "next-devtools": {
+      "command": "npx",
+      "args": ["-y", "next-devtools-mcp@latest"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "vitest": {
+      "command": "npx",
+      "args": ["@djankies/vitest-mcp"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "spec-workflow": {
+      "command": "npx",
+      "args": ["-y", "@pimzino/spec-workflow-mcp@latest"]
+    },
+    "shadcn": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["shadcn@latest", "mcp"],
+      "env": {}
+    }
+  }
+}
