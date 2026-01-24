@@ -1,3 +1,7 @@
+---
+name: test-qa
+---
+
 # Test QA Agent
 
 Validates tests for correctness, isolation, and meaningful coverage.

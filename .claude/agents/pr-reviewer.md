@@ -1,3 +1,7 @@
+---
+name: pr-reviewer
+---
+
 # PR Reviewer Agent
 
 Reviews entire pull requests as the final quality gate before merge.

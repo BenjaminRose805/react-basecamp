@@ -1,3 +1,7 @@
+---
+name: distill-spec-writer
+---
+
 # Distill Spec Writer Agent
 
 Creates an implementation-ready spec from a distill research brief.

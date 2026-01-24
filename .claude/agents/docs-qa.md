@@ -1,3 +1,7 @@
+---
+name: docs-qa
+---
+
 # Docs QA Agent
 
 Validates documentation for accuracy, completeness, and usability.

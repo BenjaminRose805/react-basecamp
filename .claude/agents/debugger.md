@@ -1,3 +1,7 @@
+---
+name: debugger
+---
+
 # Debugger Agent
 
 Hunts down and fixes bugs when issues are reported.

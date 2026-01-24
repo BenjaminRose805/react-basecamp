@@ -1,3 +1,7 @@
+---
+name: docs-researcher
+---
+
 # Docs Researcher Agent
 
 Analyzes existing documentation before writing new docs.

@@ -3,7 +3,7 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": {},
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
@@ -14,7 +14,7 @@
     ],
     "Stop": [
       {
-        "matcher": {},
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
@@ -23,7 +23,7 @@
         ]
       },
       {
-        "matcher": {},
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
@@ -32,7 +32,7 @@
         ]
       },
       {
-        "matcher": {},
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
@@ -43,7 +43,7 @@
     ],
     "PreCompact": [
       {
-        "matcher": {},
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
@@ -54,58 +54,43 @@
     ],
     "PreToolUse": [
       {
-        "matcher": {
-          "tools": ["Bash"],
-          "command_pattern": "^git commit"
-        },
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "pnpm run lint && pnpm run typecheck"
+            "command": "node -e \"const cmd=process.env.CLAUDE_BASH_COMMAND||'';if(/^git commit/.test(cmd)){const{execSync}=require('child_process');try{execSync('pnpm run lint && pnpm run typecheck',{stdio:'inherit'})}catch(e){process.exit(1)}}\""
           }
         ]
       },
       {
-        "matcher": {
-          "tools": ["Bash"],
-          "command_pattern": "^git push"
-        },
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"console.error('[Hook] Pushing to remote...');console.error('[Hook] Ensure all tests pass and PR is ready')\""
+            "command": "node -e \"const cmd=process.env.CLAUDE_BASH_COMMAND||'';if(/^git push/.test(cmd)){console.error('[Hook] Pushing to remote...');console.error('[Hook] Ensure all tests pass and PR is ready')}\""
           }
         ]
       },
       {
-        "matcher": {
-          "tools": ["Bash"],
-          "command_pattern": "(npm run dev|pnpm( run)? dev|yarn dev|bun run dev)"
-        },
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"console.error('[Hook] TIP: Consider running dev server in tmux for log access');console.error('[Hook] Use: tmux new-session -d -s dev \\\"pnpm dev\\\"')\""
+            "command": "node -e \"const cmd=process.env.CLAUDE_BASH_COMMAND||'';if(/(npm run dev|pnpm( run)? dev|yarn dev|bun run dev)/.test(cmd)){console.error('[Hook] TIP: Consider running dev server in tmux for log access');console.error('[Hook] Use: tmux new-session -d -s dev \\\"pnpm dev\\\"')}\""
           }
         ]
       },
       {
-        "matcher": {
-          "tools": ["Bash"],
-          "command_pattern": "(pnpm (install|test)|npm (install|test)|vitest|playwright)"
-        },
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"if(!process.env.TMUX){console.error('[Hook] TIP: Consider tmux for long-running commands');console.error('[Hook] tmux new -s dev | tmux attach -t dev')}\""
+            "command": "node -e \"const cmd=process.env.CLAUDE_BASH_COMMAND||'';if(/(pnpm (install|test)|npm (install|test)|vitest|playwright)/.test(cmd)&&!process.env.TMUX){console.error('[Hook] TIP: Consider tmux for long-running commands');console.error('[Hook] tmux new -s dev | tmux attach -t dev')}\""
           }
         ]
       },
       {
-        "matcher": {
-          "tools": ["Write"],
-          "file_pattern": "\\.(md|txt)$"
-        },
+        "matcher": "Write",
         "hooks": [
           {
             "type": "command",
@@ -114,20 +99,7 @@
         ]
       },
       {
-        "matcher": {
-          "tools": ["Edit"]
-        },
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/suggest-compact.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": {
-          "tools": ["Write"]
-        },
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
@@ -138,74 +110,56 @@
     ],
     "PostToolUse": [
       {
-        "matcher": {
-          "tools": ["Edit"],
-          "file_pattern": "\\.(ts|tsx)$"
-        },
+        "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsc --noEmit --pretty"
+            "command": "node -e \"const p=process.env.CLAUDE_FILE||'';if(/\\.(ts|tsx)$/.test(p)){const{execSync}=require('child_process');try{execSync('npx tsc --noEmit --pretty',{stdio:'inherit'})}catch(e){}}\""
           }
         ]
       },
       {
-        "matcher": {
-          "tools": ["Edit"],
-          "file_pattern": "\\.(ts|tsx|js|jsx)$"
-        },
+        "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "npx eslint --fix \"$CLAUDE_FILE\""
+            "command": "node -e \"const p=process.env.CLAUDE_FILE||'';if(/\\.(ts|tsx|js|jsx)$/.test(p)){const{execSync}=require('child_process');try{execSync('npx eslint --fix \"'+p+'\"',{stdio:'inherit'})}catch(e){}}\""
           }
         ]
       },
       {
-        "matcher": {
-          "tools": ["Edit"],
-          "file_pattern": "\\.(ts|tsx|js|jsx|json|css|scss|md)$"
-        },
+        "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "npx prettier --write \"$CLAUDE_FILE\""
+            "command": "node -e \"const p=process.env.CLAUDE_FILE||'';if(/\\.(ts|tsx|js|jsx|json|css|scss|md)$/.test(p)){const{execSync}=require('child_process');try{execSync('npx prettier --write \"'+p+'\"',{stdio:'inherit'})}catch(e){}}\""
           }
         ]
       },
       {
-        "matcher": {
-          "tools": ["Edit"],
-          "file_pattern": "src/.*\\.(ts|tsx)$"
-        },
+        "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "npx vitest related \"$CLAUDE_FILE\" --run --passWithNoTests"
+            "command": "node -e \"const p=process.env.CLAUDE_FILE||'';if(/src\\/.*\\.(ts|tsx)$/.test(p)){const{execSync}=require('child_process');try{execSync('npx vitest related \"'+p+'\" --run --passWithNoTests',{stdio:'inherit'})}catch(e){}}\""
           }
         ]
       },
       {
-        "matcher": {
-          "tools": ["Edit"],
-          "file_pattern": "\\.(ts|tsx|js|jsx)$"
-        },
+        "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"const fs=require('fs');const p=process.env.CLAUDE_FILE;if(p&&fs.existsSync(p)){const c=fs.readFileSync(p,'utf8');const lines=c.split('\\n');const matches=[];lines.forEach((l,idx)=>{if(/console\\.log/.test(l))matches.push((idx+1)+': '+l.trim())});if(matches.length){console.error('[Hook] WARNING: console.log found in '+p);matches.slice(0,5).forEach(m=>console.error(m));console.error('[Hook] Remove console.log before committing')}}\""
+            "command": "node -e \"const fs=require('fs');const p=process.env.CLAUDE_FILE||'';if(p&&/\\.(ts|tsx|js|jsx)$/.test(p)&&fs.existsSync(p)){const c=fs.readFileSync(p,'utf8');const lines=c.split('\\n');const matches=[];lines.forEach((l,idx)=>{if(/console\\.log/.test(l))matches.push((idx+1)+': '+l.trim())});if(matches.length){console.error('[Hook] WARNING: console.log found in '+p);matches.slice(0,5).forEach(m=>console.error(m));console.error('[Hook] Remove console.log before committing')}}\""
           }
         ]
       },
       {
-        "matcher": {
-          "tools": ["Bash"],
-          "command_pattern": "gh pr create"
-        },
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"const out=process.env.CLAUDE_TOOL_OUTPUT||'';const m=out.match(/https:\\/\\/github.com\\/[^\\s]+\\/pull\\/\\d+/);if(m){console.error('[Hook] PR created: '+m[0]);console.error('[Hook] To view: gh pr view '+m[0].split('/').pop())}\""
+            "command": "node -e \"const cmd=process.env.CLAUDE_BASH_COMMAND||'';if(/gh pr create/.test(cmd)){const out=process.env.CLAUDE_TOOL_OUTPUT||'';const m=out.match(/https:\\/\\/github.com\\/[^\\s]+\\/pull\\/\\d+/);if(m){console.error('[Hook] PR created: '+m[0]);console.error('[Hook] To view: gh pr view '+m[0].split('/').pop())}}\""
           }
         ]
       }

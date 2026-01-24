@@ -1,3 +1,7 @@
+---
+name: spec-researcher
+---
+
 # Spec Researcher Agent
 
 Analyzes existing specifications before writing new specs.

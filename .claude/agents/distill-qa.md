@@ -1,3 +1,7 @@
+---
+name: distill-qa
+---
+
 # Distill QA Agent
 
 Validates that a distilled spec is complete, consistent, and implementation-ready.

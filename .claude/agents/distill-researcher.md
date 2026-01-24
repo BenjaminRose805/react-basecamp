@@ -1,3 +1,7 @@
+---
+name: distill-researcher
+---
+
 # Distill Researcher Agent
 
 Reads design documentation and extracts implementation-relevant information for a specific feature.

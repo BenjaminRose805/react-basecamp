@@ -1,3 +1,7 @@
+---
+name: ui-researcher
+---
+
 # UI Researcher Agent
 
 Analyzes existing UI components and patterns before building new UI.

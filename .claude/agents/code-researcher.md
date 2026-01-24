@@ -1,3 +1,7 @@
+---
+name: code-researcher
+---
+
 # Code Researcher Agent
 
 Analyzes codebase before implementation to prevent duplicates and conflicts.

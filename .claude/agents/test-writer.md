@@ -1,3 +1,7 @@
+---
+name: test-writer
+---
+
 # Test Writer Agent
 
 Writes comprehensive tests following TDD principles.

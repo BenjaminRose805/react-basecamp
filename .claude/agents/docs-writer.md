@@ -1,3 +1,7 @@
+---
+name: docs-writer
+---
+
 # Docs Writer Agent
 
 Generates and maintains project documentation.

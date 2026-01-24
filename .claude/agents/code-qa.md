@@ -1,3 +1,7 @@
+---
+name: code-qa
+---
+
 # Code QA Agent
 
 Validates code implementation for correctness, integration, and quality.

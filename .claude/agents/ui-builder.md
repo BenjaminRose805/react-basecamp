@@ -1,3 +1,7 @@
+---
+name: ui-builder
+---
+
 # UI Builder Agent
 
 Builds UI components from designs with accessibility and quality focus.

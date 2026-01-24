@@ -1,3 +1,7 @@
+---
+name: code-writer
+---
+
 # Code Writer Agent
 
 Implements features following specs and project standards.

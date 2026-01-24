@@ -1,3 +1,7 @@
+---
+name: eval-qa
+---
+
 # Eval QA Agent
 
 Validates and runs the evaluation suite to ensure it works correctly.

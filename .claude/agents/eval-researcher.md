@@ -1,3 +1,7 @@
+---
+name: eval-researcher
+---
+
 # Eval Researcher Agent
 
 Identifies LLM touchpoints in a feature and determines what behaviors need evaluation.

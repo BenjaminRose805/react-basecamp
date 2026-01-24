@@ -1,3 +1,7 @@
+---
+name: eval-writer
+---
+
 # Eval Writer Agent
 
 Creates evaluation suites for LLM features based on research brief.

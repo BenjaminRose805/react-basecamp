@@ -1,3 +1,7 @@
+---
+name: ui-qa
+---
+
 # UI QA Agent
 
 Validates UI components for correctness, accessibility, and visual quality.

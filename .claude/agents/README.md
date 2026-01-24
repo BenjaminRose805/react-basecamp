@@ -1,3 +1,7 @@
+---
+name: agents-readme
+---
+
 # Agent Specifications
 
 This directory contains detailed specifications for each agent used in the development workflow.
