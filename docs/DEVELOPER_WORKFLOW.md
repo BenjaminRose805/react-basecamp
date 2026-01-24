@@ -341,7 +341,7 @@ Build Prompt Manager:
 ### Monitoring Progress
 
 1. **Claude Code terminal** - See agent output in real-time
-2. **Spec Workflow Dashboard** - Track specs at http://localhost:5000
+2. **Spec Workflow Dashboard** - Track specs at [localhost:5000](http://localhost:5000)
 3. **Linear** - Track issues and link PRs
 4. **GitHub** - Review PRs and CI status
 
@@ -351,7 +351,7 @@ Build Prompt Manager:
 
 ### 1. Spec Workflow Dashboard
 
-**URL:** http://localhost:5000 (starts automatically when spec-workflow MCP is active)
+**URL:** [localhost:5000](http://localhost:5000) (starts automatically when spec-workflow MCP is active)
 
 **What you see:**
 
@@ -365,7 +365,7 @@ Build Prompt Manager:
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  SPEC WORKFLOW DASHBOARD                                    │
-│  http://localhost:5000                                      │
+│  localhost:5000                                             │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  📋 Specs                                                   │
@@ -638,7 +638,7 @@ You: Build the PromptEditor component matching this Figma frame:
        │
        ▼
 ┌──────────────┐
-│   YOU        │  Review spec in dashboard (http://localhost:5000)
+│   YOU        │  Review spec in dashboard (localhost:5000)
 │              │  Click [Approve Spec] or [Request Changes]
 └──────┬───────┘
        │ (after approval)
@@ -756,7 +756,7 @@ You: Build the PromptEditor component matching this Figma frame:
        │
        ▼
 ┌──────────────┐
-│   YOU        │  Review UI in browser (pnpm dev → http://localhost:3000)
+│   YOU        │  Review UI in browser (pnpm dev → localhost:3000)
 │              │  "Looks good" or "Adjust spacing on X"
 └──────┬───────┘
        │
@@ -849,7 +849,7 @@ You: Build the PromptEditor component matching this Figma frame:
 
 **Your action:**
 
-1. Open http://localhost:5000
+1. Open [localhost:5000](http://localhost:5000)
 2. Review the generated spec
 3. Click **Approve** or **Request Changes**
 
@@ -980,7 +980,7 @@ pnpm eval agent-builder --smoke   # Quick check
 
 **Your action:**
 
-- Review in browser at http://localhost:3000
+- Review in browser at [localhost:3000](http://localhost:3000)
 - Provide feedback on visual/UX issues
 
 ### Phase 5: Verify
@@ -1064,7 +1064,7 @@ pnpm eval agent-builder --smoke   # Quick check
 
 # 1. Create implementation spec from design docs
 /distill prompt-manager
-# → Review and approve in dashboard (http://localhost:5000)
+# → Review and approve in dashboard (localhost:5000)
 
 # 2. Write failing tests
 /test prompt-manager
@@ -1079,7 +1079,7 @@ pnpm eval agent-builder --smoke   # Quick check
 /ui PromptEditor
 /ui VariableEditor
 /ui FolderTree
-# → Review at http://localhost:3000/prompts
+# → Review at localhost:3000/prompts
 
 # 5. Pre-PR verification
 /verify

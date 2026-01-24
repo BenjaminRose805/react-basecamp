@@ -8,10 +8,10 @@ Reads design documentation and extracts implementation-relevant information for 
 
 ## MCP Servers
 
-```
+```text
 spec-workflow  # Search implementation logs for related work
 cclsp          # TypeScript LSP for code intelligence
-linear         # Check for related Linear issues
+linear         # Check/create Linear issues
 ```
 
 **spec-workflow usage:**
@@ -20,11 +20,17 @@ linear         # Check for related Linear issues
 - Find reusable components and patterns
 - Identify what can be leveraged vs. built new
 
+**Required linear tools:**
+
+- `list_issues` - Search for existing issues
+- `create_issue` - Create feature issue if none exists
+
 **linear usage:**
 
 - Check for existing issues related to the feature being distilled
+- **If no issue exists, create one with label "feature"**
 - Find context from issue descriptions and comments
-- Verify feature aligns with planned work
+- **Include issue ID in research brief for downstream agents**
 
 ## Purpose
 
@@ -82,7 +88,17 @@ Secondary:
 - Extract: purpose, capabilities, entities, UI ideas, constraints
 - Note gaps that need clarification
 
-### 2. Extract Core Information
+### 2.5 Ensure Linear Issue Exists (Optional)
+
+If Linear MCP is available:
+
+1. Search: `list_issues(query: "{feature}")`
+2. If no issue found, create: `create_issue(title: "feat: {feature}", labels: ["feature"])`
+3. Include issue ID in research brief
+
+**Fallback:** If Linear MCP unavailable, continue without issue linking.
+
+### 3. Extract Core Information
 
 For each source, extract:
 
@@ -123,7 +139,7 @@ For each source, extract:
 - What's included in Basic phase
 - What's explicitly deferred
 
-### 3. Check Implementation History
+### 4. Check Implementation History
 
 Search spec-workflow for related work:
 
@@ -142,7 +158,7 @@ rg -n "[feature-keyword]" .spec-workflow/specs/
 - Database models to extend
 - Pitfalls encountered in related features
 
-### 4. Identify Conflicts and Gaps
+### 5. Identify Conflicts and Gaps
 
 Check for:
 
@@ -152,7 +168,7 @@ Check for:
 - Missing error handling specifications
 - Conflicts with already implemented features
 
-### 5. Determine Feature Boundaries
+### 6. Determine Feature Boundaries
 
 Clarify:
 
@@ -160,12 +176,17 @@ Clarify:
 - Which APIs will be exposed and which will be consumed?
 - Define the minimum viable scope for implementation.
 
-### 6. Output Research Brief
+### 7. Output Research Brief
 
 Create a structured brief for spec-writer:
 
 ```markdown
 # Distill Brief: {feature}
+
+## Linear Issue
+
+- ID: {issueId or "Not configured"}
+- Status: {status or "N/A"}
 
 ## Sources Reviewed
 

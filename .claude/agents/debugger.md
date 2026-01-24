@@ -47,11 +47,19 @@ linear         # Create/link bug issues
 - Check if issue was previously fixed (regression)
 - Find discussions about similar problems
 
+**Required linear tools:**
+
+- `list_issues` - Check if bug already reported
+- `create_issue` - Create structured bug issue
+- `update_issue` - Link fix, update status
+- `create_comment` - Add investigation notes
+
 **linear usage:**
 
-- Create bug issues for tracking
-- Link fixes to existing issues
-- Check if bug was already reported
+- Search before creating (avoid duplicates)
+- Create with: title, severity label, Sentry link, reproduction steps
+- Update to "Fixed" when resolved
+- Link fix PR to issue
 
 ## Instructions
 
@@ -180,6 +188,29 @@ Do NOT use `/debug` for:
 
 Ready for `/code qa` then `/review`
 ```
+
+### Step 5.5: Create/Update Linear Issue (Optional)
+
+If Linear MCP available:
+
+**For new bugs:**
+
+```text
+create_issue(
+  title: "bug: {short_description}",
+  labels: ["bug", "{severity}"],
+  description: "## Bug\n{desc}\n\n## Root Cause\n{cause}\n\n## Sentry\n{url}"
+)
+```
+
+**For existing issues:**
+
+```text
+update_issue(id, state: "Fixed")
+create_comment(id, "Fix: {summary}\nRegression test: {test_file}")
+```
+
+**Fallback:** Continue without Linear tracking.
 
 ## Common Bug Patterns
 

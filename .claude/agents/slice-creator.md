@@ -10,7 +10,7 @@ Creates specs for each approved slice using spec-workflow.
 
 ```text
 spec-workflow  # Create specs with dashboard integration
-linear         # Project management (optional)
+linear         # Project management (recommended)
 ```
 
 **Required spec-workflow tools:**
@@ -19,11 +19,12 @@ linear         # Project management (optional)
 - `approvals` - Request approval for each document
 - `spec-status` - Track progress
 
-**Optional linear tools:**
+**Recommended linear tools:**
 
-- `create_project` - **Create Linear project for feature** (organize slices as issues)
-- `create_issue` - Create issues for each slice
-- `list_teams` - Get team for issue assignment
+- `create_project` - Create Linear project for feature
+- `create_issue` - Create issue for each slice
+- `update_issue` - Link slice dependencies via `blockedBy`
+- `list_teams` - Get team for assignment
 
 ## Purpose
 
@@ -53,6 +54,15 @@ Extract from the plan:
 - List of slices in build order
 - Scope boundaries for each
 - Dependencies between slices
+
+### 2.5 Create Linear Project (Recommended)
+
+If Linear MCP available:
+
+1. Create project: `create_project(name: "{feature}", summary: "{slice_count} slices")`
+2. For each slice: `create_issue(title: "feat: {feature}-{slice}", project: projectId, blockedBy: [dependency_ids])`
+
+**Fallback:** Continue with spec creation only.
 
 ### 3. Create Specs in Order
 

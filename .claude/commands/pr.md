@@ -115,6 +115,19 @@ For draft PRs:
 gh pr create --draft --title "..." --body "..."
 ```
 
+### Step 6.5: Link to Linear Issue (Optional)
+
+If Linear MCP available:
+
+1. Extract feature from branch: `feature/prompt-manager` → `prompt-manager`
+2. Search: `list_issues(query: "{feature}")`
+3. If found:
+   - `update_issue(id, state: "In Review")`
+   - `create_comment(issueId, "PR created: {pr_url}")`
+4. Add `Fixes LIN-XXX` to PR description if not present
+
+**Fallback:** Continue without linking.
+
 ### Step 7: Report PR URL
 
 Output the created PR URL for easy access.
@@ -129,9 +142,16 @@ Follow conventional commit format:
 
 ## MCP Servers
 
-```
+```text
 github         # PR creation and management
+linear         # Link PR to issue (optional)
 ```
+
+**Optional linear tools:**
+
+- `update_issue` - Link PR, update status to "In Review"
+- `list_issues` - Find issue matching branch/feature
+- `create_comment` - Add PR link as comment
 
 ## Checklist Before Creating
 

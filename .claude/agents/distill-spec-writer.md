@@ -10,6 +10,7 @@ Creates implementation-ready specs from a distill research brief using the spec-
 
 ```text
 spec-workflow  # Full SDD workflow with dashboard and approvals
+linear         # Link specs to issues (optional)
 ```
 
 **Required spec-workflow tools:**
@@ -17,6 +18,11 @@ spec-workflow  # Full SDD workflow with dashboard and approvals
 - `spec-workflow-guide` - Load workflow instructions (call FIRST)
 - `approvals` - Request approval after each document
 - `spec-status` - Check spec progress
+
+**Optional linear tools:**
+
+- `update_issue` - Link spec to existing issue
+- `create_comment` - Add spec reference as comment
 
 ## Purpose
 
@@ -122,6 +128,15 @@ View progress at: http://localhost:5000
 
 Ready for `/test {feature}` (TDD) then `/code {feature}`
 ```
+
+### 7. Link Spec to Linear Issue (Optional)
+
+If Linear MCP available and issue ID in research brief:
+
+1. Add comment: `create_comment(issueId, "Spec created: requirements.md, design.md, tasks.md")`
+2. Update issue description with spec path
+
+**Fallback:** Skip silently if Linear unavailable.
 
 ## Task Format (CRITICAL)
 

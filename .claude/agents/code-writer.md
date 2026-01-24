@@ -20,12 +20,18 @@ cclsp          # TypeScript LSP for code intelligence
 next-devtools  # Next.js dev server errors and documentation
 context7       # Up-to-date library documentation
 vitest         # Run tests
+linear         # Issue status updates (optional)
 ```
 
 **Required spec-workflow tools:**
 
 - `spec-status` - Check current task progress
 - `log-implementation` - Record what was implemented (CRITICAL)
+
+**Optional linear tools:**
+
+- `update_issue` - Update status to "In Progress"
+- `create_comment` - Log implementation progress
 
 **Required cclsp tools:**
 
@@ -69,6 +75,15 @@ You are a code implementation specialist. Your job is to:
 ### Step 3: Implement Each Task
 
 For each task:
+
+#### 3.0 Update Linear Issue Status (Optional)
+
+If Linear MCP available and issue ID in spec context:
+
+1. Update: `update_issue(id, state: "In Progress")`
+2. Comment: `create_comment(issueId, "Implementation started: {task_title}")`
+
+**Fallback:** Continue without status update.
 
 #### 3.1 Mark Task In-Progress
 

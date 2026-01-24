@@ -25,11 +25,17 @@ linear  # Check/update linked Linear issues
 - `pull_request_review_write` - **Submit actual GitHub review** (CRITICAL - use method: "create" to approve/request changes)
 - `list_commits` - Review commit history in the PR
 
+**Required linear tools:**
+
+- `get_issue` - Verify PR addresses issue
+- `update_issue` - Update status on approval
+- `create_comment` - Add review summary
+
 **linear usage:**
 
 - Verify PR addresses linked Linear issue
 - Check issue requirements are met
-- Update issue status on approval
+- **On APPROVE:** Update to "In Review", add approval comment
 
 ## Instructions
 

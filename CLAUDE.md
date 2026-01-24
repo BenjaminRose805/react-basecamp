@@ -32,6 +32,7 @@ You MAY answer simple questions directly (e.g., "What framework is this?" or "Wh
 | `/commit`            | —                                             | Create conventional commit                            |
 | `/pr`                | `draft`                                       | Create pull request                                   |
 | `/status [scope]`    | `git`, `tasks`, `tests`, `phase`              | Development status overview                           |
+| `/sync-linear`       | `--create-missing`                            | Sync specs with Linear issues                         |
 
 ### Subcommand Usage
 
@@ -621,18 +622,19 @@ Shows current work state, progress, and suggested next actions.
 
 ### Methodology Summary
 
-| Command     | Methodology | For                                 |
-| ----------- | ----------- | ----------------------------------- |
-| `/branch`   | —           | Git branch management (start here)  |
-| `/worktree` | —           | Parallel development                |
-| `/distill`  | SDD         | Converting design docs to specs     |
-| `/spec`     | SDD         | Writing new specs from scratch      |
-| `/test`     | TDD         | Writing tests before implementation |
-| `/eval`     | EDD         | Evaluating LLM outputs              |
-| `/code`     | TDD         | Implementing until tests pass       |
-| `/verify`   | —           | Pre-PR verification                 |
-| `/commit`   | —           | Create conventional commit          |
-| `/pr`       | —           | Create pull request                 |
+| Command        | Methodology | For                                 |
+| -------------- | ----------- | ----------------------------------- |
+| `/branch`      | —           | Git branch management (start here)  |
+| `/worktree`    | —           | Parallel development                |
+| `/distill`     | SDD         | Converting design docs to specs     |
+| `/spec`        | SDD         | Writing new specs from scratch      |
+| `/test`        | TDD         | Writing tests before implementation |
+| `/eval`        | EDD         | Evaluating LLM outputs              |
+| `/code`        | TDD         | Implementing until tests pass       |
+| `/verify`      | —           | Pre-PR verification                 |
+| `/commit`      | —           | Create conventional commit          |
+| `/pr`          | —           | Create pull request                 |
+| `/sync-linear` | —           | Sync specs with Linear issues       |
 
 ---
 

@@ -29,25 +29,33 @@ Read design docs and extract all user capabilities, then suggest how to slice a 
 - `feature`: Feature name (e.g., `prompt-manager`)
 - `source`: One of:
   - `docs` (default) - Read from `~/basecamp/docs/`
-  - `path:/path/to/file.md` - Read from specific file
-  - `conversation` - Use preceding conversation as input
+  - `path:/path/to/file.md` - Read from specific file (use `--from [path]`)
+  - `conversation` - Use preceding conversation as input (use `--from-conversation`)
   - `inline` - Ask user to describe the feature
+
+**CLI Flags:**
+
+| Flag                  | Maps To                | Description                    |
+| --------------------- | ---------------------- | ------------------------------ |
+| (none)                | `source: docs`         | Default: read from design docs |
+| `--from [path]`       | `source: path:...`     | Read from specific file        |
+| `--from-conversation` | `source: conversation` | Extract from conversation      |
 
 ## Process
 
 ### 1. Determine Input Source
 
-**If `--from [path]` provided:**
+**If `source: path:...` (via `--from [path]`):**
 
 - Read the specified file
 - Extract capabilities from whatever format it's in
 
-**If `--from-conversation` provided:**
+**If `source: conversation` (via `--from-conversation`):**
 
 - Review the conversation history
 - Extract feature description and capabilities from discussion
 
-**If no source specified:**
+**If `source: docs` (default, no flags):**
 
 - Try to find design docs at `~/basecamp/docs/specs/{feature}.md`
 - If not found, ask user: "No design docs found. Please describe the feature..."
@@ -78,7 +86,7 @@ Secondary:
 - Identify capabilities mentioned
 - Note any constraints or preferences stated
 
-### 2. Extract Capabilities
+### 3. Extract Capabilities
 
 List everything a user can DO with this feature:
 
@@ -102,7 +110,7 @@ List everything a user can DO with this feature:
 - **Extension** - Builds on core, adds value
 - **Advanced** - Nice to have, can wait
 
-### 3. Identify Dependencies
+### 4. Identify Dependencies
 
 Map which capabilities depend on others:
 
@@ -118,7 +126,7 @@ Map which capabilities depend on others:
 7. Versions → depends on 1, 2
 ```
 
-### 4. Suggest Slices
+### 5. Suggest Slices
 
 Group capabilities into vertical slices:
 
@@ -153,7 +161,7 @@ Group capabilities into vertical slices:
 - Estimated tasks: 6
 ```
 
-### 5. Check Implementation History
+### 6. Check Implementation History
 
 Search spec-workflow for insights:
 
@@ -172,13 +180,13 @@ rg -n -C3 -S -g '!node_modules' "[feature-keyword]" .spec-workflow/specs/
 - Patterns that can be reused
 - Pitfalls to avoid
 
-### 6. Check External Context
+### 7. Check External Context
 
 - Check Linear for related issues
 - Check GitHub for discussions
 - Note any existing plans that affect slicing
 
-### 7. Output Analysis
+### 8. Output Analysis
 
 ```markdown
 ## Slice Analysis: {feature}
