@@ -75,8 +75,8 @@ Parse what UI needs to be built:
 # Search for existing components and patterns in templates
 grep -r "components\|patterns\|styles" .spec-workflow/templates/
 
-# Search for specific UI patterns in specs
-grep -r "[component-keyword]" .spec-workflow/specs/
+# Search for specific UI patterns in existing specs (if any)
+grep -r "[component-keyword]" .spec-workflow/specs/ 2>/dev/null || echo "No specs yet"
 ```
 
 **Look for:**

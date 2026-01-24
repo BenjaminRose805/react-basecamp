@@ -13,7 +13,9 @@ spec-workflow  # Full SDD workflow with dashboard
 cclsp          # TypeScript LSP for code intelligence
 ```
 
-**Note:** The `spec-status` tool is planned but not yet available. Until implemented, manually check spec files in `.spec-workflow/specs/{feature}/`.
+**Required spec-workflow tools:**
+
+- `spec-status` - Check spec progress and phase status
 
 ## Instructions
 

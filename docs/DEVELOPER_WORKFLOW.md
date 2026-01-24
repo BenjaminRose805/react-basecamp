@@ -30,7 +30,7 @@ This workflow combines four methodologies:
 
 ### The AI-Human Partnership
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  YOU (Developer/Architect)                                  │
 │  • Define what to build                                     │
@@ -113,7 +113,7 @@ This will:
 
 Use conventional commits with AI co-authorship:
 
-```
+```text
 <type>: <description>
 
 <optional body>
@@ -134,7 +134,7 @@ test: add integration tests for workflow router
 
 ### The Complete Git + AI Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  1. CREATE BRANCH (use /branch command)                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -208,7 +208,7 @@ AI agents commit at logical checkpoints:
 
 You can also ask AI to commit at any point:
 
-```
+```text
 "Commit the current progress"
 ```
 
@@ -324,13 +324,13 @@ After feature is complete:
 
 **Good instructions:**
 
-```
+```text
 Build the Prompt Manager feature from the design docs at ../docs/specs/prompt-manager.md
 ```
 
 **Better instructions:**
 
-```
+```text
 Build Prompt Manager:
 - Start with /distill to create implementation spec from ../docs/specs/prompt-manager.md
 - Focus on basic phase features only (no array/object variables)
@@ -362,7 +362,7 @@ Build Prompt Manager:
 
 **How to interact:**
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  SPEC WORKFLOW DASHBOARD                                    │
 │  http://localhost:5000                                      │
@@ -412,7 +412,7 @@ Build Prompt Manager:
 
 A key feature of spec-workflow is **implementation logging**. Every agent that writes code, tests, or UI logs what it created:
 
-```
+```text
 .spec-workflow/specs/prompt-manager/
 ├── requirements.md
 ├── design.md
@@ -470,7 +470,7 @@ The researcher then tells the test writer: "Reuse mockUser and mockApiClient fro
 
 **Example flow:**
 
-```
+```text
 You: Create issue "Build Prompt Manager" in Linear
 AI: /distill prompt-manager
     → Finds Linear issue BAS-123
@@ -520,7 +520,7 @@ AI: /distill prompt-manager
 
 **Example:**
 
-```
+```text
 You: Build the PromptEditor component matching this Figma frame:
      https://figma.com/file/xxx/AI-Platform?node-id=123
 ```
@@ -603,7 +603,7 @@ You: Build the PromptEditor component matching this Figma frame:
 
 ## The Complete Workflow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         FEATURE IMPLEMENTATION FLOW                          │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -855,7 +855,7 @@ You: Build the PromptEditor component matching this Figma frame:
 
 **If requesting changes:**
 
-```
+```text
 /distill write prompt-manager
 # with feedback: "Add error handling for duplicate names"
 ```
@@ -1205,13 +1205,13 @@ cd ../react-basecamp--prompt-manager
 
 ## Dashboard and Tool URLs
 
-| Tool              | URL                   | Purpose                    |
-| ----------------- | --------------------- | -------------------------- |
-| **Spec Workflow** | http://localhost:5000 | Spec management, approvals |
-| **Next.js Dev**   | http://localhost:3000 | Your application           |
-| **Vitest UI**     | `pnpm test:ui`        | Interactive test runner    |
-| **Playwright UI** | `pnpm test:e2e --ui`  | E2E test runner            |
-| **Prisma Studio** | `pnpm prisma studio`  | Database browser           |
+| Tool              | URL                                     | Purpose                    |
+| ----------------- | --------------------------------------- | -------------------------- |
+| **Spec Workflow** | [localhost:5000](http://localhost:5000) | Spec management, approvals |
+| **Next.js Dev**   | [localhost:3000](http://localhost:3000) | Your application           |
+| **Vitest UI**     | `pnpm test:ui`                          | Interactive test runner    |
+| **Playwright UI** | `pnpm test:e2e --ui`                    | E2E test runner            |
+| **Prisma Studio** | `pnpm prisma studio`                    | Database browser           |
 
 ---
 

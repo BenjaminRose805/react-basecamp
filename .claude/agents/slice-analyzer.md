@@ -8,7 +8,7 @@ Analyzes design documentation to identify capabilities and suggest vertical slic
 
 ## MCP Servers
 
-```
+```text
 spec-workflow  # Search implementation logs for similar features
 linear         # Check for related issues and planned work
 github         # Check for related discussions
