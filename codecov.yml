@@ -6,10 +6,12 @@ coverage:
     project:
       default:
         target: 70%
-        threshold: 2% # Allow 2% drop before failing
+        threshold: 1% # Allow 1% drop before failing (stricter)
+        informational: false # Make it blocking
     patch:
       default:
         target: 80% # New code should be well tested
+        informational: false # Make it blocking
 
   # Round coverage to 2 decimal places
   precision: 2

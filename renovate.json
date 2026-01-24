@@ -60,6 +60,17 @@
       "description": "Playwright",
       "groupName": "Playwright",
       "matchPackagePatterns": ["^@playwright/", "^playwright"]
+    },
+    {
+      "description": "Prisma ecosystem",
+      "groupName": "Prisma",
+      "matchPackageNames": ["prisma", "@prisma/client"],
+      "matchPackagePatterns": ["^@prisma/"]
+    },
+    {
+      "description": "Sentry ecosystem",
+      "groupName": "Sentry",
+      "matchPackagePatterns": ["^@sentry/"]
     }
   ],
   "vulnerabilityAlerts": {
