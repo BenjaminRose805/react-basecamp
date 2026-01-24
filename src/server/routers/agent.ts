@@ -47,6 +47,33 @@ const listAgentsSchema = z.object({
   search: z.string().optional(),
 });
 
+type AgentUpdateData = Omit<
+  z.infer<typeof updateAgentSchema>,
+  "id" | "expectedUpdatedAt"
+>;
+
+function buildAgentUpdateData(data: AgentUpdateData): Prisma.AgentUpdateInput {
+  const result: Prisma.AgentUpdateInput = {};
+  if (data.name !== undefined) {
+    result.name = data.name;
+  }
+  if (data.description !== undefined) {
+    result.description = data.description;
+  }
+  if (data.systemPromptId !== undefined) {
+    result.systemPrompt = data.systemPromptId
+      ? { connect: { id: data.systemPromptId } }
+      : { disconnect: true };
+  }
+  if (data.tools !== undefined) {
+    result.tools = data.tools as Prisma.InputJsonValue;
+  }
+  if (data.modelConfig !== undefined) {
+    result.modelConfig = data.modelConfig as Prisma.InputJsonValue;
+  }
+  return result;
+}
+
 export const agentRouter = router({
   list: publicProcedure
     .input(listAgentsSchema)
@@ -121,35 +148,16 @@ export const agentRouter = router({
         throw createNotFoundError("Agent", id);
       }
 
-      if (
+      const isStale =
         expectedUpdatedAt &&
-        existing.updatedAt.toISOString() !== expectedUpdatedAt
-      ) {
+        existing.updatedAt.toISOString() !== expectedUpdatedAt;
+      if (isStale) {
         throw createNotFoundError("Agent", id);
-      }
-
-      const updateData: Prisma.AgentUpdateInput = {};
-      if (data.name !== undefined) {
-        updateData.name = data.name;
-      }
-      if (data.description !== undefined) {
-        updateData.description = data.description;
-      }
-      if (data.systemPromptId !== undefined) {
-        updateData.systemPrompt = data.systemPromptId
-          ? { connect: { id: data.systemPromptId } }
-          : { disconnect: true };
-      }
-      if (data.tools !== undefined) {
-        updateData.tools = data.tools as Prisma.InputJsonValue;
-      }
-      if (data.modelConfig !== undefined) {
-        updateData.modelConfig = data.modelConfig as Prisma.InputJsonValue;
       }
 
       return ctx.db.agent.update({
         where: { id },
-        data: updateData,
+        data: buildAgentUpdateData(data),
         include: { systemPrompt: true },
       });
     }),

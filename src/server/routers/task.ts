@@ -34,43 +34,45 @@ const listTasksSchema = z.object({
   executionId: z.string().optional(),
 });
 
+type TaskFilters = Omit<z.infer<typeof listTasksSchema>, "cursor" | "limit">;
+
+function buildTaskFilter(filters: TaskFilters): Prisma.TaskWhereInput {
+  const where: Prisma.TaskWhereInput = {};
+  if (filters.status) {
+    where.status = filters.status;
+  }
+  if (filters.priority) {
+    where.priority = filters.priority;
+  }
+  if (filters.workItemId) {
+    where.workItemId = filters.workItemId;
+  }
+  if (filters.executionId) {
+    where.executionId = filters.executionId;
+  }
+  return where;
+}
+
+const taskInclude = {
+  workItem: { select: { id: true, title: true } },
+  execution: { select: { id: true, workflow: { select: { name: true } } } },
+};
+
 export const taskRouter = router({
   list: publicProcedure.input(listTasksSchema).query(async ({ ctx, input }) => {
-    const { cursor, limit, status, priority, workItemId, executionId } = input;
-
-    const where: Prisma.TaskWhereInput = {};
-    if (status) {
-      where.status = status;
-    }
-    if (priority) {
-      where.priority = priority;
-    }
-    if (workItemId) {
-      where.workItemId = workItemId;
-    }
-    if (executionId) {
-      where.executionId = executionId;
-    }
+    const { cursor, limit, ...filters } = input;
+    const where = buildTaskFilter(filters);
 
     const tasks = await ctx.db.task.findMany({
       where,
       take: limit + 1,
       ...(cursor && { cursor: { id: cursor } }),
       orderBy: [{ priority: "desc" }, { createdAt: "asc" }],
-      include: {
-        workItem: { select: { id: true, title: true } },
-        execution: {
-          select: { id: true, workflow: { select: { name: true } } },
-        },
-      },
+      include: taskInclude,
     });
 
-    let nextCursor: string | undefined;
-    if (tasks.length > limit) {
-      const nextItem = tasks.pop();
-      nextCursor = nextItem?.id;
-    }
-
+    const hasMore = tasks.length > limit;
+    const nextCursor = hasMore ? tasks.pop()?.id : undefined;
     return { items: tasks, nextCursor };
   }),
 

@@ -12,6 +12,8 @@ import {
   createConflictError,
 } from "../trpc";
 
+import type { Prisma } from "@prisma/client";
+
 const requirementSchema = z.object({
   id: z.string(),
   description: z.string(),
@@ -64,42 +66,46 @@ const listWorkItemsSchema = z.object({
   search: z.string().optional(),
 });
 
+type WorkItemFilters = z.infer<typeof listWorkItemsSchema>;
+
+function buildWorkItemFilter(
+  filters: Omit<WorkItemFilters, "cursor" | "limit">
+): Prisma.WorkItemWhereInput {
+  const { status, type, priority, parentId, search } = filters;
+  return {
+    ...(status && { status }),
+    ...(type && { type }),
+    ...(priority && { priority }),
+    ...(parentId !== undefined && { parentId }),
+    ...(search && {
+      OR: [
+        { title: { contains: search, mode: "insensitive" as const } },
+        { description: { contains: search, mode: "insensitive" as const } },
+      ],
+    }),
+  };
+}
+
+const workItemInclude = {
+  parent: true,
+  _count: { select: { children: true, dependsOn: true, dependedOnBy: true } },
+};
+
 export const workItemRouter = router({
   list: publicProcedure
     .input(listWorkItemsSchema)
     .query(async ({ ctx, input }) => {
-      const { cursor, limit, status, type, priority, parentId, search } = input;
-
+      const { cursor, limit, ...filters } = input;
       const workItems = await ctx.db.workItem.findMany({
-        where: {
-          ...(status && { status }),
-          ...(type && { type }),
-          ...(priority && { priority }),
-          ...(parentId !== undefined && { parentId }),
-          ...(search && {
-            OR: [
-              { title: { contains: search, mode: "insensitive" } },
-              { description: { contains: search, mode: "insensitive" } },
-            ],
-          }),
-        },
+        where: buildWorkItemFilter(filters),
         take: limit + 1,
         cursor: cursor ? { id: cursor } : undefined,
         orderBy: { updatedAt: "desc" },
-        include: {
-          parent: true,
-          _count: {
-            select: { children: true, dependsOn: true, dependedOnBy: true },
-          },
-        },
+        include: workItemInclude,
       });
 
-      let nextCursor: string | undefined;
-      if (workItems.length > limit) {
-        const nextItem = workItems.pop();
-        nextCursor = nextItem?.id;
-      }
-
+      const hasMore = workItems.length > limit;
+      const nextCursor = hasMore ? workItems.pop()?.id : undefined;
       return { items: workItems, nextCursor };
     }),
 

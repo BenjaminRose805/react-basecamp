@@ -43,6 +43,35 @@ const listPromptsSchema = z.object({
   search: z.string().optional(),
 });
 
+type PromptUpdateData = Omit<
+  z.infer<typeof updatePromptSchema>,
+  "id" | "expectedUpdatedAt"
+>;
+
+function buildPromptUpdateData(
+  data: PromptUpdateData
+): Prisma.PromptUpdateInput {
+  const result: Prisma.PromptUpdateInput = {};
+  if (data.name !== undefined) {
+    result.name = data.name;
+  }
+  if (data.content !== undefined) {
+    result.content = data.content;
+  }
+  if (data.variables !== undefined) {
+    result.variables = data.variables as Prisma.InputJsonValue;
+  }
+  if (data.tags !== undefined) {
+    result.tags = data.tags as Prisma.InputJsonValue;
+  }
+  if (data.folderId !== undefined) {
+    result.folder = data.folderId
+      ? { connect: { id: data.folderId } }
+      : { disconnect: true };
+  }
+  return result;
+}
+
 export const promptRouter = router({
   list: publicProcedure
     .input(listPromptsSchema)
@@ -117,35 +146,16 @@ export const promptRouter = router({
         throw createNotFoundError("Prompt", id);
       }
 
-      if (
+      const isStale =
         expectedUpdatedAt &&
-        existing.updatedAt.toISOString() !== expectedUpdatedAt
-      ) {
+        existing.updatedAt.toISOString() !== expectedUpdatedAt;
+      if (isStale) {
         throw createNotFoundError("Prompt", id);
-      }
-
-      const updateData: Prisma.PromptUpdateInput = {};
-      if (data.name !== undefined) {
-        updateData.name = data.name;
-      }
-      if (data.content !== undefined) {
-        updateData.content = data.content;
-      }
-      if (data.variables !== undefined) {
-        updateData.variables = data.variables as Prisma.InputJsonValue;
-      }
-      if (data.tags !== undefined) {
-        updateData.tags = data.tags as Prisma.InputJsonValue;
-      }
-      if (data.folderId !== undefined) {
-        updateData.folder = data.folderId
-          ? { connect: { id: data.folderId } }
-          : { disconnect: true };
       }
 
       return ctx.db.prompt.update({
         where: { id },
-        data: updateData,
+        data: buildPromptUpdateData(data),
         include: { folder: true },
       });
     }),
