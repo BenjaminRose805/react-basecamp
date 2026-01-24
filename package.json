@@ -23,6 +23,7 @@
     "quality:circular": "node scripts/quality-check.js circular",
     "quality:dead-ui": "node scripts/quality-check.js dead-ui",
     "quality:packages": "node scripts/quality-check.js packages",
+    "postinstall": "prisma generate",
     "prepare": "husky",
     "size": "size-limit",
     "size:check": "size-limit"
