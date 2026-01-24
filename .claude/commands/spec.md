@@ -38,16 +38,21 @@ Running `/spec [feature]` executes all three phases in sequence:
 
 ### Phase 2: Write (spec-writer)
 
-- Gather requirements
-- Write clear, testable requirements
-- Break down into tasks
-- **Outputs: Spec file created, ready for QA**
+- Create specs using spec-workflow MCP server
+- Creates three documents in `.spec-workflow/specs/{feature}/`:
+  - requirements.md (EARS format)
+  - design.md (architecture, components)
+  - tasks.md (with \_Prompt, \_Leverage, \_Requirements)
+- Request dashboard approval for each document
+- **Outputs: Spec files created, approved via dashboard**
+
+**Dashboard:** View and approve at http://localhost:5000
 
 ### Phase 3: QA (spec-qa)
 
-- Verify testability of requirements
-- Check for ambiguity
-- Validate task sizing
+- Verify spec-workflow format compliance
+- Check task format (must have \_Prompt fields)
+- Validate testability and task sizing
 - **Outputs: PASS or FAIL**
 
 ## Agents
@@ -65,30 +70,57 @@ spec-workflow  # Full SDD workflow with dashboard
 cclsp          # TypeScript LSP for code intelligence
 ```
 
-## Spec Structure
+## Spec Structure (spec-workflow)
+
+Specs are created in `.spec-workflow/specs/{feature}/` with three files:
+
+### requirements.md
 
 ```markdown
-# Feature: [Name]
-
-## Overview
-
-[1-2 sentence description]
+# Requirements Document
 
 ## Requirements
 
-- [ ] REQ-1: [Testable requirement]
+### Requirement 1
 
-## Design
+**User Story:** As a [role], I want [feature], so that [benefit]
 
-### Components / Data Flow / API Changes
+#### Acceptance Criteria
 
-## Tasks
+1. WHEN [event] THEN [system] SHALL [response]
+2. IF [precondition] THEN [system] SHALL [response]
+```
 
-1. [ ] Task 1: [Small, implementable task]
+### design.md
 
-## Out of Scope
+```markdown
+# Design Document
 
-- [What this does NOT include]
+## Architecture
+
+[Overview and diagrams]
+
+## Components and Interfaces
+
+[Component definitions with purpose, interfaces, dependencies]
+
+## Data Models
+
+[Entity definitions]
+```
+
+### tasks.md (CRITICAL FORMAT)
+
+```markdown
+# Tasks Document
+
+- [ ] 1. Task title
+  - File: path/to/file.ts
+  - Description of what to implement
+  - Purpose: Why this task exists
+  - _Leverage: existing/files.ts_
+  - _Requirements: REQ-1_
+  - _Prompt: Role: [Type] | Task: [What] | Restrictions: [What not] | Success: [Criteria]_
 ```
 
 ## After Completion

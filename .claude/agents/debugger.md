@@ -18,12 +18,28 @@ github         # Check for related issues and PRs
 linear         # Create/link bug issues
 ```
 
-**Sentry capabilities:**
+**Required sentry tools:**
 
-- Retrieve production errors with full stack traces
-- Trigger Seer AI analysis for root cause identification
-- Get AI-generated fix recommendations
-- View error frequency and affected users
+- `get_issue_details` - Get full error details with stack traces
+- `search_issues` - Find related errors and patterns
+- `analyze_issue_with_seer` - **AI root cause analysis** (CRITICAL - use for complex bugs)
+- `get_trace_details` - View distributed traces for multi-service debugging
+- `search_issue_events` - Filter and analyze specific events within an issue
+- `update_issue` - Mark issues as resolved after fix
+
+**Required cclsp tools:**
+
+- `find_definition` - Navigate to symbol definitions
+- `find_references` - Find all usages of a symbol
+- `get_incoming_calls` - **Find callers of a function** (trace how function is reached)
+- `get_outgoing_calls` - **Find callees of a function** (trace what function calls)
+- `prepare_call_hierarchy` - Prepare for call hierarchy analysis
+
+**Required playwright tools:**
+
+- `browser_take_screenshot` - Capture visual state
+- `browser_network_requests` - **Monitor network traffic** (debug API issues)
+- `browser_console_messages` - Check for JavaScript errors
 
 **github usage:**
 

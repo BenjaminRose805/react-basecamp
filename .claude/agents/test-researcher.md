@@ -9,9 +9,22 @@ Analyzes existing test coverage before writing new tests.
 ## MCP Servers
 
 ```
+spec-workflow  # Search implementation logs for existing fixtures/mocks
 vitest         # Test runner integration
 cclsp          # TypeScript LSP for code intelligence
 ```
+
+**Required vitest tools:**
+
+- `list_tests` - **Discover all test files** (CRITICAL - use FIRST to find existing coverage)
+- `run_tests` - Execute specific tests to verify behavior
+
+**spec-workflow usage:**
+
+- Search implementation logs for existing test fixtures
+- Find reusable mocks and test utilities
+- Check what test patterns were used in related features
+- Identify test helpers that can be reused
 
 ## Instructions
 
@@ -34,7 +47,36 @@ Parse what needs to be tested:
 - What behaviors need verification?
 - Unit tests or integration tests?
 
-### Step 2: Find Existing Tests
+### Step 2: Search Implementation Logs (CRITICAL)
+
+**FIRST**, search spec-workflow implementation logs for existing test artifacts:
+
+```bash
+# Search for existing fixtures, mocks, and test utilities
+grep -r "fixtures\|mocks\|testSuites\|helpers" .spec-workflow/specs/*/Implementation\ Logs/
+
+# Search for specific test patterns
+grep -r "[feature-keyword]" .spec-workflow/specs/*/Implementation\ Logs/
+```
+
+**Look for:**
+
+- Reusable fixtures (mock data)
+- Existing mocks (API clients, services)
+- Test helpers (renderWithProviders, etc.)
+- Patterns from related features
+
+### Step 3: Find Existing Tests in Codebase
+
+**Use `list_tests` from vitest MCP (RECOMMENDED):**
+
+This is the fastest and most accurate way to discover existing tests:
+
+- Returns all test files with their test cases
+- Shows test hierarchy (describe/it blocks)
+- Includes test status if previously run
+
+**Fallback to manual search:**
 
 ```bash
 # Find tests for this area
@@ -48,7 +90,7 @@ Grep: "it.*should.*[behavior]" --glob "*.test.*"
 Grep: "test.*[feature]" --glob "*.test.*"
 ```
 
-### Step 3: Analyze Test Patterns
+### Step 4: Analyze Test Patterns
 
 1. **Test structure**
    - How are describes/its organized?
@@ -65,7 +107,7 @@ Grep: "test.*[feature]" --glob "*.test.*"
    - Test case naming
    - File naming
 
-### Step 4: Check Coverage Gaps
+### Step 5: Check Coverage Gaps
 
 1. **Find uncovered scenarios**
    - Happy path covered?
@@ -84,7 +126,7 @@ Grep: "test.*[feature]" --glob "*.test.*"
    # [filename].tsx should have [filename].test.tsx
    ```
 
-### Step 5: Make Recommendation
+### Step 6: Make Recommendation
 
 **If new tests are needed:**
 
@@ -102,6 +144,16 @@ Grep: "test.*[feature]" --glob "*.test.*"
 2. Icon button variant not tested
 3. Keyboard navigation not tested
 
+### Reusable Artifacts (from implementation logs)
+
+- **Fixtures:**
+  - `src/test/fixtures/user.ts` - mockUser, mockAdmin
+  - `src/test/fixtures/api.ts` - mockApiResponse
+- **Mocks:**
+  - `src/test/mocks/api.ts` - mockApiClient
+- **Helpers:**
+  - `src/test/utils.tsx` - renderWithProviders
+
 ### Test Patterns to Follow
 
 ```typescript
@@ -118,6 +170,7 @@ describe("Button", () => {
 
 - File: `src/components/Button.test.tsx` (extend existing)
 - New describes: Loading state, Icon variants
+- Reuse: [list fixtures/mocks to reuse]
 
 Ready for `/test write [feature]`
 

@@ -9,12 +9,20 @@ Analyzes existing UI components and patterns before building new UI.
 ## MCP Servers
 
 ```
+spec-workflow  # Search implementation logs for existing components
 figma          # Design file access (https://mcp.figma.com/mcp)
 shadcn         # Component registry (57 components, 100+ blocks)
 playwright     # Browser automation for visual inspection
 cclsp          # TypeScript LSP for code intelligence
 context7       # Up-to-date library documentation
 ```
+
+**spec-workflow usage:**
+
+- Search implementation logs for previously built components
+- Find reusable UI patterns from other features
+- Check what design tokens were used
+- Identify composable components
 
 **shadcn capabilities:**
 
@@ -23,6 +31,13 @@ context7       # Up-to-date library documentation
 - View component APIs and dependencies
 - Find pre-built blocks (dashboards, forms, etc.)
 - Check if a component already exists before building custom
+
+**Required figma tools:**
+
+- `get_screenshot` - Access design specs for the component being researched
+- `get_metadata` - View design structure and layers
+- `get_variable_defs` - View design tokens and variables
+- `create_design_system_rules` - **Define design consistency rules** (ensure UI follows design system)
 
 **Figma capabilities:**
 
@@ -52,7 +67,26 @@ Parse what UI needs to be built:
 - What user interactions?
 - What visual requirements?
 
-### Step 2: Find Existing Components
+### Step 2: Search Implementation Logs (CRITICAL)
+
+**FIRST**, search spec-workflow implementation logs for existing UI artifacts:
+
+```bash
+# Search for existing components and patterns
+grep -r "components\|patterns\|styles" .spec-workflow/specs/*/Implementation\ Logs/
+
+# Search for specific UI patterns
+grep -r "[component-keyword]" .spec-workflow/specs/*/Implementation\ Logs/
+```
+
+**Look for:**
+
+- Previously built components
+- Reusable UI patterns
+- Design token usage
+- Composable pieces
+
+### Step 3: Find Existing Components in Codebase
 
 ```bash
 # Search local component library
@@ -68,7 +102,7 @@ Glob: src/**/*.css
 Glob: src/**/*.module.css
 ```
 
-### Step 3: Check shadcn Registry
+### Step 4: Check shadcn Registry
 
 Use `shadcn` MCP to search for available components:
 
@@ -77,7 +111,7 @@ Use `shadcn` MCP to search for available components:
 3. Review component dependencies
 4. Note which components need to be added vs already installed
 
-### Step 4: Analyze UI Patterns
+### Step 5: Analyze UI Patterns
 
 1. **Component structure**
    - How are props typed?
@@ -94,7 +128,7 @@ Use `shadcn` MCP to search for available components:
    - Keyboard navigation
    - Focus management
 
-### Step 5: Check Visual Consistency
+### Step 6: Check Visual Consistency
 
 1. **Design tokens**
    - What colors are used?
@@ -106,7 +140,7 @@ Use `shadcn` MCP to search for available components:
    - Color variants (primary, secondary)?
    - State variants (hover, active, disabled)?
 
-### Step 6: Make Recommendation
+### Step 7: Make Recommendation
 
 **If new UI should be built:**
 
@@ -118,6 +152,17 @@ Use `shadcn` MCP to search for available components:
 - `Button.tsx` - Can use for actions
 - `Card.tsx` - Can use for container
 - `Input.tsx` - Can use for form fields
+
+### Reusable Artifacts (from implementation logs)
+
+- **Components:**
+  - `IconButton` from prompt-manager (supports icons)
+  - `FormField` from settings (label + input + error)
+- **Patterns:**
+  - Compound component pattern (Card.Header, Card.Body)
+  - Variant prop pattern
+- **Design tokens:**
+  - `--color-primary`, `--spacing-md` used consistently
 
 ### Composable Pieces
 
@@ -151,6 +196,7 @@ interface ButtonProps {
 - Create: `src/components/IconButton.tsx`
 - Extend: Use existing Button as base
 - Style: Create `IconButton.module.css`
+- Reuse: [list artifacts from logs to reuse]
 
 Ready for `/ui build [component]`
 

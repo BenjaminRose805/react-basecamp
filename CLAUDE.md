@@ -14,6 +14,7 @@ You MAY answer simple questions directly (e.g., "What framework is this?" or "Wh
 
 | Command              | Subcommands                                   | Runs Agents                                           |
 | -------------------- | --------------------------------------------- | ----------------------------------------------------- |
+| `/slice [feature]`   | `analyze`, `plan`, `create`                   | slice-analyzer → slice-planner → slice-creator        |
 | `/distill [feature]` | `research`, `write`, `qa`                     | distill-researcher → distill-spec-writer → distill-qa |
 | `/spec [feature]`    | `research`, `write`, `qa`                     | spec-researcher → spec-writer → spec-qa               |
 | `/test [feature]`    | `research`, `write`, `qa`                     | test-researcher → test-writer → test-qa               |
@@ -49,10 +50,17 @@ Standard feature development flow:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  0. DISTILL (when design docs exist)                        │
+│  0a. SLICE (for large features with 10+ capabilities)       │
+│     /slice [feature]     → Analyze → Plan → Create specs    │
+│                                                             │
+│     Breaks large features into vertical slices (5-10 tasks) │
+│     Creates multiple specs: feature-crud, feature-variables │
+├─────────────────────────────────────────────────────────────┤
+│  0b. DISTILL (when design docs exist)                       │
 │     /distill [feature]   → Research docs → Write spec → QA  │
 │                                                             │
 │     Converts ~/basecamp/docs/ into implementation specs     │
+│     Use for single slices, not huge features                │
 ├─────────────────────────────────────────────────────────────┤
 │  1. DEFINE                                                  │
 │     /spec [feature]      → Research → Write → QA            │

@@ -9,11 +9,26 @@ Analyzes codebase before implementation to prevent duplicates and conflicts.
 ## MCP Servers
 
 ```
+spec-workflow  # Check implementation logs from previous work
 cclsp          # TypeScript LSP for code intelligence
 context7       # Up-to-date library documentation
 linear         # Check for related Linear issues
 github         # Check for related PRs and discussions
 ```
+
+**Required cclsp tools:**
+
+- `find_definition` - Navigate to symbol definitions
+- `find_references` - Find all usages of a symbol
+- `find_workspace_symbols` - **Global symbol search** (find functions/types across codebase)
+- `find_implementation` - **Find interface implementations** (discover concrete implementations)
+- `get_diagnostics` - Check for existing TypeScript errors
+
+**spec-workflow usage:**
+
+- Search implementation logs for existing artifacts (CRITICAL)
+- Check what was built in related slices
+- Find existing APIs, components, functions to reuse
 
 **linear usage:**
 
@@ -49,7 +64,29 @@ Parse what needs to be implemented:
 - What files would likely be created?
 - What names would be used (functions, components, types)?
 
-### Step 2: Search for Existing Implementations
+### Step 2: Search Implementation Logs (CRITICAL)
+
+**FIRST**, search spec-workflow implementation logs for existing artifacts:
+
+```bash
+# Search ALL implementation logs
+grep -r "apiEndpoints\|components\|functions" .spec-workflow/specs/*/Implementation\ Logs/
+
+# Search for specific keywords
+grep -r "[keyword]" .spec-workflow/specs/*/Implementation\ Logs/
+
+# Example: Find existing prompt-related code
+grep -r "prompt\|Prompt" .spec-workflow/specs/*/Implementation\ Logs/
+```
+
+This reveals:
+
+- Existing API endpoints (don't recreate)
+- Existing components (extend, don't duplicate)
+- Existing functions (import, don't rewrite)
+- Integration patterns (follow, don't deviate)
+
+### Step 3: Search Codebase
 
 ```bash
 # Search for similar functionality
@@ -64,7 +101,7 @@ Glob: src/hooks/**/*.ts      # Hooks
 Glob: src/types/**/*.ts      # Types
 ```
 
-### Step 3: Check for Conflicts
+### Step 4: Check for Conflicts
 
 1. **Naming conflicts**
 
@@ -84,29 +121,43 @@ Glob: src/types/**/*.ts      # Types
    - What files might import this?
    - Are there red flags?
 
-### Step 4: Identify Consolidation Opportunities
+### Step 5: Identify Consolidation Opportunities
 
 - Can this extend an existing utility?
 - Should an existing component gain new props?
 - Is there shared logic to extract?
 - Would a refactor first make this cleaner?
 
-### Step 5: Make Recommendation
+### Step 6: Make Recommendation
 
 **If work should proceed:**
 
 ```markdown
 ## Research Complete: PROCEED
 
+### Implementation Logs Searched
+
+- prompt-manager-crud: Found Prompt model, tRPC router
+- prompt-manager-variables: Not yet implemented
+
+### Existing Artifacts to Reuse
+
+| Artifact     | Location                             | How to Use             |
+| ------------ | ------------------------------------ | ---------------------- |
+| Prompt model | prisma/schema.prisma                 | Extend with new fields |
+| prompt.list  | src/server/routers/prompt.ts:15      | Add filter params      |
+| PromptList   | src/components/prompt/PromptList.tsx | Import and extend      |
+
 ### Existing Code Found
 
 - `src/lib/utils.ts` - General utilities (no overlap)
-- `src/components/Button.tsx` - Could be extended instead of new file
+- `src/components/Button.tsx` - Could be extended
 
 ### Recommendation
 
-- [ ] Create: `src/components/IconButton.tsx`
-- [ ] Modify: `src/types/Button.ts` (add icon prop type)
+- [ ] Extend: Prompt model (add variables field)
+- [ ] Extend: prompt router (add validation endpoint)
+- [ ] Create: `src/components/prompt/VariableEditor.tsx`
 
 ### Conflicts Checked
 
@@ -114,8 +165,8 @@ Glob: src/types/**/*.ts      # Types
 
 ### Notes for Writer
 
-- Follow pattern from `Button.tsx`
-- Reuse `buttonVariants` from existing code
+- Follow pattern from existing prompt router
+- Reuse validation patterns from prompt-manager-crud
 
 Ready for `/code write [feature]`
 ```

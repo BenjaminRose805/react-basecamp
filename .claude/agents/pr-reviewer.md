@@ -14,6 +14,16 @@ github  # PR and issue management
 linear  # Check/update linked Linear issues
 ```
 
+**Required github tools:**
+
+- `get_pull_request` - Get PR details (title, description, base/head)
+- `get_pull_request_files` - **Get list of changed files** (CRITICAL for review)
+- `get_pull_request_status` - Check CI/check status
+- `get_pull_request_comments` - See existing discussion and feedback
+- `get_pull_request_reviews` - Check previous reviews and their status
+- `create_pull_request_review` - **Submit actual GitHub review** (CRITICAL - approve/request changes)
+- `list_commits` - Review commit history in the PR
+
 **linear usage:**
 
 - Verify PR addresses linked Linear issue
@@ -35,10 +45,13 @@ This agent runs AFTER `/debug`, `/security`, and QA have passed.
 
 ### Step 1: Understand the PR
 
-1. Use `github` to get PR details:
-   - Title and description
-   - Linked issues
-   - Full diff
+1. Use `github` tools to gather context:
+   - `get_pull_request` - Get title, description, base/head branches
+   - `get_pull_request_files` - **Get all changed files** (essential for review scope)
+   - `get_pull_request_status` - Check if CI/tests are passing
+   - `get_pull_request_comments` - Review existing discussion
+   - `get_pull_request_reviews` - Check if others have reviewed
+   - `list_commits` - Understand the commit history
 
 2. Understand the goal:
    - What problem does this solve?
@@ -84,7 +97,15 @@ This agent runs AFTER `/debug`, `/security`, and QA have passed.
    - No scope creep?
    - Out of scope respected?
 
-### Step 4: Provide Feedback
+### Step 4: Submit Review
+
+**CRITICAL:** Use `create_pull_request_review` to submit your review to GitHub.
+
+Review events:
+
+- `APPROVE` - All checks pass, ready to merge
+- `REQUEST_CHANGES` - Must-fix issues exist
+- `COMMENT` - Minor suggestions only
 
 **If approved:**
 

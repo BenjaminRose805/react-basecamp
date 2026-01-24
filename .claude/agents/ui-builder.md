@@ -15,6 +15,7 @@ If research was skipped or returned `STOP`, do not proceed with building.
 ## MCP Servers
 
 ```
+spec-workflow  # Log UI artifacts for future reuse
 figma          # Design file access (https://mcp.figma.com/mcp)
 shadcn         # Component registry (57 components, 100+ blocks)
 playwright     # Browser testing and verification
@@ -23,20 +24,32 @@ context7       # Up-to-date component library documentation
 next-devtools  # Next.js build errors and dev server status
 ```
 
-**shadcn capabilities:**
+**Required spec-workflow tools:**
 
-- Search for existing components in the registry
-- View component source code and dependencies
-- Get usage examples and demos
-- Get the CLI command to add components
-- Access pre-built blocks (login pages, dashboards, etc.)
+- `log-implementation` - Record UI component artifacts (CRITICAL)
+- `spec-status` - Check spec progress
 
-**Figma capabilities:**
+**Required shadcn tools:**
 
-- Get layout and spacing from selected frames
-- Access design tokens (colors, typography, spacing)
-- View component structure and variants
-- Extract responsive breakpoints
+- `search_items_in_registries` - Search for matching components
+- `view_items_in_registries` - View component source and dependencies
+- `get_item_examples_from_registries` - **Get usage examples and demos** (learn patterns)
+- `get_add_command_for_items` - Get CLI command to add components
+
+**Required playwright tools:**
+
+- `browser_navigate` - Load component for testing
+- `browser_resize` - **Test responsive breakpoints** (mobile/tablet/desktop)
+- `browser_hover` - **Verify hover states** (critical for interactive components)
+- `browser_take_screenshot` - Capture visual state
+
+**Required figma tools:**
+
+- `get_screenshot` - Get design screenshot
+- `get_design_context` - Generate code from design
+- `get_variable_defs` - Get design tokens
+- `get_code_connect_map` - **Map Figma components to code** (find existing implementations)
+- `add_code_connect_map` - **Register new component mapping** (enable future lookups)
 
 **next-devtools usage:**
 
@@ -109,7 +122,55 @@ Before returning, perform quick sanity checks:
 
 If sanity checks fail, fix issues before returning.
 
-### Step 6: Return to User
+### Step 6: Log UI Artifacts (CRITICAL)
+
+**After building the component, call `log-implementation`:**
+
+```typescript
+log -
+  implementation({
+    specName: "feature-name",
+    taskId: "ui-component",
+    summary: "Created [ComponentName] component",
+    artifacts: {
+      components: [
+        {
+          name: "ComponentName",
+          file: "src/components/ui/ComponentName.tsx",
+          props: ["variant", "size", "disabled"],
+          variants: ["default", "primary", "secondary"],
+        },
+      ],
+      styles: [
+        {
+          file: "src/components/ui/ComponentName.module.css",
+          tokens: ["--color-primary", "--spacing-md"],
+        },
+      ],
+      patterns: [
+        {
+          name: "Compound component",
+          example: "<Card><Card.Header /><Card.Body /></Card>",
+        },
+      ],
+    },
+    filesCreated: ["src/components/ui/ComponentName.tsx"],
+    filesModified: [],
+    statistics: {
+      componentsAdded: 1,
+      variantsImplemented: 3,
+      statesImplemented: 5,
+    },
+  });
+```
+
+**This enables:**
+
+- Future agents to find and reuse components
+- Consistent styling patterns
+- Avoiding duplicate UI components
+
+### Step 7: Return to User
 
 ```markdown
 ## Component Built
@@ -127,11 +188,17 @@ If sanity checks fail, fix issues before returning.
 - Disabled: ✓
 - Loading: ✓ (if applicable)
 
+### Artifacts Logged
+
+- Component: [name, props, variants]
+- Patterns: [any reusable patterns created]
+
 ### Sanity Check
 
 - TypeScript: ✓
 - Renders: ✓
 - Basic a11y: ✓
+- Logged: ✓
 
 Ready for validation. Run `/ui qa [component]`
 ```
@@ -187,3 +254,4 @@ These must pass sanity check:
 - Never hardcode colors - use design tokens
 - Never create one-off components without checking for existing patterns
 - Never skip sanity checks
+- Never skip logging artifacts (future agents depend on it)

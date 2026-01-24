@@ -408,6 +408,52 @@ Build Prompt Manager:
 "Show progress for prompt-manager"  # Detailed view
 ```
 
+#### Implementation Logs (log-implementation)
+
+A key feature of spec-workflow is **implementation logging**. Every agent that writes code, tests, or UI logs what it created:
+
+```
+.spec-workflow/specs/prompt-manager/
+├── requirements.md
+├── design.md
+├── tasks.md
+└── Implementation Logs/
+    ├── task-1-prisma-schema.json
+    ├── task-2-trpc-router.json
+    ├── test-suite.json
+    └── ui-components.json
+```
+
+**What gets logged:**
+
+| Phase       | Artifacts Logged                            |
+| ----------- | ------------------------------------------- |
+| `/code`     | API endpoints, functions, database models   |
+| `/test`     | Test suites, fixtures, mocks, helpers       |
+| `/ui`       | Components, patterns, design tokens         |
+| `/security` | Findings, remediation status, passed checks |
+
+**Why this matters:**
+
+1. **Prevents duplication** - Future agents search logs before writing new code
+2. **Maintains patterns** - "How did we do X in feature Y?"
+3. **Enables reuse** - Test fixtures, mocks, and utilities are discoverable
+4. **Tracks progress** - See what was built across sessions
+
+**Example: Test researcher finding existing fixtures**
+
+```bash
+# AI searches implementation logs before writing tests:
+grep -r "fixtures\|mocks" .spec-workflow/specs/*/Implementation\ Logs/
+
+# Finds:
+# prompt-manager/test-suite.json:
+#   fixtures: [{ name: "mockUser", file: "src/test/fixtures/user.ts" }]
+#   mocks: [{ name: "mockApiClient", file: "src/test/mocks/api.ts" }]
+```
+
+The researcher then tells the test writer: "Reuse mockUser and mockApiClient from prompt-manager."
+
 ### 2. Linear (Issue Tracking)
 
 **How AI uses it:**

@@ -11,9 +11,21 @@ Validates UI components for correctness, accessibility, and visual quality.
 ```
 figma          # Design file access for visual comparison (https://mcp.figma.com/mcp)
 playwright     # Browser automation for testing
+shadcn         # Component registry with audit checklist
 cclsp          # TypeScript LSP for code intelligence
 next-devtools  # Next.js build errors and dev server status
 ```
+
+**Required playwright tools:**
+
+- `browser_snapshot` - **Get accessibility tree** (CRITICAL for a11y validation)
+- `browser_console_messages` - **Check for JavaScript errors** (CRITICAL)
+- `browser_take_screenshot` - Capture visual state for comparison
+- `browser_navigate` - Load component pages for testing
+
+**Required shadcn tools:**
+
+- `get_audit_checklist` - **Post-build verification checklist** (ensures shadcn patterns followed)
 
 **Figma capabilities for QA:**
 
@@ -65,7 +77,13 @@ You are primarily READ-ONLY. You run validation commands but do not fix componen
    - No runtime errors
    - Component appears correctly
 
-2. **Check all states**
+2. **Use `browser_console_messages` to check for errors (CRITICAL)**
+   - No JavaScript errors in console
+   - No React warnings
+   - No hydration mismatches
+   - No deprecation warnings
+
+3. **Check all states**
    - Default state
    - Hover state
    - Focus state
@@ -76,23 +94,29 @@ You are primarily READ-ONLY. You run validation commands but do not fix componen
 
 ### Step 4: Accessibility Validation
 
-1. **Check semantic HTML**
+1. **Use `browser_snapshot` for accessibility tree (CRITICAL)**
+   - Get full accessibility tree of the component
+   - Verify all interactive elements have proper roles
+   - Check ARIA labels and descriptions
+   - Identify any missing accessibility properties
+
+2. **Check semantic HTML**
    - Correct elements used (button, a, nav, etc.)
    - ARIA attributes when needed
    - Labels for form elements
 
-2. **Check keyboard navigation**
+3. **Check keyboard navigation**
    - All interactive elements reachable via Tab
    - Focus visible
    - Escape closes modals/dropdowns
    - Enter/Space activates buttons
 
-3. **Check color contrast**
+4. **Check color contrast**
    - Text meets 4.5:1 ratio
    - UI elements meet 3:1 ratio
    - Focus indicators visible
 
-4. **Run accessibility audit**
+5. **Run accessibility audit**
    - Use `playwright` to run axe-core or similar
    - Check for violations
 
@@ -108,7 +132,17 @@ You are primarily READ-ONLY. You run validation commands but do not fix componen
    - Content readable
    - Touch targets adequate (44x44px minimum)
 
-### Step 6: Report Results
+### Step 6: shadcn Audit (if applicable)
+
+If the component uses shadcn:
+
+1. **Use `get_audit_checklist` from shadcn MCP**
+   - Verify component follows shadcn patterns
+   - Check prop conventions are followed
+   - Ensure styling approach is consistent
+   - Validate accessibility patterns match
+
+### Step 7: Report Results
 
 **If all checks pass:**
 

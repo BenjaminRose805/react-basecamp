@@ -9,9 +9,16 @@ Reads design documentation and extracts implementation-relevant information for 
 ## MCP Servers
 
 ```
+spec-workflow  # Search implementation logs for related work
 cclsp          # TypeScript LSP for code intelligence
 linear         # Check for related Linear issues
 ```
+
+**spec-workflow usage:**
+
+- Search implementation logs for related features already built
+- Find reusable components and patterns
+- Identify what can be leveraged vs. built new
 
 **linear usage:**
 
@@ -26,13 +33,35 @@ Bridge the gap between comprehensive design docs (~/basecamp/docs/) and actionab
 ## Inputs
 
 - `feature`: Feature name (e.g., `prompt-manager`, `agent-builder`)
-- `docs_path`: Path to design docs (default: `~/basecamp/docs/`)
+- `source`: One of:
+  - `docs` (default) - Read from `~/basecamp/docs/`
+  - `path:/path/to/file.md` - Read from specific file (rough notes, brainstorm, etc.)
+  - `conversation` - Use preceding conversation as input
+  - `inline` - Ask user to describe the feature
 
 ## Process
 
-### 1. Locate Source Documents
+### 1. Determine Input Source
 
-Find all relevant docs for the feature:
+**If `--from [path]` provided:**
+
+- Read the specified file (can be rough notes, bullet points, prose)
+- Extract whatever structure exists
+
+**If `--from-conversation` provided:**
+
+- Review conversation history
+- Extract feature description from user's brain dump
+- Identify entities, APIs, UI mentioned
+
+**If no source specified:**
+
+- Try to find `~/basecamp/docs/specs/{feature}.md`
+- If not found, ask: "No design docs found for {feature}. Please describe what you want to build..."
+
+### 2. Locate/Read Source Documents
+
+**For design docs (default):**
 
 ```
 Primary:
@@ -46,6 +75,12 @@ Secondary:
 - docs/architecture/feature-phases.md   # What's in/out of scope
 - docs/CLAUDE.md                        # Key decisions
 ```
+
+**For custom path or conversation:**
+
+- Parse whatever format is provided
+- Extract: purpose, capabilities, entities, UI ideas, constraints
+- Note gaps that need clarification
 
 ### 2. Extract Core Information
 
@@ -88,7 +123,26 @@ For each source, extract:
 - What's included in Basic phase
 - What's explicitly deferred
 
-### 3. Identify Conflicts and Gaps
+### 3. Check Implementation History
+
+Search spec-workflow implementation logs for related work:
+
+```bash
+# Find related implementations
+grep -r "apiEndpoints\|components\|functions" .spec-workflow/specs/*/Implementation\ Logs/
+
+# Search for specific patterns
+grep -r "[feature-keyword]" .spec-workflow/specs/*/Implementation\ Logs/
+```
+
+**Look for:**
+
+- Components that can be reused
+- API patterns to follow
+- Database models to extend
+- Pitfalls encountered in related features
+
+### 4. Identify Conflicts and Gaps
 
 Check for:
 
@@ -96,8 +150,9 @@ Check for:
 - API routes referenced but not defined
 - UI components that need entities not yet defined
 - Missing error handling specifications
+- Conflicts with already implemented features
 
-### 4. Determine Feature Boundaries
+### 5. Determine Feature Boundaries
 
 Clarify:
 
@@ -105,7 +160,7 @@ Clarify:
 - What APIs does this feature EXPOSE vs CONSUME?
 - What's the minimum viable scope?
 
-### 5. Output Research Brief
+### 6. Output Research Brief
 
 Create a structured brief for spec-writer:
 
@@ -142,6 +197,14 @@ Create a structured brief for spec-writer:
 ## Libraries Required
 
 - {library}: {purpose}
+
+## Reusable Artifacts (from implementation logs)
+
+| Artifact            | Source         | Can Leverage               |
+| ------------------- | -------------- | -------------------------- |
+| Button component    | prompt-manager | Yes - same variant pattern |
+| tRPC router pattern | work-items     | Yes - CRUD structure       |
+| Form validation     | settings       | Maybe - different fields   |
 
 ## Scope Boundaries
 
