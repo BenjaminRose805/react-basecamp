@@ -13,15 +13,15 @@
     },
     "playwright": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest"]
+      "args": ["-y", "@playwright/mcp@latest"]
     },
     "vitest": {
       "command": "npx",
-      "args": ["@djankies/vitest-mcp"]
+      "args": ["-y", "@djankies/vitest-mcp"]
     },
     "github": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-github"]
+      "args": ["-y", "@modelcontextprotocol/server-github"]
     },
     "context7": {
       "command": "npx",
@@ -32,10 +32,8 @@
       "args": ["-y", "@pimzino/spec-workflow-mcp@latest"]
     },
     "shadcn": {
-      "type": "stdio",
       "command": "npx",
-      "args": ["shadcn@latest", "mcp"],
-      "env": {}
+      "args": ["shadcn@latest", "mcp"]
     }
   }
 }
