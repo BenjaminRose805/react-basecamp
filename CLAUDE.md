@@ -31,6 +31,7 @@ You MAY answer simple questions directly (e.g., "What framework is this?" or "Wh
 | `/worktree [action]` | `add`, `remove`, `switch`, `status`           | Parallel development with git worktrees               |
 | `/commit`            | —                                             | Create conventional commit                            |
 | `/pr`                | `draft`                                       | Create pull request                                   |
+| `/merge`             | `--squash`, `--merge`, `--rebase`             | Merge PR after CI passes, sync local main             |
 | `/status [scope]`    | `git`, `tasks`, `tests`, `phase`              | Development status overview                           |
 | `/sync-linear`       | `--create-missing`                            | Sync specs with Linear issues                         |
 
@@ -634,6 +635,7 @@ Shows current work state, progress, and suggested next actions.
 | `/verify`      | —           | Pre-PR verification                 |
 | `/commit`      | —           | Create conventional commit          |
 | `/pr`          | —           | Create pull request                 |
+| `/merge`       | —           | Merge PR after CI passes            |
 | `/sync-linear` | —           | Sync specs with Linear issues       |
 
 ---
