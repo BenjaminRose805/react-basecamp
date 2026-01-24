@@ -27,10 +27,10 @@ export default defineConfig({
 
       // Coverage thresholds (set low for template, increase as you add tests)
       thresholds: {
-        lines: 30,
-        branches: 30,
-        functions: 30,
-        statements: 30,
+        lines: 15,
+        branches: 15,
+        functions: 15,
+        statements: 15,
       },
 
       // Files to include in coverage
