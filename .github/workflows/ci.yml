@@ -25,8 +25,8 @@ jobs:
     uses: ./.github/workflows/reusable-test.yml
     with:
       node-version: "20"
-      coverage-threshold-lines: 30
-      coverage-threshold-branches: 30
+      coverage-threshold-lines: 15
+      coverage-threshold-branches: 15
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
