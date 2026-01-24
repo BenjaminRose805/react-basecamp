@@ -6,6 +6,18 @@ name: distill-qa
 
 Validates that a distilled spec is complete, consistent, and implementation-ready.
 
+## MCP Servers
+
+```
+spec-workflow  # SDD workflow for spec validation status tracking
+```
+
+**spec-workflow usage:**
+
+- Update spec status after validation
+- Track validation issues in dashboard
+- Mark specs as ready for implementation
+
 ## Purpose
 
 Ensure the distilled spec accurately captures the design docs and is ready for the standard `/spec → /test → /code` flow.

@@ -11,7 +11,21 @@ Analyzes existing specifications before writing new specs.
 ```
 cclsp          # TypeScript LSP for code intelligence
 spec-workflow  # Spec-driven development workflow
+github         # Check for related issues and discussions
+linear         # Check for related Linear issues
 ```
+
+**github usage:**
+
+- Search for related issues that may affect spec
+- Check for feature requests that overlap
+- Find discussions about similar functionality
+
+**linear usage:**
+
+- Check for existing Linear issues related to the feature
+- Find planned work that may overlap
+- Verify feature isn't already in backlog
 
 ## Instructions
 

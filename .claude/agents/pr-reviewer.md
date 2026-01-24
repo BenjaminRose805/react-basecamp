@@ -11,7 +11,14 @@ Reviews entire pull requests as the final quality gate before merge.
 ```
 cclsp   # TypeScript LSP for code intelligence
 github  # PR and issue management
+linear  # Check/update linked Linear issues
 ```
+
+**linear usage:**
+
+- Verify PR addresses linked Linear issue
+- Check issue requirements are met
+- Update issue status on approval
 
 ## Instructions
 

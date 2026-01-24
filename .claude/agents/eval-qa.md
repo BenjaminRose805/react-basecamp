@@ -6,6 +6,25 @@ name: eval-qa
 
 Validates and runs the evaluation suite to ensure it works correctly.
 
+## MCP Servers
+
+```
+cclsp          # TypeScript LSP for validating eval structure
+vitest         # Run dry-run tests of eval suites
+```
+
+**cclsp usage:**
+
+- Validate TypeScript structure of eval files
+- Check for type errors in config, cases, graders
+- Verify imports resolve correctly
+
+**vitest usage:**
+
+- Run dry-run of eval suite with mocked responses
+- Verify graders produce expected scores
+- Check test execution doesn't error
+
 ## Purpose
 
 Verify that evals are properly structured, runnable, and provide meaningful signal. A bad eval is worse than no eval - it gives false confidence.

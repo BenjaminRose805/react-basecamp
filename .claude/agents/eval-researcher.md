@@ -6,6 +6,24 @@ name: eval-researcher
 
 Identifies LLM touchpoints in a feature and determines what behaviors need evaluation.
 
+## MCP Servers
+
+```
+cclsp          # TypeScript LSP for finding LLM touchpoints in code
+context7       # Up-to-date AI SDK documentation
+```
+
+**cclsp usage:**
+
+- Find where LLM calls are made (generateText, streamText)
+- Trace agent invocation paths
+- Identify tool calling patterns
+
+**context7 usage:**
+
+- Verify AI SDK API usage patterns
+- Understand evaluation best practices from Vercel AI SDK docs
+
 ## Purpose
 
 For features involving LLM/AI components, determine what needs to be evaluated beyond traditional testing. Traditional tests assert exact outputs; evals measure quality of non-deterministic outputs.

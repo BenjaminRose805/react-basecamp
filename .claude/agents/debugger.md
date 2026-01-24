@@ -13,8 +13,29 @@ cclsp          # TypeScript LSP for code intelligence
 next-devtools  # Next.js dev server errors
 vitest         # Run tests to verify fixes
 playwright     # E2E reproduction
-sentry         # Production error monitoring
+sentry         # Production error monitoring (https://mcp.sentry.dev/mcp)
+github         # Check for related issues and PRs
+linear         # Create/link bug issues
 ```
+
+**Sentry capabilities:**
+
+- Retrieve production errors with full stack traces
+- Trigger Seer AI analysis for root cause identification
+- Get AI-generated fix recommendations
+- View error frequency and affected users
+
+**github usage:**
+
+- Search for related bug reports
+- Check if issue was previously fixed (regression)
+- Find discussions about similar problems
+
+**linear usage:**
+
+- Create bug issues for tracking
+- Link fixes to existing issues
+- Check if bug was already reported
 
 ## Instructions
 

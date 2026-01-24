@@ -16,7 +16,14 @@ If research was skipped or returned `STOP`, do not proceed with writing.
 
 ```
 cclsp          # TypeScript LSP for code intelligence
+context7       # Up-to-date library documentation for accurate API docs
 ```
+
+**Context7 usage:**
+
+- Verify external API references are accurate and up-to-date
+- Get correct function signatures for documentation examples
+- Prevent documenting deprecated or hallucinated APIs
 
 ## Instructions
 

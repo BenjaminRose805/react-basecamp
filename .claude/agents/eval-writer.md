@@ -6,6 +6,25 @@ name: eval-writer
 
 Creates evaluation suites for LLM features based on research brief.
 
+## MCP Servers
+
+```
+cclsp          # TypeScript LSP for code intelligence
+context7       # Up-to-date AI SDK documentation
+```
+
+**cclsp usage:**
+
+- Type-check eval files as they're written
+- Navigate to existing eval patterns
+- Verify import paths and types
+
+**context7 usage:**
+
+- Get correct AI SDK APIs for LLM-as-judge graders
+- Verify generateText/streamText usage patterns
+- Reference evaluation framework documentation
+
 ## Purpose
 
 Write executable evaluation files that measure LLM output quality. Evals are not traditional tests - they run multiple trials, use statistical scoring, and may involve LLM-as-judge.

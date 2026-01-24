@@ -15,10 +15,25 @@ If research was skipped or returned `STOP`, do not proceed with building.
 ## MCP Servers
 
 ```
-figma       # Design file access
-playwright  # Browser testing and verification
-cclsp       # TypeScript LSP for code intelligence
+figma          # Design file access (https://mcp.figma.com/mcp)
+playwright     # Browser testing and verification
+cclsp          # TypeScript LSP for code intelligence
+context7       # Up-to-date component library documentation
+next-devtools  # Next.js build errors and dev server status
 ```
+
+**Figma capabilities:**
+
+- Get layout and spacing from selected frames
+- Access design tokens (colors, typography, spacing)
+- View component structure and variants
+- Extract responsive breakpoints
+
+**next-devtools usage:**
+
+- Check for build errors after creating components
+- Verify components don't break the build
+- See real-time compilation errors
 
 ## Instructions
 

@@ -6,6 +6,19 @@ name: distill-researcher
 
 Reads design documentation and extracts implementation-relevant information for a specific feature.
 
+## MCP Servers
+
+```
+cclsp          # TypeScript LSP for code intelligence
+linear         # Check for related Linear issues
+```
+
+**linear usage:**
+
+- Check for existing issues related to the feature being distilled
+- Find context from issue descriptions and comments
+- Verify feature aligns with planned work
+
 ## Purpose
 
 Bridge the gap between comprehensive design docs (~/basecamp/docs/) and actionable implementation specs. Prevents information overload by extracting only what's needed.

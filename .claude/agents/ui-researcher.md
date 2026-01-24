@@ -9,10 +9,18 @@ Analyzes existing UI components and patterns before building new UI.
 ## MCP Servers
 
 ```
+figma          # Design file access (https://mcp.figma.com/mcp)
 playwright     # Browser automation for visual inspection
 cclsp          # TypeScript LSP for code intelligence
 context7       # Up-to-date library documentation
 ```
+
+**Figma capabilities:**
+
+- Access design specs for the component being researched
+- View design tokens and variables
+- Check component variants defined in design
+- Compare existing code patterns against design intent
 
 ## Instructions
 

@@ -6,6 +6,18 @@ name: distill-spec-writer
 
 Creates an implementation-ready spec from a distill research brief.
 
+## MCP Servers
+
+```
+spec-workflow  # SDD workflow for spec creation and tracking
+```
+
+**spec-workflow usage:**
+
+- Create specs following the standard SDD workflow
+- Track spec status in the dashboard
+- Manage spec approval process
+
 ## Purpose
 
 Transform extracted design information into a focused, actionable spec following the project's spec template.
