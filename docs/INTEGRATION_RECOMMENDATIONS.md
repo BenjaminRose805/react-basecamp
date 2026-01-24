@@ -25,11 +25,11 @@ Vercel handles deployment automatically via GitHub integration:
 - CDN, SSL, edge functions
 - Zero-config for Next.js
 
-**Environment Variables to set in Vercel Dashboard:**
+**Environment Variables (auto-configured via integrations):**
 
 ```
-DATABASE_URL          # Prisma database connection
-SENTRY_DSN            # Sentry error tracking
+POSTGRES_URL          # Vercel Postgres (auto-added via Storage)
+SENTRY_DSN            # Sentry (auto-added via Vercel integration)
 NEXT_PUBLIC_SENTRY_DSN # Sentry client-side
 SENTRY_ORG            # Sentry organization slug
 SENTRY_PROJECT        # Sentry project slug
