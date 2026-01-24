@@ -10,10 +10,19 @@ Analyzes existing UI components and patterns before building new UI.
 
 ```
 figma          # Design file access (https://mcp.figma.com/mcp)
+shadcn         # Component registry (57 components, 100+ blocks)
 playwright     # Browser automation for visual inspection
 cclsp          # TypeScript LSP for code intelligence
 context7       # Up-to-date library documentation
 ```
+
+**shadcn capabilities:**
+
+- Search component registry for existing solutions
+- List available components and blocks
+- View component APIs and dependencies
+- Find pre-built blocks (dashboards, forms, etc.)
+- Check if a component already exists before building custom
 
 **Figma capabilities:**
 
@@ -46,7 +55,7 @@ Parse what UI needs to be built:
 ### Step 2: Find Existing Components
 
 ```bash
-# Search component library
+# Search local component library
 Glob: src/components/**/*.tsx
 Glob: src/components/ui/**/*.tsx
 
@@ -59,7 +68,16 @@ Glob: src/**/*.css
 Glob: src/**/*.module.css
 ```
 
-### Step 3: Analyze UI Patterns
+### Step 3: Check shadcn Registry
+
+Use `shadcn` MCP to search for available components:
+
+1. Search for components matching the required functionality
+2. Check if pre-built blocks exist (login forms, dashboards, etc.)
+3. Review component dependencies
+4. Note which components need to be added vs already installed
+
+### Step 4: Analyze UI Patterns
 
 1. **Component structure**
    - How are props typed?
@@ -76,7 +94,7 @@ Glob: src/**/*.module.css
    - Keyboard navigation
    - Focus management
 
-### Step 4: Check Visual Consistency
+### Step 5: Check Visual Consistency
 
 1. **Design tokens**
    - What colors are used?
@@ -88,7 +106,7 @@ Glob: src/**/*.module.css
    - Color variants (primary, secondary)?
    - State variants (hover, active, disabled)?
 
-### Step 5: Make Recommendation
+### Step 6: Make Recommendation
 
 **If new UI should be built:**
 

@@ -16,11 +16,20 @@ If research was skipped or returned `STOP`, do not proceed with building.
 
 ```
 figma          # Design file access (https://mcp.figma.com/mcp)
+shadcn         # Component registry (57 components, 100+ blocks)
 playwright     # Browser testing and verification
 cclsp          # TypeScript LSP for code intelligence
 context7       # Up-to-date component library documentation
 next-devtools  # Next.js build errors and dev server status
 ```
+
+**shadcn capabilities:**
+
+- Search for existing components in the registry
+- View component source code and dependencies
+- Get usage examples and demos
+- Get the CLI command to add components
+- Access pre-built blocks (login pages, dashboards, etc.)
 
 **Figma capabilities:**
 
@@ -57,7 +66,16 @@ Before building any component:
    - What design tokens are available?
 3. If no research exists, STOP and request `/ui research` first
 
-### Step 2: Get Design Details
+### Step 2: Check shadcn Registry
+
+Use `shadcn` to find existing components:
+
+1. Search for components that match the design
+2. Check if a pre-built block exists for this use case
+3. Get the add command for required components
+4. Review component APIs to understand available props
+
+### Step 3: Get Design Details
 
 Use `figma` to extract:
 
@@ -66,14 +84,15 @@ Use `figma` to extract:
 - Component states (hover, focus, disabled)
 - Responsive breakpoints
 
-### Step 3: Build Component
+### Step 4: Build Component
 
 1. Follow researcher's recommendations for composition
-2. Implement component following project patterns
-3. Use `cclsp` diagnostics to catch errors as you code
-4. Implement all required states (see checklist below)
+2. Use `shadcn` components as building blocks when available
+3. Implement component following project patterns
+4. Use `cclsp` diagnostics to catch errors as you code
+5. Implement all required states (see checklist below)
 
-### Step 4: Sanity Check
+### Step 5: Sanity Check
 
 Before returning, perform quick sanity checks:
 
@@ -90,7 +109,7 @@ Before returning, perform quick sanity checks:
 
 If sanity checks fail, fix issues before returning.
 
-### Step 5: Return to User
+### Step 6: Return to User
 
 ```markdown
 ## Component Built

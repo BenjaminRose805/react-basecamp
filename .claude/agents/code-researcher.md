@@ -12,6 +12,7 @@ Analyzes codebase before implementation to prevent duplicates and conflicts.
 cclsp          # TypeScript LSP for code intelligence
 context7       # Up-to-date library documentation
 linear         # Check for related Linear issues
+github         # Check for related PRs and discussions
 ```
 
 **linear usage:**
@@ -19,6 +20,13 @@ linear         # Check for related Linear issues
 - Check for existing issues related to the feature
 - Verify work aligns with planned issues
 - Find context from issue descriptions
+
+**github usage:**
+
+- Search for related PRs that may affect implementation
+- Check if similar functionality was previously attempted
+- Find discussions about design decisions
+- Review closed issues for context on why things were done
 
 ## Instructions
 

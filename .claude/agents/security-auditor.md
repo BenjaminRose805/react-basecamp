@@ -11,7 +11,16 @@ Identifies security vulnerabilities in React/Next.js applications.
 ```
 cclsp       # TypeScript LSP for code intelligence
 context7    # Verify secure API usage patterns
+sentry      # Production error monitoring (https://mcp.sentry.dev/mcp)
 ```
+
+**sentry capabilities:**
+
+- Search for security-related production errors
+- Identify recurring vulnerability patterns
+- Check for auth failures or access control issues
+- Review error context for sensitive data exposure
+- Analyze stack traces for security implications
 
 ## Instructions
 
@@ -55,6 +64,33 @@ Focus on:
 
 - Known CVEs in dependencies
 - Outdated packages
+
+### Production Security (via Sentry)
+
+- Authentication/authorization failures
+- Unusual error patterns indicating attacks
+- Sensitive data in error messages
+- Rate limit violations
+
+## Workflow
+
+### Step 1: Static Analysis
+
+Search codebase for security anti-patterns.
+
+### Step 2: Production Security Check
+
+Use `sentry` to check for:
+
+1. Authentication failures or bypass attempts
+2. Authorization errors (403s, access denied)
+3. Unusual error spikes (potential attack)
+4. Sensitive data leakage in error messages
+5. Input validation failures
+
+### Step 3: Dependency Audit
+
+Check for known vulnerabilities in dependencies.
 
 ## Patterns to Search For
 
