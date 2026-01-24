@@ -2,6 +2,8 @@
 
 Next.js application with AI-assisted development via specialized agents.
 
+> **📖 New to this workflow?** See the [Developer Workflow Guide](docs/DEVELOPER_WORKFLOW.md) for a comprehensive walkthrough of TDD, SDD, EDD methodologies, MCP server interactions, and your role as the developer/architect.
+
 ## Core Rule
 
 **ALWAYS delegate work to the appropriate agent. Never implement, test, review, or debug directly.**
@@ -699,3 +701,73 @@ Choose appropriate models based on task complexity. See `.claude/rules/performan
 - After finishing a feature, before starting next
 - When switching between unrelated tasks
 - After 50+ tool calls (hook will remind)
+
+---
+
+## Design Docs & Guides
+
+### Source Design Documentation
+
+The AI Development Platform design docs are located at `~/basecamp/docs/`:
+
+| Directory       | Contents                                                               |
+| --------------- | ---------------------------------------------------------------------- |
+| `vision/`       | Platform overview, goals                                               |
+| `architecture/` | Data models, API contracts, tech stack, database schema                |
+| `specs/`        | Feature specs (prompt-manager, agent-builder, workflow-designer, etc.) |
+| `guides/`       | Git workflow, user flows                                               |
+| `operations/`   | Agent guardrails, audit logging                                        |
+| `future/`       | Deferred features (auth, notifications, cost tracking)                 |
+
+### Developer Workflow Guide
+
+**📖 [docs/DEVELOPER_WORKFLOW.md](docs/DEVELOPER_WORKFLOW.md)** - Comprehensive guide covering:
+
+- Your role as developer/architect in the AI-human partnership
+- MCP server interactions (dashboards, tools, integrations)
+- Phase-by-phase implementation guide
+- Feature examples with full command sequences
+- Troubleshooting common issues
+
+---
+
+## Dashboards & Tools
+
+Interactive tools available during development:
+
+| Tool                        | URL/Command           | Purpose                                       |
+| --------------------------- | --------------------- | --------------------------------------------- |
+| **Spec Workflow Dashboard** | http://localhost:5000 | Spec management, approvals, progress tracking |
+| **Next.js Dev Server**      | http://localhost:3000 | Your application                              |
+| **Vitest UI**               | `pnpm test:ui`        | Interactive test runner                       |
+| **Playwright UI**           | `pnpm test:e2e --ui`  | E2E test visualization                        |
+| **Prisma Studio**           | `pnpm prisma studio`  | Database browser                              |
+
+### Your Interaction Points
+
+| Phase               | Your Action              | Where                           |
+| ------------------- | ------------------------ | ------------------------------- |
+| **Spec Approval**   | Review and approve specs | Spec Dashboard (localhost:5000) |
+| **Test Review**     | Approve test strategy    | Terminal output                 |
+| **Eval Thresholds** | Define pass criteria     | Terminal conversation           |
+| **UI Review**       | Visual verification      | Browser (localhost:3000)        |
+| **Security Triage** | Prioritize findings      | Terminal output                 |
+| **PR Approval**     | Final merge decision     | GitHub                          |
+
+---
+
+## Feature Build Order
+
+Recommended implementation sequence based on dependencies:
+
+| #   | Feature           | Methodology         | Dependencies       |
+| --- | ----------------- | ------------------- | ------------------ |
+| 1   | Prompt Manager    | SDD + TDD           | None (foundation)  |
+| 2   | Agent Builder     | SDD + TDD + **EDD** | Prompts            |
+| 3   | Work Item Manager | SDD + TDD           | Agents             |
+| 4   | Workflow Designer | SDD + TDD + **EDD** | Work Items, Agents |
+| 5   | Execution Engine  | SDD + TDD + **EDD** | Workflows          |
+| 6   | Task Queue        | SDD + TDD           | Execution          |
+| 7   | Home Dashboard    | SDD + TDD           | All above          |
+
+**EDD required** for features with LLM integration (agent invocation, tool selection, condition evaluation).
