@@ -10,18 +10,34 @@ Gives Claude IDE-like code intelligence capabilities.
 
 **Setup:**
 
+1. Create config file `.claude/cclsp.json`:
+
+```json
+{
+  "servers": [
+    {
+      "extensions": ["ts", "tsx", "js", "jsx"],
+      "command": ["npx", "-y", "typescript-language-server", "--stdio"],
+      "rootDir": "."
+    }
+  ]
+}
+```
+
+2. Add the MCP server with environment variable:
+
 ```bash
-claude mcp add cclsp -- npx cclsp
+claude mcp add cclsp -e CCLSP_CONFIG_PATH=.claude/cclsp.json -- npx -y cclsp
 ```
 
 **Capabilities:**
 
 | Tool              | What It Does                      |
 | ----------------- | --------------------------------- |
-| `goto_definition` | Jump to where a symbol is defined |
+| `find_definition` | Jump to where a symbol is defined |
 | `find_references` | Find all usages of a symbol       |
-| `hover`           | Get type information for a symbol |
-| `diagnostics`     | Get real-time TypeScript errors   |
+| `get_hover`       | Get type information for a symbol |
+| `get_diagnostics` | Get real-time TypeScript errors   |
 | `rename_symbol`   | Rename across the codebase        |
 
 **Benefits:**
@@ -170,15 +186,15 @@ Up-to-date library documentation to prevent hallucinated APIs.
 **Setup:**
 
 ```bash
-claude mcp add context7 -- npx @context7/mcp-server
+claude mcp add context7 -- npx -y @upstash/context7-mcp
 ```
 
 **Capabilities:**
 
-| Tool          | What It Does                              |
-| ------------- | ----------------------------------------- |
-| `resolve`     | Get current documentation for any library |
-| `search_docs` | Search documentation by topic             |
+| Tool                 | What It Does                        |
+| -------------------- | ----------------------------------- |
+| `resolve-library-id` | Resolve library name to Context7 ID |
+| `query-docs`         | Get documentation for a library     |
 
 **Benefits:**
 
@@ -186,7 +202,7 @@ claude mcp add context7 -- npx @context7/mcp-server
 - Access to current React, Next.js, and npm package documentation
 - Reduces errors from using deprecated methods
 
-### 7. Sentry MCP
+### 8. Sentry MCP
 
 AI-powered error monitoring and debugging.
 
@@ -210,7 +226,7 @@ claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
 - Root cause analysis with full context
 - Can suggest fixes based on error patterns
 
-### 8. Figma MCP
+### 9. Figma MCP
 
 Bridge between Figma designs and React code generation.
 
@@ -236,56 +252,51 @@ claude mcp add --transport http figma https://mcp.figma.com/mcp
 - Verify built components match designs
 - Works with Figma Design, FigJam, and Make files
 
-## Documentation MCP Servers
+### 10. shadcn/ui MCP
 
-### 9. AWS Code Documentation Generator
-
-Auto-generate comprehensive documentation from code.
+Access to shadcn/ui component registry with 400+ components, blocks, and examples.
 
 **Setup:**
 
 ```bash
-claude mcp add docs-generator -- npx @aws/mcp-docs-generator
+claude mcp add shadcn -- npx shadcn@latest mcp
 ```
 
 **Capabilities:**
 
-| Tool                      | What It Does                             |
-| ------------------------- | ---------------------------------------- |
-| `generate_readme`         | Generate README.md from project analysis |
-| `generate_api_docs`       | Generate API documentation               |
-| `generate_component_docs` | Generate component documentation         |
+| Tool                                | What It Does                               |
+| ----------------------------------- | ------------------------------------------ |
+| `list_items_in_registries`          | List all available components and blocks   |
+| `search_items_in_registries`        | Search components by name or description   |
+| `view_items_in_registries`          | Get component source code and dependencies |
+| `get_item_examples_from_registries` | Get usage examples and demos               |
+| `get_add_command_for_items`         | Get the CLI command to add components      |
 
 **Benefits:**
 
-- Automated documentation generation
-- Consistent documentation format
-- Keeps docs in sync with code changes
+- Claude sees actual component APIs (no hallucinated props)
+- Access to 57 UI components, 100+ pre-built blocks, 200+ examples
+- Supports third-party and private registries
+- Works with namespaced registries (`@namespace` syntax)
 
-### 10. MCP Docs Service
+**Available Content:**
 
-Documentation management with structured markdown.
+| Type       | Count | Examples                                   |
+| ---------- | ----- | ------------------------------------------ |
+| Components | 57    | button, card, dialog, table, form, sidebar |
+| Blocks     | 100+  | login pages, dashboards, calendars, charts |
+| Examples   | 200+  | Demo implementations for each component    |
+| Themes     | 5     | stone, zinc, neutral, gray, slate          |
 
-**Setup:**
+**Usage:**
 
 ```bash
-claude mcp add mcp-docs -- npx mcp-docs-service
+# Ask Claude to add a component
+"Add the button and card components"
+
+# Claude will use the MCP to get the correct command:
+npx shadcn@latest add button card
 ```
-
-**Capabilities:**
-
-| Tool             | What It Does                    |
-| ---------------- | ------------------------------- |
-| `create_doc`     | Create new documentation files  |
-| `update_doc`     | Update existing documentation   |
-| `search_docs`    | Search across all documentation |
-| `validate_links` | Validate documentation links    |
-
-**Benefits:**
-
-- Structured documentation workflow
-- Link validation prevents broken references
-- Frontmatter support for metadata
 
 ## TDD/SDD MCP Servers
 
@@ -296,7 +307,7 @@ Complete spec-driven development workflow with real-time dashboard.
 **Setup:**
 
 ```bash
-claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest .
+claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest
 ```
 
 **Capabilities:**
@@ -326,121 +337,13 @@ claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest .
 - "List my specs"
 - "Execute task 1.2 in spec user-auth"
 
-### 12. Test Runner MCP (Multi-Framework TDD)
-
-Universal test runner supporting 7 testing frameworks.
-
-> **Note:** This overlaps with Vitest MCP (#4). Only install test-runner if you have a polyglot/full-stack project with multiple test frameworks. For Vitest-only projects like this template, use Vitest MCP instead.
-
-**Setup:**
-
-```bash
-claude mcp add test-runner -- npx @anthropic/mcp-test-runner
-```
-
-**Capabilities:**
-
-| Tool          | What It Does                           |
-| ------------- | -------------------------------------- |
-| `run_tests`   | Run tests for any supported framework  |
-| `list_tests`  | Discover tests across all frameworks   |
-| `get_results` | Get detailed test results and failures |
-| `watch_tests` | Watch mode for iterative TDD           |
-
-**Supported Frameworks:**
-
-- **Jest** - JavaScript/TypeScript
-- **Pytest** - Python
-- **Go Tests** - Go
-- **Rust Tests** - Cargo test
-- **Flutter** - Dart
-- **Bats** - Bash Automated Testing System
-- **Generic** - Custom test commands
-
-**When to use:**
-
-- Full-stack projects with backend in Go/Python/Rust
-- Monorepos with multiple languages
-- Projects migrating between test frameworks
-
-**Skip if:** Your project only uses Vitest (use Vitest MCP instead)
-
-### 13. Markdownify MCP
-
-Convert various file types and web content to Markdown.
-
-**Setup:**
-
-```bash
-claude mcp add markdownify -- npx markdownify-mcp
-```
-
-**Capabilities:**
-
-| Tool            | What It Does                       |
-| --------------- | ---------------------------------- |
-| `convert_pdf`   | Convert PDF files to Markdown      |
-| `convert_docx`  | Convert Word documents to Markdown |
-| `convert_url`   | Convert web pages to Markdown      |
-| `convert_image` | Extract text from images (OCR)     |
-
-**Benefits:**
-
-- Ingest existing documentation into knowledge bases
-- Convert legacy docs for LLM processing
-- Prepare content for RAG systems
-
-### 14. ADR Analysis MCP
-
-Architectural Decision Records for spec-driven development.
-
-**Setup:**
-
-```bash
-claude mcp add adr -- npx adr-analysis-mcp
-```
-
-**Capabilities:**
-
-| Tool                    | What It Does                             |
-| ----------------------- | ---------------------------------------- |
-| `create_adr`            | Create new architectural decision record |
-| `list_adrs`             | List all ADRs in the project             |
-| `analyze_impact`        | Analyze impact of proposed changes       |
-| `validate_against_adrs` | Check code against existing ADRs         |
-
-**Benefits:**
-
-- Document architectural decisions
-- Validate implementations against specs
-- Track technical debt and trade-offs
-
-## Optional MCP Servers
-
-### 15. Storybook MCP (for component libraries)
-
-Access Storybook documentation and component props.
-
-**Setup:**
-
-```bash
-claude mcp add storybook -- npx storybook-mcp
-```
-
-**Capabilities:**
-
-| Tool                 | What It Does                      |
-| -------------------- | --------------------------------- |
-| `getComponentList`   | List all components in Storybook  |
-| `getComponentsProps` | Get detailed props for components |
-
 ## Quick Setup (All Required Servers)
 
 Run these commands to set up all required MCP servers:
 
 ```bash
-# TypeScript LSP
-claude mcp add cclsp -- npx cclsp
+# TypeScript LSP (requires config file - see section 1)
+claude mcp add cclsp -e CCLSP_CONFIG_PATH=.claude/cclsp.json -- npx -y cclsp
 
 # Next.js DevTools
 claude mcp add next-devtools -- npx -y next-devtools-mcp@latest
@@ -462,7 +365,7 @@ claude mcp add github -- npx @modelcontextprotocol/server-github
 claude mcp add linear -- npx @anthropic/linear-mcp@latest
 
 # Context7 (prevents hallucinated APIs)
-claude mcp add context7 -- npx @context7/mcp-server
+claude mcp add context7 -- npx -y @upstash/context7-mcp
 
 # Sentry (production error monitoring)
 claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
@@ -470,8 +373,11 @@ claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
 # Figma (design-to-code workflow)
 claude mcp add --transport http figma https://mcp.figma.com/mcp
 
+# shadcn/ui (component registry access)
+claude mcp add shadcn -- npx shadcn@latest mcp
+
 # Spec Workflow (for SDD - includes web dashboard)
-claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest .
+claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest
 ```
 
 ## Verification
@@ -511,24 +417,19 @@ You should see all configured servers listed.
 
 ## Configuration Summary
 
-| Server         | Priority    | Use Case                                        |
-| -------------- | ----------- | ----------------------------------------------- |
-| cclsp          | Required    | Code intelligence, go-to-definition, references |
-| next-devtools  | Required    | Dev server errors, project context              |
-| playwright     | Required    | Browser testing, UI verification                |
-| vitest         | Required    | TDD workflow, test running, coverage            |
-| github         | Required    | PR reviews, issues, repository management       |
-| linear         | Recommended | Issue tracking, link PRs to issues, workflows   |
-| context7       | Recommended | Up-to-date library docs, prevent hallucinations |
-| sentry         | Recommended | Production error debugging                      |
-| figma          | Recommended | Design-to-code workflow, design tokens          |
-| spec-workflow  | Recommended | Spec-driven development with dashboard          |
-| docs-generator | Optional    | Auto-generate documentation                     |
-| mcp-docs       | Optional    | Documentation management                        |
-| test-runner    | Optional    | Polyglot projects only (overlaps with vitest)   |
-| markdownify    | Optional    | Convert files/URLs to Markdown                  |
-| adr            | Optional    | Architectural decision records                  |
-| storybook      | Optional    | Component library context                       |
+| Server        | Priority    | Use Case                                        |
+| ------------- | ----------- | ----------------------------------------------- |
+| cclsp         | Required    | Code intelligence, go-to-definition, references |
+| next-devtools | Required    | Dev server errors, project context              |
+| playwright    | Required    | Browser testing, UI verification                |
+| vitest        | Required    | TDD workflow, test running, coverage            |
+| github        | Required    | PR reviews, issues, repository management       |
+| linear        | Recommended | Issue tracking, link PRs to issues, workflows   |
+| context7      | Recommended | Up-to-date library docs, prevent hallucinations |
+| sentry        | Recommended | Production error debugging                      |
+| figma         | Recommended | Design-to-code workflow, design tokens          |
+| shadcn        | Recommended | shadcn/ui components, blocks, examples          |
+| spec-workflow | Recommended | Spec-driven development with dashboard          |
 
 ## SDD/TDD Workflow
 
@@ -536,13 +437,10 @@ For full spec-driven and test-driven development:
 
 1. **Create spec**: Use `spec-workflow` to create requirements → design → tasks
 2. **Approve spec**: Review and approve via dashboard (http://localhost:5000)
-3. **Write tests first**: Use `vitest` to write failing tests (or `test-runner` for polyglot projects)
+3. **Write tests first**: Use `vitest` to write failing tests
 4. **Implement**: Execute tasks from spec with AI assistance
 5. **Verify**: Run tests, check coverage, validate against spec
-6. **Document**: Auto-generate docs with `docs-generator` or `markdownify`
 
 **Sources:**
 
 - [Spec Workflow MCP](https://github.com/Pimzino/spec-workflow-mcp)
-- [Markdownify MCP](https://github.com/zcaceres/markdownify-mcp)
-- [Test Runner MCP Guide](https://skywork.ai/skypage/en/test-runner-ai-engineer-guide-code-testing/1980823430285299712)
