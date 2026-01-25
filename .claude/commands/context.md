@@ -1,68 +1,109 @@
-# /context - Load Context Mode
+# /context - Working Mode
 
-Switch between different working modes to adjust behavior and priorities.
+Switch between different working modes.
 
 ## Usage
 
 ```
-/context dev       # Implementation mode - write code, run tests
-/context review    # Code review mode - find issues, verify quality
-/context research  # Exploration mode - understand before acting
+/context            # Show current mode
+/context dev        # Switch to dev mode
+/context review     # Switch to review mode
+/context research   # Switch to research mode
 ```
 
-## Instructions
+## Examples
 
-When this command is invoked:
+```bash
+/context            # What mode am I in?
+/context dev        # Ready to code
+/context review     # Ready to review
+/context research   # Ready to explore
+```
 
-1. Read the corresponding context file from `.claude/contexts/[mode].md`
-2. Acknowledge the mode switch
-3. Adjust behavior according to the context
+## Agent
 
-## Available Contexts
+Routes to: `context-agent`
+
+## Modes
 
 ### dev (Development)
 
 **Focus:** Active implementation
 
-- Code first, explain after
-- TDD workflow (test → implement → verify)
-- Use `/code`, `/test`, `/verify` agents
-- Commit when green
+**Behavior:**
+
+- Code first, verify later
+- TDD workflow enabled
+- Atomic commits expected
+- Prefer Edit/Write/Bash tools
+
+**When to use:**
+
+- Implementing features
+- Fixing bugs
+- Writing code
 
 ### review (Review)
 
 **Focus:** Quality assurance
 
-- Security first priority
-- Thorough analysis before suggestions
-- Use `/security`, `/review`, `/verify` agents
-- Constructive feedback
+**Behavior:**
+
+- Security first
+- Thorough analysis
+- Prefer Read/Grep tools
+- No code changes without verification
+
+**When to use:**
+
+- Reviewing PRs
+- Auditing code
+- Security checks
 
 ### research (Research)
 
 **Focus:** Exploration
 
-- Read extensively before suggesting
-- Don't modify code without approval
-- Use research subcommands (`/code research`, etc.)
-- Document findings, present options
+**Behavior:**
 
-## Context Files
+- Read first, no modifications
+- Document findings
+- Ask before changing
 
-- `.claude/contexts/dev.md` - Development context
-- `.claude/contexts/review.md` - Review context
-- `.claude/contexts/research.md` - Research context
+**When to use:**
+
+- Understanding codebase
+- Investigating options
+- Learning new areas
+
+## Mode-Command Alignment
+
+| Mode     | Primary Commands          |
+| -------- | ------------------------- |
+| dev      | /code, /ui, /build, /ship |
+| review   | /check, /pr review        |
+| research | /help, /debug             |
+
+## Automatic Detection
+
+The system may suggest mode switches:
+
+```
+💡 Switch to dev mode for implementation?
+Run: /context dev
+```
 
 ## Output
 
-When switching context, confirm:
-
 ```
-Switched to [MODE] context.
+Current Mode: dev
 
-Mode: [Brief description]
-Focus: [Primary focus]
-Priority: [Top priority]
+Focus: Active implementation
+Tools: Edit, Write, Bash, Task agents
 
-Ready for [MODE] tasks.
+Switch with:
+  /context review   - For quality checks
+  /context research - For exploration
 ```
+
+$ARGUMENTS

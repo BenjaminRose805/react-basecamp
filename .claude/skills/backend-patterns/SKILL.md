@@ -7,6 +7,12 @@ description: Backend architecture patterns, API design, database optimization, a
 
 Backend architecture patterns and best practices for Next.js and tRPC applications.
 
+## When Used
+
+| Agent      | Phase     |
+| ---------- | --------- |
+| code-agent | IMPLEMENT |
+
 ## API Design Patterns
 
 ### tRPC Router Structure

@@ -134,9 +134,9 @@ Suggested guidelines:
 
 [How dashboard or monitoring components are organized]
 
-### Example Structure
+### Example Structure:
 
-```text
+```
 src/
 └── dashboard/          # Self-contained dashboard subsystem
     ├── server/        # Backend server components

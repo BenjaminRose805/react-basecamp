@@ -1,173 +1,78 @@
-# /plan - Feature Planning
+# /plan - Implementation Planning
 
-Break down a feature into trackable phases with clear checkpoints.
+Create implementation specifications from requirements.
 
 ## Usage
 
 ```
-/plan [feature]            # Create plan for a feature
-/plan --from-spec [file]   # Create plan from existing spec
-/plan --quick [feature]    # Quick plan without detailed breakdown
+/plan [feature]           # Create spec (default: spec subcommand)
+/plan spec [feature]      # Create new spec from scratch
+/plan distill [feature]   # Convert design docs to specs
+/plan slice [feature]     # Break large features into slices
 ```
 
-## Instructions
+## Examples
 
-When this command is invoked:
+```bash
+/plan prompt-manager           # Create spec for prompt manager
+/plan spec auth-flow           # Spec for authentication
+/plan distill workflow-engine  # Convert docs to spec
+/plan slice ai-platform        # Break into vertical slices
+```
 
-### Step 1: Understand the Feature
+## Agent
 
-If a spec exists (`specs/[feature].md`):
-
-- Read the spec
-- Extract requirements and acceptance criteria
-- Identify technical constraints
-
-If no spec exists:
-
-- Ask clarifying questions
-- Understand scope and goals
-- Identify key deliverables
-
-### Step 2: Break Down into Phases
-
-Create a structured plan following the standard workflow:
-
-```markdown
-# Plan: [Feature Name]
-
-## Overview
-
-[1-2 sentence description]
+Routes to: `plan-agent`
 
 ## Phases
 
-### Phase 1: Specification
+1. **ANALYZE** - Research context, check conflicts
+2. **CREATE** - Write spec files
+3. **VALIDATE** - Verify completeness, request approval
 
-- [ ] Research existing patterns (`/spec research`)
-- [ ] Write feature spec (`/spec write`)
-- [ ] Validate spec (`/spec qa`)
+## Subcommands
 
-Checkpoint: Spec approved and ready for implementation
+### spec
 
-### Phase 2: Test Design (TDD)
+Create a new specification from requirements:
 
-- [ ] Research test patterns (`/test research`)
-- [ ] Write failing tests (`/test write`)
-- [ ] Verify tests fail correctly (`/test qa`)
+- Gather requirements from conversation
+- Research existing code for context
+- Create spec in `.spec-workflow/specs/{feature}/`
+- Output requirements.md, design.md, tasks.md
 
-Checkpoint: Tests written, failing as expected (red)
+### distill
 
-### Phase 3: Implementation
+Convert existing design documents to implementation specs:
 
-- [ ] Research existing code (`/code research`)
-- [ ] Implement feature (`/code write`)
-- [ ] Validate implementation (`/code qa`)
+- Read from `~/basecamp/docs/`
+- Extract entities, APIs, UI requirements
+- Create actionable tasks with \_Prompt fields
+- Preserve source traceability
 
-Checkpoint: Tests passing (green), code complete
+### slice
 
-### Phase 4: Quality Assurance
+Break large features into vertical slices:
 
-- [ ] Run verification (`/verify`)
-- [ ] Security audit (`/security`)
-- [ ] Address any issues
+- Analyze feature for independent capabilities
+- Create one spec per slice
+- Define dependencies between slices
+- Each slice is independently deployable
 
-Checkpoint: All checks passing
+## Output
 
-### Phase 5: Review & Merge
+Spec files created in `.spec-workflow/specs/{feature}/`:
 
-- [ ] Create PR (`/pr`)
-- [ ] Address review feedback
-- [ ] Merge to main
+- `requirements.md` - EARS format requirements
+- `design.md` - Architecture and decisions
+- `tasks.md` - Work items with \_Prompt fields
 
-Checkpoint: Feature merged and deployed
+Dashboard: http://localhost:5000/specs/{feature}
 
-## Estimated Scope
+## After /plan
 
-- Files to create/modify: ~X
-- New tests: ~X
-- Complexity: [Low/Medium/High]
+1. Review spec in dashboard
+2. Approve requirements and design
+3. Run `/code {feature}` to implement
 
-## Dependencies
-
-- Requires: [list any prerequisites]
-- Blocks: [list what this enables]
-
-## Out of Scope
-
-- [Explicitly excluded items]
-```
-
-### Step 3: Create Tasks
-
-Use TaskCreate to add trackable tasks:
-
-```
-Task 1: [Phase 1] Write spec for [feature]
-Task 2: [Phase 2] Write tests for [feature]
-Task 3: [Phase 3] Implement [feature]
-Task 4: [Phase 4] Verify and secure [feature]
-Task 5: [Phase 5] Create PR for [feature]
-```
-
-### Step 4: Output the Plan
-
-Display the full plan and confirm tasks are created.
-
-## Quick Plan Mode
-
-With `--quick`, create a simplified plan:
-
-```
-QUICK PLAN: [Feature]
-=====================
-
-1. [ ] Spec    → /spec [feature]
-2. [ ] Test    → /test [feature]
-3. [ ] Code    → /code [feature]
-4. [ ] Verify  → /verify
-5. [ ] Review  → /pr
-
-Start with: /spec [feature]
-```
-
-## Plan Templates
-
-### For Bug Fixes
-
-```
-1. [ ] Reproduce → /debug [issue]
-2. [ ] Test     → /test [regression test]
-3. [ ] Fix      → /code [fix]
-4. [ ] Verify   → /verify
-5. [ ] Review   → /pr
-```
-
-### For UI Components
-
-```
-1. [ ] Spec     → /spec [component]
-2. [ ] Research → /ui research [component]
-3. [ ] Build    → /ui build [component]
-4. [ ] Test     → /test [component]
-5. [ ] Verify   → /verify
-6. [ ] Review   → /pr
-```
-
-### For LLM Features
-
-```
-1. [ ] Spec     → /distill [feature] or /spec [feature]
-2. [ ] Test     → /test [feature]
-3. [ ] Eval     → /eval [feature]
-4. [ ] Code     → /code [feature]
-5. [ ] Security → /security [feature]
-6. [ ] Review   → /pr
-```
-
-## After Planning
-
-Suggest starting command:
-
-- If spec doesn't exist: `/spec [feature]`
-- If spec exists: `/test [feature]`
-- If tests exist: `/code [feature]`
+$ARGUMENTS

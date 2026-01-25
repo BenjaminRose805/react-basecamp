@@ -7,6 +7,12 @@ description: Frontend development patterns for React, Next.js 15, state manageme
 
 Modern frontend patterns for React and Next.js 15 applications.
 
+## When Used
+
+| Agent    | Phase |
+| -------- | ----- |
+| ui-agent | BUILD |
+
 ## Component Patterns
 
 ### Composition Over Inheritance
