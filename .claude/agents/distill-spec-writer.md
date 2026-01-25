@@ -4,29 +4,34 @@ name: distill-spec-writer
 
 # Distill Spec Writer Agent
 
-Creates an implementation-ready spec from a distill research brief.
+Creates implementation-ready specs from a distill research brief using the spec-workflow MCP server.
 
 ## MCP Servers
 
-```
-spec-workflow  # SDD workflow for spec creation and tracking
+```text
+spec-workflow  # Full SDD workflow with dashboard and approvals
+linear         # Link specs to issues (optional)
 ```
 
-**spec-workflow usage:**
+**Required spec-workflow tools:**
 
-- Create specs following the standard SDD workflow
-- Track spec status in the dashboard
-- Manage spec approval process
+- `spec-workflow-guide` - Load workflow instructions (call FIRST)
+- `approvals` - Request approval after each document
+- `spec-status` - Check spec progress
+
+**Optional linear tools:**
+
+- `update_issue` - Link spec to existing issue
+- `create_comment` - Add spec reference as comment
 
 ## Purpose
 
-Transform extracted design information into a focused, actionable spec following the project's spec template.
+Transform extracted design information into focused, actionable specs using the spec-workflow format with dashboard integration.
 
 ## Inputs
 
-- `feature`: Feature name
+- `feature`: Feature name (kebab-case)
 - `brief`: Research brief from distill-researcher
-- `template`: specs/spec-template.md
 
 ## Prerequisites
 
@@ -35,7 +40,11 @@ Transform extracted design information into a focused, actionable spec following
 
 ## Process
 
-### 1. Review Research Brief
+### 1. Load Workflow Guide
+
+**FIRST**, call `spec-workflow-guide` to load the complete workflow instructions.
+
+### 2. Review Research Brief
 
 Read the brief and confirm:
 
@@ -44,174 +53,134 @@ Read the brief and confirm:
 - UI components are listed
 - Scope is clear
 
-### 2. Create Spec File
+### 3. Create Requirements Document
 
-Create `specs/{feature}.md` following the template structure:
+1. Read template: `.spec-workflow/templates/requirements-template.md`
+2. Create file: `.spec-workflow/specs/{feature}/requirements.md`
+3. Convert research brief into EARS-format requirements:
+   - WHEN [event] THEN [system] SHALL [response]
+   - IF [precondition] THEN [system] SHALL [response]
+4. Request approval via `approvals` tool (action: "request", filePath only)
+5. Poll status until approved in dashboard (NEVER accept verbal approval)
+6. Delete approval after approved (action: "delete")
 
-````markdown
-# Feature: {Feature Name}
+### 4. Create Design Document
 
-> **Status:** Draft
-> **Author:** AI Agent (distilled from design docs)
-> **Created:** {YYYY-MM-DD}
-> **Source:** Distilled from docs/specs/{feature}.md + architecture/\*
+1. Read template: `.spec-workflow/templates/design-template.md`
+2. Create file: `.spec-workflow/specs/{feature}/design.md`
+3. Include:
+   - Architecture overview
+   - Components and interfaces
+   - Data models (from research brief)
+   - Error handling
+   - Testing strategy
+4. Request approval, poll, delete when approved
 
-## Goal
+### 5. Create Tasks Document
 
-{1-2 sentences from the design docs, focused on user value}
+1. Read template: `.spec-workflow/templates/tasks-template.md`
+2. Create file: `.spec-workflow/specs/{feature}/tasks.md`
+3. **CRITICAL: Follow exact task format:**
 
-## User Stories
+```markdown
+# Tasks Document
 
-{Extract from design docs or synthesize from UI spec}
+- [ ] 1. Create data models in prisma/schema.prisma
+  - File: prisma/schema.prisma
+  - Add Prisma models for {Entity} with all fields from design
+  - Purpose: Establish database schema for feature
+  - _Leverage: prisma/schema.prisma (existing models)_
+  - _Requirements: REQ-1_
+  - _Prompt: Role: Database Developer | Task: Create Prisma schema for {feature} following REQ-1 | Restrictions: Do not modify existing models, use cuid for IDs | Success: Schema compiles, migrations run_
 
-- As a user, I can {action} so that {benefit}.
-- As a user, I can {action} so that {benefit}.
-
-## Success Criteria
-
-{Convert requirements into testable criteria}
-
-- [ ] User can {specific action with measurable outcome}
-- [ ] System {specific behavior}
-- [ ] {Edge case handled}
-
-## Technical Constraints
-
-| Constraint | Value                |
-| ---------- | -------------------- |
-| Database   | PostgreSQL + Prisma  |
-| API        | tRPC                 |
-| UI Library | {from tech-stack.md} |
-| {other}    | {value}              |
-
-## Out of Scope
-
-{From feature-phases.md deferred items}
-
-- {Explicitly excluded feature}
-- {Future enhancement}
-
----
-
-## Data Model
-
-{Distilled from data-models.md and database-schema.md}
-
-### Entities
-
-#### {EntityName}
-
-| Field | Type   | Description        |
-| ----- | ------ | ------------------ |
-| id    | string | Primary key (cuid) |
-| ...   | ...    | ...                |
-
-### Relationships
-
-- {Entity} has many {OtherEntity}
-- {Entity} belongs to {OtherEntity}
-
----
-
-## API
-
-{Distilled from api-contracts.md}
-
-### {feature}.list
-
-```typescript
-input: { folderId?: string }
-output: Entity[]
-```
-````
-
-### {feature}.get
-
-```typescript
-input: {
-  id: string;
-}
-output: Entity & { relatedData };
+- [ ] 2. Create tRPC router
+  - File: src/server/routers/{feature}.ts
+  - Implement all API endpoints from design document
+  - Purpose: Provide API layer for feature
+  - _Leverage: src/server/routers/index.ts, src/server/trpc.ts_
+  - _Requirements: REQ-2, REQ-3_
+  - _Prompt: Role: Backend Developer | Task: Create tRPC router with CRUD operations | Restrictions: Use Zod for validation, handle errors with TRPCError | Success: All endpoints respond correctly, tests pass_
 ```
 
-{Continue for all endpoints}
+4. Request approval, poll, delete when approved
 
----
+### 6. Report Completion
 
-## UI Components
+```markdown
+## Spec Written (via spec-workflow)
 
-{Distilled from specs/{feature}.md}
+### Files Created
 
-### Layout
+- `.spec-workflow/specs/{feature}/requirements.md` ✓ Approved
+- `.spec-workflow/specs/{feature}/design.md` ✓ Approved
+- `.spec-workflow/specs/{feature}/tasks.md` ✓ Approved
 
-{Brief description of overall layout}
+### Source Documents
 
-### Components
+- Distilled from: docs/specs/{feature}.md
+- Architecture from: docs/architecture/\*.md
 
-| Component | Purpose        | Props       |
-| --------- | -------------- | ----------- |
-| {Name}    | {What it does} | {Key props} |
+### Dashboard
 
----
+View progress at: http://localhost:5000
 
-## Implementation Notes
+### Next Steps
 
-_Fill after approval._
+Ready for `/test {feature}` (TDD) then `/code {feature}`
+```
 
-### Tasks
+### 7. Link Spec to Linear Issue (Optional)
 
-- [ ] Data layer: Prisma schema + migrations
-- [ ] API: tRPC router with all endpoints
-- [ ] UI: Components and pages
-- [ ] Tests: Unit + E2E
+If Linear MCP available and issue ID in research brief:
 
-### Files to Create
+1. Add comment: `create_comment(issueId, "Spec created: requirements.md, design.md, tasks.md")`
+2. Update issue description with spec path
 
-- `prisma/schema.prisma` (extend)
-- `src/server/routers/{feature}.ts`
-- `src/app/{feature}/page.tsx`
-- `src/components/{feature}/*.tsx`
+**Fallback:** Skip silently if Linear unavailable.
 
-````
+## Task Format (CRITICAL)
 
-### 3. Condense and Focus
+Tasks MUST follow this exact format for the dashboard to parse them:
 
-Apply these rules:
-- **Max 2 pages** for the spec (excluding implementation notes)
+```markdown
+- [ ] 1. Task title here
+  - File: path/to/file.ts
+  - Description of what to implement
+  - Purpose: Why this task exists
+  - _Leverage: existing/files/to/use.ts_
+  - _Requirements: REQ-1, REQ-2_
+  - _Prompt: Role: [Developer type] | Task: [What to do] | Restrictions: [What not to do] | Success: [Completion criteria]_
+```
+
+**Task status markers:**
+
+- `[ ]` = Pending
+- `[-]` = In Progress
+- `[x]` = Completed
+
+## Approval Flow
+
+```text
+Create document → approvals(action: "request", filePath: "...") →
+Poll status → User approves in dashboard →
+approvals(action: "delete") → Next document
+```
+
+**BLOCKING:** Never proceed until approval is confirmed via dashboard.
+**NEVER** accept verbal approval like "looks good" or "approved".
+
+## Condensing Rules
+
+- **Max 2 pages** per document (requirements, design)
 - **Tables over prose** where possible
 - **Code snippets** for API signatures
 - **Remove** anything not needed for implementation
 - **Flag** open questions rather than guessing
 
-### 4. Mark Open Questions
-
-If the research brief had gaps:
-
-```markdown
-## Open Questions
-
-- [ ] {Question that needs answering before implementation}
-````
-
-### 5. Sanity Check
-
-Before outputting, verify:
-
-- All entities from brief are documented
-- All API endpoints from brief are included
-- UI components match the data they need
-- Out of scope is explicit
-- No contradictions
-
-## Output
-
-- Creates `specs/{feature}.md`
-- Reports: file created, open questions count, ready for QA
-
 ## Success Criteria
 
-- Spec follows template structure
-- Spec is under 2 pages (main content)
-- All entities, APIs, UI from brief included
+- All three documents created in `.spec-workflow/specs/{feature}/`
+- Each document approved via dashboard
+- Tasks follow exact template format with \_Prompt fields
+- Research brief content preserved
 - Out of scope is explicit
-- Open questions are flagged

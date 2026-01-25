@@ -14,6 +14,14 @@ cclsp          # TypeScript LSP for code intelligence
 playwright     # Browser automation for E2E test validation
 ```
 
+**Required vitest tools:**
+
+- `run_tests` - Execute tests with AI-friendly output
+- `analyze_coverage` - **Line-level coverage analysis** (CRITICAL for validation)
+  - Shows exactly which lines are covered
+  - Identifies uncovered branches
+  - Highlights gaps in test coverage
+
 **playwright usage:**
 
 - Verify E2E tests run correctly
@@ -74,14 +82,17 @@ You are primarily READ-ONLY. You run validation commands but do not fix tests.
 
 ### Step 5: Coverage Validation
 
-1. **Check coverage delta**
-   - Use `vitest --coverage` for target files
-   - Meaningful coverage, not just lines hit
+1. **Use `analyze_coverage` from vitest MCP (CRITICAL)**
+   - Get line-level coverage for target files
+   - See exactly which lines are/aren't covered
+   - Identify uncovered branches and paths
+   - Verify meaningful coverage, not just line hits
 
 2. **Check branch coverage**
    - Edge cases covered?
    - Error paths tested?
    - Boundary conditions?
+   - All conditional branches exercised?
 
 ### Step 6: Report Results
 

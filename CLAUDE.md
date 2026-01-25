@@ -2,6 +2,8 @@
 
 Next.js application with AI-assisted development via specialized agents.
 
+> **📖 New to this workflow?** See the [Developer Workflow Guide](docs/DEVELOPER_WORKFLOW.md) for a comprehensive walkthrough of TDD, SDD, EDD methodologies, MCP server interactions, and your role as the developer/architect.
+
 ## Core Rule
 
 **ALWAYS delegate work to the appropriate agent. Never implement, test, review, or debug directly.**
@@ -12,6 +14,7 @@ You MAY answer simple questions directly (e.g., "What framework is this?" or "Wh
 
 | Command              | Subcommands                                   | Runs Agents                                           |
 | -------------------- | --------------------------------------------- | ----------------------------------------------------- |
+| `/slice [feature]`   | `analyze`, `plan`, `create`                   | slice-analyzer → slice-planner → slice-creator        |
 | `/distill [feature]` | `research`, `write`, `qa`                     | distill-researcher → distill-spec-writer → distill-qa |
 | `/spec [feature]`    | `research`, `write`, `qa`                     | spec-researcher → spec-writer → spec-qa               |
 | `/test [feature]`    | `research`, `write`, `qa`                     | test-researcher → test-writer → test-qa               |
@@ -24,6 +27,13 @@ You MAY answer simple questions directly (e.g., "What framework is this?" or "Wh
 | `/review [PR]`       | —                                             | pr-reviewer                                           |
 | `/verify [scope]`    | `build`, `types`, `lint`, `tests`, `security` | verification-loop (pre-PR checks)                     |
 | `/context [mode]`    | `dev`, `review`, `research`                   | context-loader (switch working mode)                  |
+| `/branch [action]`   | `start`, `switch`, `sync`, `list`, `cleanup`  | Git branch management (always start here)             |
+| `/worktree [action]` | `add`, `remove`, `switch`, `status`           | Parallel development with git worktrees               |
+| `/commit`            | —                                             | Create conventional commit                            |
+| `/pr`                | `draft`                                       | Create pull request                                   |
+| `/merge`             | `--squash`, `--merge`, `--rebase`             | Merge PR after CI passes, sync local main             |
+| `/status [scope]`    | `git`, `tasks`, `tests`, `phase`              | Development status overview                           |
+| `/sync-linear`       | `--create-missing`                            | Sync specs with Linear issues                         |
 
 ### Subcommand Usage
 
@@ -42,10 +52,17 @@ Standard feature development flow:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  0. DISTILL (when design docs exist)                        │
+│  0a. SLICE (for large features with 10+ capabilities)       │
+│     /slice [feature]     → Analyze → Plan → Create specs    │
+│                                                             │
+│     Breaks large features into vertical slices (5-10 tasks) │
+│     Creates multiple specs: feature-crud, feature-variables │
+├─────────────────────────────────────────────────────────────┤
+│  0b. DISTILL (when design docs exist)                       │
 │     /distill [feature]   → Research docs → Write spec → QA  │
 │                                                             │
 │     Converts ~/basecamp/docs/ into implementation specs     │
+│     Use for single slices, not huge features                │
 ├─────────────────────────────────────────────────────────────┤
 │  1. DEFINE                                                  │
 │     /spec [feature]      → Research → Write → QA            │
@@ -324,7 +341,7 @@ Bridges comprehensive design documentation to implementation-ready specs.
 
 **Agents:** See `.claude/agents/distill-*.md`
 
-```
+```text
 distill-researcher
 ├── Reads: docs/specs/{feature}.md
 ├── Reads: docs/architecture/data-models.md
@@ -335,11 +352,16 @@ distill-researcher
 
 distill-spec-writer
 ├── Inputs: Research brief
-├── Template: specs/spec-template.md
-└── Outputs: specs/{feature}.md (max 2 pages)
+├── Templates: .spec-workflow/templates/*.md
+├── Outputs: .spec-workflow/specs/{feature}/
+│   ├── requirements.md (EARS format, dashboard approval)
+│   ├── design.md (architecture, dashboard approval)
+│   └── tasks.md (with _Prompt fields, dashboard approval)
+└── Dashboard: http://localhost:5000
 
 distill-qa
 ├── Validates: Template compliance
+├── Validates: Dashboard approvals obtained
 ├── Validates: Source traceability
 ├── Validates: Internal consistency
 └── Reports: PASS or FAIL with issues
@@ -474,16 +496,147 @@ Multi-phase verification before creating a PR. Runs all quality gates.
 | Tests    | All pass, 70%+ coverage    | Yes      |
 | Security | No secrets, no console.log | Yes      |
 
+### /branch - Git Branch Management
+
+**CRITICAL: Always use `/branch start` before any new work.**
+
+Manages git branches with enforced conventions. Never work directly on main.
+
+**Usage:**
+
+```bash
+/branch                        # Show current branch status
+/branch start <feature>        # Create and switch to feature branch
+/branch switch <branch>        # Switch to existing branch
+/branch sync                   # Sync current branch with main
+/branch list                   # List all branches
+/branch cleanup                # Delete merged branches
+```
+
+**Branch naming conventions:**
+
+| Prefix      | Use For           | Example                  |
+| ----------- | ----------------- | ------------------------ |
+| `feature/`  | New features      | `feature/prompt-manager` |
+| `fix/`      | Bug fixes         | `fix/auth-timeout`       |
+| `refactor/` | Code improvements | `refactor/api-cleanup`   |
+| `docs/`     | Documentation     | `docs/api-reference`     |
+
+**Integration with workflow:**
+
+```bash
+/branch start prompt-manager    # Step 0: ALWAYS start here
+    ↓
+/distill prompt-manager         # Step 1: Create spec
+    ↓
+/test prompt-manager            # Step 2: Write tests
+    ↓
+/code prompt-manager            # Step 3: Implement
+    ↓
+/branch sync                    # Step 4: Sync with main
+    ↓
+/verify → /pr                   # Step 5-6: Verify and PR
+```
+
+### /worktree - Parallel Development
+
+Work on multiple features simultaneously using git worktrees.
+
+**Why worktrees?**
+
+- Work on feature A while feature B's tests run
+- No stashing or losing state when switching
+- Review PRs while coding in another branch
+- Compare implementations side-by-side
+
+**Usage:**
+
+```bash
+/worktree                       # List all worktrees
+/worktree add <feature>         # Create worktree for feature
+/worktree remove <feature>      # Remove worktree (keeps branch)
+/worktree status                # Status of all worktrees
+/worktree switch <feature>      # Tell Claude to work in different worktree
+```
+
+**Directory structure:**
+
+```text
+~/basecamp/
+├── react-basecamp/                   # Main worktree (main branch)
+├── react-basecamp--prompt-manager/   # Worktree for prompt-manager
+├── react-basecamp--workflow-designer/ # Worktree for workflow feature
+└── docs/                             # Design docs (shared)
+```
+
+**Example workflow:**
+
+```bash
+# Terminal 1: Main feature
+/worktree add prompt-manager
+cd ../react-basecamp--prompt-manager
+/code prompt-manager
+
+# Terminal 2: Quick bug fix (in main repo)
+cd ../react-basecamp
+/branch start fix/auth-bug
+/code fix/auth-bug
+/pr
+```
+
+### /commit - Create Conventional Commits
+
+Creates well-formatted commits following conventional commit spec.
+
+**Usage:**
+
+```bash
+/commit                    # Analyze staged changes, create commit
+/commit --amend            # Amend last commit (use carefully)
+```
+
+**Commit types:** `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `ci`
+
+### /pr - Create Pull Request
+
+Creates PR with comprehensive description based on all commits in branch.
+
+**Usage:**
+
+```bash
+/pr                        # Create PR from current branch
+/pr draft                  # Create as draft PR
+```
+
+### /status - Development Status
+
+Shows current work state, progress, and suggested next actions.
+
+**Usage:**
+
+```bash
+/status                    # Full status overview
+/status git                # Git status only
+/status tasks              # Task list only
+/status phase              # Current phase with next suggestion
+```
+
 ### Methodology Summary
 
-| Command    | Methodology | For                                 |
-| ---------- | ----------- | ----------------------------------- |
-| `/distill` | SDD         | Converting design docs to specs     |
-| `/spec`    | SDD         | Writing new specs from scratch      |
-| `/test`    | TDD         | Writing tests before implementation |
-| `/eval`    | EDD         | Evaluating LLM outputs              |
-| `/code`    | TDD         | Implementing until tests pass       |
-| `/verify`  | —           | Pre-PR verification                 |
+| Command        | Methodology | For                                 |
+| -------------- | ----------- | ----------------------------------- |
+| `/branch`      | —           | Git branch management (start here)  |
+| `/worktree`    | —           | Parallel development                |
+| `/distill`     | SDD         | Converting design docs to specs     |
+| `/spec`        | SDD         | Writing new specs from scratch      |
+| `/test`        | TDD         | Writing tests before implementation |
+| `/eval`        | EDD         | Evaluating LLM outputs              |
+| `/code`        | TDD         | Implementing until tests pass       |
+| `/verify`      | —           | Pre-PR verification                 |
+| `/commit`      | —           | Create conventional commit          |
+| `/pr`          | —           | Create pull request                 |
+| `/merge`       | —           | Merge PR after CI passes            |
+| `/sync-linear` | —           | Sync specs with Linear issues       |
 
 ---
 
@@ -699,3 +852,73 @@ Choose appropriate models based on task complexity. See `.claude/rules/performan
 - After finishing a feature, before starting next
 - When switching between unrelated tasks
 - After 50+ tool calls (hook will remind)
+
+---
+
+## Design Docs & Guides
+
+### Source Design Documentation
+
+The AI Development Platform design docs are located at `~/basecamp/docs/`:
+
+| Directory       | Contents                                                               |
+| --------------- | ---------------------------------------------------------------------- |
+| `vision/`       | Platform overview, goals                                               |
+| `architecture/` | Data models, API contracts, tech stack, database schema                |
+| `specs/`        | Feature specs (prompt-manager, agent-builder, workflow-designer, etc.) |
+| `guides/`       | Git workflow, user flows                                               |
+| `operations/`   | Agent guardrails, audit logging                                        |
+| `future/`       | Deferred features (auth, notifications, cost tracking)                 |
+
+### Developer Workflow Guide
+
+**📖 [docs/DEVELOPER_WORKFLOW.md](docs/DEVELOPER_WORKFLOW.md)** - Comprehensive guide covering:
+
+- Your role as developer/architect in the AI-human partnership
+- MCP server interactions (dashboards, tools, integrations)
+- Phase-by-phase implementation guide
+- Feature examples with full command sequences
+- Troubleshooting common issues
+
+---
+
+## Dashboards & Tools
+
+Interactive tools available during development:
+
+| Tool                        | URL/Command                             | Purpose                                       |
+| --------------------------- | --------------------------------------- | --------------------------------------------- |
+| **Spec Workflow Dashboard** | [localhost:5000](http://localhost:5000) | Spec management, approvals, progress tracking |
+| **Next.js Dev Server**      | [localhost:3000](http://localhost:3000) | Your application                              |
+| **Vitest UI**               | `pnpm test:ui`                          | Interactive test runner                       |
+| **Playwright UI**           | `pnpm test:e2e --ui`                    | E2E test visualization                        |
+| **Prisma Studio**           | `pnpm prisma studio`                    | Database browser                              |
+
+### Your Interaction Points
+
+| Phase               | Your Action              | Where                           |
+| ------------------- | ------------------------ | ------------------------------- |
+| **Spec Approval**   | Review and approve specs | Spec Dashboard (localhost:5000) |
+| **Test Review**     | Approve test strategy    | Terminal output                 |
+| **Eval Thresholds** | Define pass criteria     | Terminal conversation           |
+| **UI Review**       | Visual verification      | Browser (localhost:3000)        |
+| **Security Triage** | Prioritize findings      | Terminal output                 |
+| **PR Approval**     | Final merge decision     | GitHub                          |
+
+---
+
+## Feature Build Order
+
+Recommended implementation sequence based on dependencies:
+
+| #   | Feature           | Methodology         | Dependencies       |
+| --- | ----------------- | ------------------- | ------------------ |
+| 1   | Prompt Manager    | SDD + TDD           | None (foundation)  |
+| 2   | Agent Builder     | SDD + TDD + **EDD** | Prompts            |
+| 3   | Work Item Manager | SDD + TDD           | Agents             |
+| 4   | Workflow Designer | SDD + TDD + **EDD** | Work Items, Agents |
+| 5   | Execution Engine  | SDD + TDD + **EDD** | Workflows          |
+| 6   | Task Queue        | SDD + TDD           | Execution          |
+| 7   | Home Dashboard    | SDD + TDD           | All above          |
+
+**EDD required** for features with LLM integration (agent invocation, tool selection, condition evaluation).

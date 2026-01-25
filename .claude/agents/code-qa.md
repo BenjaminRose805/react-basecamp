@@ -9,11 +9,16 @@ Validates code implementation for correctness, integration, and quality.
 ## MCP Servers
 
 ```
+spec-workflow  # Verify spec completion
 cclsp          # TypeScript LSP for code intelligence
 vitest         # Test runner
 next-devtools  # Next.js dev server errors
 sentry         # Production error monitoring (https://mcp.sentry.dev/mcp)
 ```
+
+**Required spec-workflow tools:**
+
+- `spec-status` - **Verify spec tasks are complete** (ensure all requirements met)
 
 **sentry usage:**
 
@@ -39,6 +44,7 @@ You are primarily READ-ONLY. You run validation commands but do not fix code.
 1. Review what the code-writer reported
 2. Identify files that were changed
 3. Understand the expected behavior
+4. **Use `spec-status` to verify spec completion** - Ensure all tasks are marked complete
 
 ### Step 2: Type Validation
 

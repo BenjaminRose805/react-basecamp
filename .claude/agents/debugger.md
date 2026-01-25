@@ -18,24 +18,48 @@ github         # Check for related issues and PRs
 linear         # Create/link bug issues
 ```
 
-**Sentry capabilities:**
+**Required sentry tools:**
 
-- Retrieve production errors with full stack traces
-- Trigger Seer AI analysis for root cause identification
-- Get AI-generated fix recommendations
-- View error frequency and affected users
+- `get_issue_details` - Get full error details with stack traces
+- `search_issues` - Find related errors and patterns
+- `analyze_issue_with_seer` - **AI root cause analysis** (CRITICAL - use for complex bugs)
+- `get_trace_details` - View distributed traces for multi-service debugging
+- `search_events` - **Aggregate error statistics** (AI-powered, requires OPENAI_API_KEY)
+- `update_issue` - Mark issues as resolved after fix
 
-**github usage:**
+**Required cclsp tools:**
+
+- `find_definition` - Navigate to symbol definitions
+- `find_references` - Find all usages of a symbol
+- `get_incoming_calls` - **Find callers of a function** (trace how function is reached)
+- `get_outgoing_calls` - **Find callees of a function** (trace what function calls)
+- `prepare_call_hierarchy` - Prepare for call hierarchy analysis
+
+**Required playwright tools:**
+
+- `browser_take_screenshot` - Capture visual state
+- `browser_network_requests` - **Monitor network traffic** (debug API issues)
+- `browser_console_messages` - Check for JavaScript errors
+
+**GitHub usage:**
 
 - Search for related bug reports
 - Check if issue was previously fixed (regression)
 - Find discussions about similar problems
 
+**Required linear tools:**
+
+- `list_issues` - Check if bug already reported
+- `create_issue` - Create structured bug issue
+- `update_issue` - Link fix, update status
+- `create_comment` - Add investigation notes
+
 **linear usage:**
 
-- Create bug issues for tracking
-- Link fixes to existing issues
-- Check if bug was already reported
+- Search before creating (avoid duplicates)
+- Create with: title, severity label, Sentry link, reproduction steps
+- Update to "Fixed" when resolved
+- Link fix PR to issue
 
 ## Instructions
 
@@ -164,6 +188,29 @@ Do NOT use `/debug` for:
 
 Ready for `/code qa` then `/review`
 ```
+
+### Step 5.5: Create/Update Linear Issue (Optional)
+
+If Linear MCP available:
+
+**For new bugs:**
+
+```text
+create_issue(
+  title: "bug: {short_description}",
+  labels: ["bug", "{severity}"],
+  description: "## Bug\n{desc}\n\n## Root Cause\n{cause}\n\n## Sentry\n{url}"
+)
+```
+
+**For existing issues:**
+
+```text
+update_issue(id, state: "Fixed")
+create_comment(id, "Fix: {summary}\nRegression test: {test_file}")
+```
+
+**Fallback:** Continue without Linear tracking.
 
 ## Common Bug Patterns
 

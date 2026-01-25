@@ -8,16 +8,29 @@ Reads design documentation and extracts implementation-relevant information for 
 
 ## MCP Servers
 
-```
+```text
+spec-workflow  # Search implementation logs for related work
 cclsp          # TypeScript LSP for code intelligence
-linear         # Check for related Linear issues
+linear         # Check/create Linear issues
 ```
+
+**spec-workflow usage:**
+
+- Search implementation logs for related features already built
+- Find reusable components and patterns
+- Identify what can be leveraged vs. built new
+
+**Required linear tools:**
+
+- `list_issues` - Search for existing issues
+- `create_issue` - Create feature issue if none exists
 
 **linear usage:**
 
 - Check for existing issues related to the feature being distilled
+- **If no issue exists, create one with label "feature"**
 - Find context from issue descriptions and comments
-- Verify feature aligns with planned work
+- **Include issue ID in research brief for downstream agents**
 
 ## Purpose
 
@@ -26,13 +39,35 @@ Bridge the gap between comprehensive design docs (~/basecamp/docs/) and actionab
 ## Inputs
 
 - `feature`: Feature name (e.g., `prompt-manager`, `agent-builder`)
-- `docs_path`: Path to design docs (default: `~/basecamp/docs/`)
+- `source`: One of:
+  - `docs` (default) - Read from `~/basecamp/docs/`
+  - `path:/path/to/file.md` - Read from specific file (rough notes, brainstorm, etc.)
+  - `conversation` - Use preceding conversation as input
+  - `inline` - Ask user to describe the feature
 
 ## Process
 
-### 1. Locate Source Documents
+### 1. Determine Input Source
 
-Find all relevant docs for the feature:
+**If `--from [path]` provided:**
+
+- Read the specified file (can be rough notes, bullet points, prose)
+- Extract whatever structure exists
+
+**If `--from-conversation` provided:**
+
+- Review conversation history
+- Extract feature description from user's brain dump
+- Identify entities, APIs, UI mentioned
+
+**If no source specified:**
+
+- Try to find `~/basecamp/docs/specs/{feature}.md`
+- If not found, ask: "No design docs found for {feature}. Please describe what you want to build..."
+
+### 2. Locate/Read Source Documents
+
+**For design docs (default):**
 
 ```
 Primary:
@@ -47,7 +82,23 @@ Secondary:
 - docs/CLAUDE.md                        # Key decisions
 ```
 
-### 2. Extract Core Information
+**For custom path or conversation:**
+
+- Parse whatever format is provided
+- Extract: purpose, capabilities, entities, UI ideas, constraints
+- Note gaps that need clarification
+
+### 2.5 Ensure Linear Issue Exists (Optional)
+
+If Linear MCP is available:
+
+1. Search: `list_issues(query: "{feature}")`
+2. If no issue found, create: `create_issue(title: "feat: {feature}", labels: ["feature"])`
+3. Include issue ID in research brief
+
+**Fallback:** If Linear MCP unavailable, continue without issue linking.
+
+### 3. Extract Core Information
 
 For each source, extract:
 
@@ -88,7 +139,26 @@ For each source, extract:
 - What's included in Basic phase
 - What's explicitly deferred
 
-### 3. Identify Conflicts and Gaps
+### 4. Check Implementation History
+
+Search spec-workflow for related work:
+
+```bash
+# Find related implementations in spec templates
+rg -n "apiEndpoints|components|functions" .spec-workflow/templates/
+
+# Search for specific patterns in existing specs
+rg -n "[feature-keyword]" .spec-workflow/specs/
+```
+
+**Look for:**
+
+- Components that can be reused
+- API patterns to follow
+- Database models to extend
+- Pitfalls encountered in related features
+
+### 5. Identify Conflicts and Gaps
 
 Check for:
 
@@ -96,21 +166,27 @@ Check for:
 - API routes referenced but not defined
 - UI components that need entities not yet defined
 - Missing error handling specifications
+- Conflicts with already implemented features
 
-### 4. Determine Feature Boundaries
+### 6. Determine Feature Boundaries
 
 Clarify:
 
-- What entities does this feature OWN vs REFERENCE?
-- What APIs does this feature EXPOSE vs CONSUME?
-- What's the minimum viable scope?
+- Which entities are owned versus referenced by this feature?
+- Which APIs will be exposed and which will be consumed?
+- Define the minimum viable scope for implementation.
 
-### 5. Output Research Brief
+### 7. Output Research Brief
 
 Create a structured brief for spec-writer:
 
 ```markdown
 # Distill Brief: {feature}
+
+## Linear Issue
+
+- ID: {issueId or "Not configured"}
+- Status: {status or "N/A"}
 
 ## Sources Reviewed
 
@@ -142,6 +218,14 @@ Create a structured brief for spec-writer:
 ## Libraries Required
 
 - {library}: {purpose}
+
+## Reusable Artifacts (from implementation logs)
+
+| Artifact            | Source         | Can Leverage               |
+| ------------------- | -------------- | -------------------------- |
+| Button component    | prompt-manager | Yes - same variant pattern |
+| tRPC router pattern | work-items     | Yes - CRUD structure       |
+| Form validation     | settings       | Maybe - different fields   |
 
 ## Scope Boundaries
 

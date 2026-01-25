@@ -14,6 +14,16 @@ linear         # Issue tracking - check status, create issues, link work
 - Create issues when planning new features
 - Update issue status based on workflow progress
 
+**Auto status updates:**
+
+| Event          | Linear Status |
+| -------------- | ------------- |
+| After /distill | Backlog       |
+| After /test    | Todo          |
+| During /code   | In Progress   |
+| After /verify  | In Review     |
+| After merge    | Done          |
+
 ## Role
 
 You are a workflow orchestrator that analyzes the current development state and either:

@@ -7,6 +7,32 @@ description: Comprehensive pre-PR verification system. Use after completing feat
 
 A comprehensive verification system for react-basecamp projects.
 
+## MCP Servers
+
+```
+vitest         # AI-optimized test runner
+cclsp          # TypeScript LSP for diagnostics
+next-devtools  # Next.js build errors
+```
+
+**vitest usage:**
+
+- Run tests with structured output
+- Get coverage analysis
+- List test files for targeted runs
+
+**cclsp usage:**
+
+- Get TypeScript diagnostics for changed files
+- Faster than running full `pnpm typecheck`
+- Real-time error detection
+
+**next-devtools usage:**
+
+- Check for build errors without full rebuild
+- Get dev server status
+- Detect runtime errors
+
 ## When to Use
 
 Invoke this skill via `/verify`:

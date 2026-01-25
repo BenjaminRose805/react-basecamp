@@ -14,11 +14,28 @@ github  # PR and issue management
 linear  # Check/update linked Linear issues
 ```
 
+**Required GitHub tools:**
+
+- `pull_request_read` - **Read PR details** (CRITICAL - use method: "get", "get_files", "get_status", "get_comments", "get_reviews")
+  - method: "get" - Get PR title, description, base/head
+  - method: "get_files" - Get list of changed files (CRITICAL for review)
+  - method: "get_status" - Check CI/check status
+  - method: "get_comments" - See existing discussion and feedback
+  - method: "get_reviews" - Check previous reviews and their status
+- `pull_request_review_write` - **Submit actual GitHub review** (CRITICAL - use method: "create" to approve/request changes)
+- `list_commits` - Review commit history in the PR
+
+**Required linear tools:**
+
+- `get_issue` - Verify PR addresses issue
+- `update_issue` - Update status on approval
+- `create_comment` - Add review summary
+
 **linear usage:**
 
 - Verify PR addresses linked Linear issue
 - Check issue requirements are met
-- Update issue status on approval
+- **On APPROVE:** Update to "In Review", add approval comment
 
 ## Instructions
 
@@ -35,10 +52,13 @@ This agent runs AFTER `/debug`, `/security`, and QA have passed.
 
 ### Step 1: Understand the PR
 
-1. Use `github` to get PR details:
-   - Title and description
-   - Linked issues
-   - Full diff
+1. Use `github` tools to gather context:
+   - `pull_request_read` with method: "get" - Get title, description, base/head branches
+   - `pull_request_read` with method: "get_files" - **Get all changed files** (essential for review scope)
+   - `pull_request_read` with method: "get_status" - Check if CI/tests are passing
+   - `pull_request_read` with method: "get_comments" - Review existing discussion
+   - `pull_request_read` with method: "get_reviews" - Check if others have reviewed
+   - `list_commits` - Understand the commit history
 
 2. Understand the goal:
    - What problem does this solve?
@@ -84,7 +104,15 @@ This agent runs AFTER `/debug`, `/security`, and QA have passed.
    - No scope creep?
    - Out of scope respected?
 
-### Step 4: Provide Feedback
+### Step 4: Submit Review
+
+**CRITICAL:** Use `pull_request_review_write` with method: "create" to submit your review to GitHub.
+
+Review events:
+
+- `APPROVE` - All checks pass, ready to merge
+- `REQUEST_CHANGES` - Must-fix issues exist
+- `COMMENT` - Minor suggestions only
 
 **If approved:**
 
