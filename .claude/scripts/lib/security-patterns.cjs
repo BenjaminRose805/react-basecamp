@@ -36,11 +36,13 @@ const DANGEROUS_BASH_PATTERNS = [
   /chmod\s+(-[a-z]*R|-R)\s+777\s+(\/|~|\$HOME)(?:\s|$|[;&|])/i,
 
   // Dangerous system modifications - expanded device and system file support
-  />\s*\/dev\/(?:sd[a-z]\d*|hd[a-z]\d*|nvme\d+n\d+|mmcblk\d+)/i,
+  // Supports: sda, sda1, hda, nvme0n1, nvme0n1p1, mmcblk0, mmcblk0p1, vda, xvda
+  />\s*\/dev\/(?:sd[a-z]\d*|hd[a-z]\d*|nvme\d+n\d+(?:p\d+)?|mmcblk\d+(?:p\d+)?|vd[a-z]\d*|xvd[a-z]\d*)/i,
   />\s*\/etc\/(?:passwd|shadow|sudoers|fstab|hosts)/i,
 
   // Dangerous /dev/null redirects of system files
-  /cat\s+\/dev\/(?:zero|urandom)\s*>\s*\/dev\/(?:sd[a-z]|nvme)/i,
+  // Supports: sda, sda1, hda, nvme0n1, nvme0n1p1, mmcblk0, mmcblk0p1, vda, xvda
+  /cat\s+\/dev\/(?:zero|urandom)\s*>\s*\/dev\/(?:sd[a-z]\d*|hd[a-z]\d*|nvme\d+n\d+(?:p\d+)?|mmcblk\d+(?:p\d+)?|vd[a-z]\d*|xvd[a-z]\d*)/i,
 ];
 
 /**

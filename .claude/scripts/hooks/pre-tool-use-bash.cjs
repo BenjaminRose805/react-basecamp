@@ -24,31 +24,32 @@ const {
 
 /**
  * Patterns for detecting secrets in commands
+ * Note: Avoids false positives on git SHAs, UUIDs, sha256 outputs, and port flags
  */
 const SECRET_PATTERNS = [
-  // API keys and tokens (various formats)
-  /\b[a-zA-Z0-9_-]{32,}\b/g,  // Long alphanumeric strings (potential tokens)
+  // Known API key prefixes (specific formats)
   /\bsk-[a-zA-Z0-9]{32,}\b/g,  // OpenAI-style keys
   /\bghp_[a-zA-Z0-9]{36}\b/g,  // GitHub personal access tokens
   /\bghu_[a-zA-Z0-9]{36}\b/g,  // GitHub user tokens
   /\bghs_[a-zA-Z0-9]{36}\b/g,  // GitHub server tokens
+  /\bghr_[a-zA-Z0-9]{36}\b/g,  // GitHub refresh tokens
   /\bxox[baprs]-[a-zA-Z0-9-]+\b/g,  // Slack tokens
+  /\bnpm_[a-zA-Z0-9]{36}\b/g,  // npm tokens
   // Bearer tokens
   /Bearer\s+[a-zA-Z0-9._-]+/gi,
-  // Password arguments
+  // Password arguments (explicit flags only)
   /--password[=\s]+\S+/gi,
-  /-p\s+\S+/g,
   /PASSWORD=[^\s&;|]+/gi,
-  // API key arguments
+  // API key arguments (explicit context)
   /--api[_-]?key[=\s]+\S+/gi,
   /API[_-]?KEY=[^\s&;|]+/gi,
-  // Token arguments
+  // Token arguments (explicit context)
   /--token[=\s]+\S+/gi,
   /TOKEN=[^\s&;|]+/gi,
-  // Secret arguments
+  // Secret arguments (explicit context)
   /--secret[=\s]+\S+/gi,
   /SECRET=[^\s&;|]+/gi,
-  // AWS credentials
+  // AWS credentials (specific format)
   /AKIA[0-9A-Z]{16}/g,
   // Private keys
   /-----BEGIN\s+[A-Z]+\s+PRIVATE\s+KEY-----/gi,

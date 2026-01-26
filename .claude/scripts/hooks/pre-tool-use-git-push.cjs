@@ -17,7 +17,10 @@ async function main() {
 
     if (/^git\s+push/.test(command)) {
       logError('[Hook] Pushing to remote...');
-      logError('[Hook] Ensure all tests pass and PR is ready');
+      logError('[Hook] Before pushing, ensure you have run:');
+      logError('[Hook]   pnpm lint       - Check for linting errors');
+      logError('[Hook]   pnpm typecheck  - Verify TypeScript types');
+      logError('[Hook]   pnpm test:run   - Run all tests');
     }
 
     process.exit(0);

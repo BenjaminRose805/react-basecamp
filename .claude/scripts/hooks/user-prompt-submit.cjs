@@ -20,6 +20,7 @@ const {
   logContext,
   getGitStatus,
   readContextFile,
+  getGitRoot,
 } = require('../lib/utils.cjs');
 
 async function main() {
@@ -29,6 +30,9 @@ async function main() {
 
     const contextParts = [];
 
+    // Use git root for consistent file resolution (fallback to cwd)
+    const repoRoot = getGitRoot() || process.cwd();
+
     // Get git status
     const gitStatus = getGitStatus();
     if (gitStatus) {
@@ -36,14 +40,14 @@ async function main() {
     }
 
     // Check for CONTEXT.md
-    const contextMdPath = path.join(process.cwd(), '.claude', 'CONTEXT.md');
+    const contextMdPath = path.join(repoRoot, '.claude', 'CONTEXT.md');
     const contextMd = readContextFile(contextMdPath, 1000);
     if (contextMd) {
       contextParts.push(`**Context:**\n${contextMd}`);
     }
 
     // Check for TODO.md
-    const todoPath = path.join(process.cwd(), 'TODO.md');
+    const todoPath = path.join(repoRoot, 'TODO.md');
     const todoContent = readContextFile(todoPath, 500);
     if (todoContent) {
       contextParts.push(`**TODO:**\n${todoContent}`);

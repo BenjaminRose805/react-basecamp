@@ -7,8 +7,8 @@
  * - 0: Always (informational only)
  */
 
-const { execSync } = require('child_process');
-const { readStdinJson, logError } = require('../lib/utils.cjs');
+const { execFileSync } = require('child_process');
+const { readStdinJson } = require('../lib/utils.cjs');
 
 async function main() {
   try {
@@ -18,9 +18,8 @@ async function main() {
 
     if (/\.(ts|tsx|js|jsx)$/.test(filePath)) {
       try {
-        // Escape file path for shell
-        const safePath = filePath.replace(/"/g, '\\"');
-        execSync(`npx eslint --fix "${safePath}"`, {
+        // Use execFileSync with array args to avoid shell injection
+        execFileSync('npx', ['eslint', '--fix', filePath], {
           stdio: 'inherit',
           timeout: 30000,
         });

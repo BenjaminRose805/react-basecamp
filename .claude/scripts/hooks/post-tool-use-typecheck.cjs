@@ -8,7 +8,7 @@
  */
 
 const { execSync } = require('child_process');
-const { readStdinJson, logError } = require('../lib/utils.cjs');
+const { readStdinJson } = require('../lib/utils.cjs');
 
 async function main() {
   try {
