@@ -217,12 +217,80 @@ function logContext(message) {
 }
 
 /**
+ * Get the git repository root directory
+ * @returns {string|null} Repository root path or null if not in a repo
+ */
+function getGitRoot() {
+  try {
+    const result = execSync('git rev-parse --show-toplevel', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return result.trim();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Get the logs directory for audit logging
+ * Uses git repository root if available, otherwise falls back to cwd
  * @returns {string} Path to .claude/logs in project root
  */
 function getLogsDir() {
-  // Use project root's .claude/logs, not user home
-  return path.join(process.cwd(), '.claude', 'logs');
+  // Try to get git repository root first
+  const gitRoot = getGitRoot();
+  const root = gitRoot || process.cwd();
+  return path.join(root, '.claude', 'logs');
+}
+
+/**
+ * Get git status information (branch and uncommitted count)
+ * Shared helper used by session-start and user-prompt-submit hooks
+ * @returns {string|null} Git status string or null if not in repo
+ */
+function getGitStatus() {
+  if (!isGitRepo()) {
+    return null;
+  }
+
+  const branchResult = runCommand('git rev-parse --abbrev-ref HEAD');
+  const branch = branchResult.success ? branchResult.output : 'unknown';
+
+  const statusResult = runCommand('git status --porcelain');
+  const uncommittedCount = statusResult.success
+    ? statusResult.output.split('\n').filter(Boolean).length
+    : 0;
+
+  if (uncommittedCount === 0) {
+    return `Branch: ${branch} (clean)`;
+  }
+  return `Branch: ${branch} | ${uncommittedCount} uncommitted file(s)`;
+}
+
+/**
+ * Read and truncate a context file
+ * Shared helper used by session-start and user-prompt-submit hooks
+ * @param {string} filePath - Path to the file
+ * @param {number} maxLength - Maximum length before truncation
+ * @returns {string|null} File content or null if empty/missing
+ */
+function readContextFile(filePath, maxLength) {
+  const content = readFile(filePath);
+  if (!content) {
+    return null;
+  }
+
+  const trimmed = content.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  if (trimmed.length <= maxLength) {
+    return trimmed;
+  }
+
+  return trimmed.substring(0, maxLength) + '\n... (truncated)';
 }
 
 /**
@@ -418,6 +486,7 @@ module.exports = {
   getLearnedSkillsDir,
   getTempDir,
   ensureDir,
+  getGitRoot,
 
   // Date/Time
   getDateString,
@@ -446,5 +515,9 @@ module.exports = {
   commandExists,
   runCommand,
   isGitRepo,
-  getGitModifiedFiles
+  getGitModifiedFiles,
+
+  // Shared hook helpers
+  getGitStatus,
+  readContextFile,
 };

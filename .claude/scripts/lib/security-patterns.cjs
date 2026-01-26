@@ -12,28 +12,37 @@
  */
 const DANGEROUS_BASH_PATTERNS = [
   // Recursive force deletion targeting root, home, or parent directories
-  // Matches: rm -rf /, rm -rf ~, rm -rf $HOME, rm -rf ..
-  /rm\s+(-[a-z]*r[a-z]*f[a-z]*|-[a-z]*f[a-z]*r[a-z]*|--recursive\s+--force|--force\s+--recursive)\s+(\/|~|\$HOME|\.\.)\s*$/i,
-  /rm\s+(-[a-z]*r[a-z]*f[a-z]*|-[a-z]*f[a-z]*r[a-z]*|--recursive\s+--force|--force\s+--recursive)\s+(\/|~|\$HOME|\.\.)\/?\s*$/i,
+  // Allows trailing flags, whitespace, or shell operators (&&, ;, |)
+  // Matches: rm -rf /, rm -rf ~, rm -rf $HOME, rm -rf .., rm -rf / --no-preserve-root, rm -rf / && ...
+  /rm\s+(-[a-z]*r[a-z]*f[a-z]*|-[a-z]*f[a-z]*r[a-z]*|--recursive\s+--force|--force\s+--recursive)\s+(\/|~|\$HOME|\.\.)(?:\/)?(?:\s|$|[;&|])/i,
 
   // rm -rf with no target (dangerous if run in wrong directory)
   /rm\s+-rf\s*$/i,
   /rm\s+-fr\s*$/i,
 
   // Fork bomb patterns
-  /:\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:/,
-  /\.\(\)\s*\{\s*\.\s*\|\s*\.\s*&\s*\}\s*;\s*\./,
+  /:\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;?\s*:/,
+  /\.\(\)\s*\{\s*\.\s*\|\s*\.\s*&\s*\}\s*;?\s*\./,
 
-  // Dangerous disk operations
-  /dd\s+.*of=\/dev\/(sd[a-z]|hd[a-z]|nvme|vd[a-z])/i,
-  /mkfs\.[a-z0-9]+\s+\/dev\//i,
+  // Dangerous disk operations - expanded device name support
+  // Supports: sda, sda1, nvme0n1, nvme0n1p1, mmcblk0, mmcblk0p1, hda, vda, xvda
+  /dd\s+.*of=\/dev\/(?:sd[a-z]\d*|hd[a-z]\d*|nvme\d+n\d+(?:p\d+)?|mmcblk\d+(?:p\d+)?|vd[a-z]\d*|xvd[a-z]\d*)/i,
+
+  // mkfs with any filesystem type - expanded device support and optional arguments
+  /mkfs(?:\.[a-z0-9]+)?\s+(?:-[a-zA-Z]+\s+)*\/dev\/(?:sd[a-z]\d*|hd[a-z]\d*|nvme\d+n\d+(?:p\d+)?|mmcblk\d+(?:p\d+)?|vd[a-z]\d*|xvd[a-z]\d*)/i,
 
   // Recursive chmod to dangerous values on system paths
-  /chmod\s+(-[a-z]*R|-R)\s+777\s+(\/|~|\$HOME)/i,
+  // Allow trailing content after the path
+  /chmod\s+(-[a-z]*R|-R)\s+777\s+(\/|~|\$HOME)(?:\s|$|[;&|])/i,
 
-  // Dangerous system modifications
-  />\s*\/dev\/sd[a-z]/i,
-  />\s*\/etc\/(passwd|shadow|sudoers)/i,
+  // Dangerous system modifications - expanded device and system file support
+  // Supports: sda, sda1, hda, nvme0n1, nvme0n1p1, mmcblk0, mmcblk0p1, vda, xvda
+  />\s*\/dev\/(?:sd[a-z]\d*|hd[a-z]\d*|nvme\d+n\d+(?:p\d+)?|mmcblk\d+(?:p\d+)?|vd[a-z]\d*|xvd[a-z]\d*)/i,
+  />\s*\/etc\/(?:passwd|shadow|sudoers|fstab|hosts)/i,
+
+  // Dangerous /dev/null redirects of system files
+  // Supports: sda, sda1, hda, nvme0n1, nvme0n1p1, mmcblk0, mmcblk0p1, vda, xvda
+  /cat\s+\/dev\/(?:zero|urandom)\s*>\s*\/dev\/(?:sd[a-z]\d*|hd[a-z]\d*|nvme\d+n\d+(?:p\d+)?|mmcblk\d+(?:p\d+)?|vd[a-z]\d*|xvd[a-z]\d*)/i,
 ];
 
 /**

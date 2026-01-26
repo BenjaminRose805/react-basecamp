@@ -17,34 +17,56 @@ const {
 } = require('../lib/utils.cjs');
 
 /**
- * Sanitize tool input by removing/truncating sensitive or large data
- * @param {object} toolInput - The tool input to sanitize
- * @param {number} maxLength - Maximum length for string values
- * @returns {object} Sanitized input
+ * Sensitive keys that should be redacted from logs
  */
-function sanitizeInput(toolInput, maxLength = 500) {
-  if (!toolInput || typeof toolInput !== 'object') {
+const sensitiveKeys = ['password', 'token', 'secret', 'key', 'auth', 'credential', 'api_key', 'apikey', 'bearer'];
+
+/**
+ * Sanitize tool input by removing/truncating sensitive or large data
+ * Recursively traverses nested objects and arrays, handling circular references
+ * @param {any} toolInput - The tool input to sanitize
+ * @param {number} maxLength - Maximum length for string values
+ * @param {WeakSet} seen - Set of already seen objects (for circular reference detection)
+ * @returns {any} Sanitized input (deep copy)
+ */
+function sanitizeInput(toolInput, maxLength = 500, seen = new WeakSet()) {
+  // Handle null/undefined
+  if (toolInput === null || toolInput === undefined) {
     return toolInput;
   }
 
+  // Handle primitives (non-objects)
+  if (typeof toolInput !== 'object') {
+    // Truncate long strings
+    if (typeof toolInput === 'string' && toolInput.length > maxLength) {
+      return toolInput.substring(0, maxLength) + `... (truncated ${toolInput.length - maxLength} chars)`;
+    }
+    return toolInput;
+  }
+
+  // Handle circular references
+  if (seen.has(toolInput)) {
+    return '[Circular Reference]';
+  }
+  seen.add(toolInput);
+
+  // Handle arrays
+  if (Array.isArray(toolInput)) {
+    return toolInput.map(item => sanitizeInput(item, maxLength, seen));
+  }
+
+  // Handle objects
   const sanitized = {};
-  const sensitiveKeys = ['password', 'token', 'secret', 'key', 'auth', 'credential'];
 
   for (const [key, value] of Object.entries(toolInput)) {
-    // Skip or mask sensitive keys
+    // Mask sensitive keys at any depth
     if (sensitiveKeys.some(s => key.toLowerCase().includes(s))) {
       sanitized[key] = '[REDACTED]';
       continue;
     }
 
-    // Truncate long strings
-    if (typeof value === 'string' && value.length > maxLength) {
-      sanitized[key] = value.substring(0, maxLength) + `... (truncated ${value.length - maxLength} chars)`;
-      continue;
-    }
-
-    // Keep other values as-is
-    sanitized[key] = value;
+    // Recursively sanitize nested values
+    sanitized[key] = sanitizeInput(value, maxLength, seen);
   }
 
   return sanitized;
