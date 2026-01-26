@@ -459,6 +459,163 @@ async function withTimeout(
 }
 ```
 
+## Orchestrator Memory Rules
+
+Orchestrators must aggressively discard context to stay within budget. After each sub-agent returns, extract only the essentials.
+
+### After Each Sub-Agent Return
+
+1. **Extract** the `context_summary` (max 500 tokens)
+2. **Extract** the `decision` (PROCEED/STOP/CLARIFY)
+3. **Extract** essential data (files_changed, blocking_issues)
+4. **DISCARD** the raw response - do not retain full findings
+
+### State Structure
+
+The orchestrator should maintain a minimal state object:
+
+```typescript
+interface OrchestratorState {
+  task: {
+    id: string;
+    feature: string;
+    spec_path: string | null;
+  };
+  progress: {
+    current_phase: "research" | "write" | "validate";
+    completed_phases: string[];
+    // COMPACT: Only summaries, not raw outputs
+    research_summary: string | null; // max 500 tokens
+    write_summary: string | null; // max 500 tokens
+    files_changed: string[]; // just paths, not contents
+  };
+  decisions: {
+    research: "PROCEED" | "STOP" | "CLARIFY" | "pending";
+    write: "PROCEED" | "STOP" | "pending";
+    validate: "PROCEED" | "STOP" | "pending";
+  };
+}
+```
+
+### What to RETAIN
+
+| Retain          | Size        | Purpose            |
+| --------------- | ----------- | ------------------ |
+| context_summary | ≤500 tokens | Pass to next phase |
+| decision        | 1 word      | Control flow       |
+| files_changed   | Paths only  | Scope validation   |
+| blocking_issues | Brief list  | Error reporting    |
+
+### What to DISCARD
+
+| Discard                           | Why                            |
+| --------------------------------- | ------------------------------ |
+| findings.existing_implementations | Research is done               |
+| findings.patterns_found           | Already summarized             |
+| findings.checks (detailed)        | Pass/fail captured in summary  |
+| Raw grep/search outputs           | Never retain intermediate data |
+| Full sub-agent response           | Only need extracted fields     |
+| Alternative approaches            | Decision made                  |
+
+### Example: Sequential Chain Memory
+
+```typescript
+async function orchestrateFeature(feature: string) {
+  // Initialize minimal state
+  const state: OrchestratorState = {
+    task: { id: `${feature}-${Date.now()}`, feature, spec_path: null },
+    progress: {
+      current_phase: "research",
+      completed_phases: [],
+      research_summary: null,
+      write_summary: null,
+      files_changed: [],
+    },
+    decisions: {
+      research: "pending",
+      write: "pending",
+      validate: "pending",
+    },
+  };
+
+  // Phase 1: Research
+  const researchResult = await runResearchSubAgent(feature);
+
+  // EXTRACT only what we need
+  state.decisions.research = researchResult.decision;
+  state.progress.research_summary = researchResult.context_summary;
+  state.progress.completed_phases.push("research");
+  state.progress.current_phase = "write";
+  // DISCARD: researchResult.findings (not stored)
+
+  if (researchResult.decision !== "PROCEED") {
+    return handleNonProceed(researchResult);
+  }
+
+  // Phase 2: Write (receives ONLY the summary)
+  const writeResult = await runWriteSubAgent(
+    feature,
+    state.progress.research_summary // 500 tokens, not 10K
+  );
+
+  // EXTRACT
+  state.decisions.write = writeResult.decision;
+  state.progress.write_summary = writeResult.context_summary;
+  state.progress.files_changed = extractFilePaths(writeResult);
+  state.progress.completed_phases.push("write");
+  state.progress.current_phase = "validate";
+  // DISCARD: writeResult.findings
+
+  // Phase 3: Validate (receives ONLY paths and summary)
+  const validateResult = await runValidateSubAgent(
+    state.progress.files_changed,
+    state.progress.write_summary // 500 tokens
+  );
+
+  return {
+    decision: validateResult.decision,
+    summary: validateResult.context_summary,
+    files: state.progress.files_changed,
+  };
+}
+```
+
+### Memory Savings
+
+| Phase    | Without Rules    | With Rules        | Savings |
+| -------- | ---------------- | ----------------- | ------- |
+| Research | 15K tokens       | 500 tokens        | 97%     |
+| Write    | +20K (35K total) | +500 (1K total)   | 97%     |
+| Validate | +15K (50K total) | +500 (1.5K total) | 97%     |
+
+**Total orchestrator context for 3-phase workflow: ~1.5K tokens vs ~50K tokens**
+
+### Anti-Patterns
+
+**DON'T store raw findings:**
+
+```typescript
+// BAD: Retains full findings
+state.researchFindings = researchResult.findings;
+```
+
+**DON'T pass full responses:**
+
+```typescript
+// BAD: Passing entire research result
+const writeResult = await runWrite({ previousPhase: researchResult });
+```
+
+**DON'T accumulate context:**
+
+```typescript
+// BAD: Building up context across phases
+state.allContext +=
+  researchResult.context_summary + writeResult.context_summary;
+```
+
+---
+
 ## Best Practices
 
 1. **Always use compact handoffs** - Pass context_summary, not raw data
@@ -468,3 +625,5 @@ async function withTimeout(
 5. **Implement retry logic** - Transient failures can be retried
 6. **Set timeouts** - Don't wait forever for stuck sub-agents
 7. **Log everything** - Track sub-agent invocations for debugging
+8. **Discard aggressively** - Only retain context_summary from sub-agents
+9. **Never accumulate** - Each phase gets fresh context with minimal carryover

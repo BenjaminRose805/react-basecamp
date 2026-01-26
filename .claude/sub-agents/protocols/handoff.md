@@ -223,26 +223,111 @@ Sub-Agent → Orchestrator
 
 ## Context Summary Guidelines
 
-The `context_summary` field is critical for efficient handoffs.
+The `context_summary` field is **critical** for efficient handoffs between phases. This is the primary mechanism for context compaction - keeping handoffs small preserves context budget.
 
-### Rules
+### Maximum Length
 
-1. **Max 500 tokens** - Keep it compact
-2. **Include essentials** - Files, patterns, decisions
-3. **Skip raw data** - Summarize, don't copy
-4. **Focus on next phase** - What does the next sub-agent need?
+- **500 tokens** (~400 words) maximum
+- Use bullet points for multiple items
+- Prioritize actionable information
+- If summary exceeds limit, cut the least essential items
 
-### Good Example
+### What to INCLUDE
+
+Essential information for the next phase:
+
+| Include                  | Why                                    |
+| ------------------------ | -------------------------------------- |
+| Key file paths           | Next phase needs to know where to look |
+| Pattern names to follow  | Ensures consistency                    |
+| Decisions made           | PROCEED/STOP/CLARIFY with brief reason |
+| Constraints discovered   | Prevents violations                    |
+| Specific recommendations | Actionable next steps                  |
+| Error types (if STOP)    | Enables targeted fixes                 |
+
+### What to EXCLUDE
+
+Information that wastes context:
+
+| Exclude                     | Why                                |
+| --------------------------- | ---------------------------------- |
+| Search queries used         | Process detail, not results        |
+| Intermediate thinking steps | Reasoning is done                  |
+| Full file contents          | Next phase can read files directly |
+| Error messages (resolved)   | Already handled                    |
+| Alternative approaches      | Decision made, don't need history  |
+| Grep/glob patterns tried    | Implementation detail              |
+| Line-by-line analysis       | Summarize findings instead         |
+
+### Good Examples
+
+**Research → Write handoff:**
 
 ```
-"context_summary": "Existing auth at src/lib/auth.ts (session-based). Follow src/server/routers/user.ts pattern for new router. No naming conflicts. Recommend extending auth.ts with JWT, creating auth router."
+"context_summary": "Auth utilities exist in src/lib/auth.ts using JWT with httpOnly cookies. Extend with loginUser/logoutUser. Follow existing validateToken pattern. No conflicts found. Recommend: add tests to auth.test.ts."
 ```
 
-### Bad Example
+**Write → Validate handoff:**
 
 ```
-"context_summary": "I searched through the codebase and found several files. The first file I looked at was src/lib/auth.ts which contains the following code: [500 lines of code]. Then I looked at..."
+"context_summary": "Created auth router at src/server/routers/auth.ts with login/logout mutations. Extended src/lib/auth.ts with signToken/verifyToken. 6 tests in auth.test.ts covering success/failure paths. All passing locally."
 ```
+
+**Validate → Complete handoff:**
+
+```
+"context_summary": "All checks passed. Types: OK. Lint: OK (1 warning about unused import, non-blocking). Tests: 6/6 passing, 87% coverage. Security: No issues. Ready for commit."
+```
+
+### Bad Examples
+
+**Too verbose (process-focused):**
+
+```
+"context_summary": "I searched for 'auth' and found several files. First I looked at src/lib/auth.ts which contains 150 lines of code including imports from jsonwebtoken and cookie packages. The file exports validateToken which takes a token string parameter and returns a boolean. I also checked src/hooks/useAuth.ts but that's just a React hook wrapper..."
+```
+
+**Includes raw data:**
+
+```
+"context_summary": "Found this code:
+export function validateToken(token: string) {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return { valid: true, user: decoded };
+  } catch {
+    return { valid: false, user: null };
+  }
+}
+You should follow this pattern..."
+```
+
+**Missing actionable info:**
+
+```
+"context_summary": "Looked at auth files. Some patterns exist. Probably okay to proceed."
+```
+
+### Estimation Guide
+
+| Summary Length  | Approximate Tokens |
+| --------------- | ------------------ |
+| 1-2 sentences   | ~50 tokens         |
+| 5 bullet points | ~150 tokens        |
+| Full paragraph  | ~200 tokens        |
+| 400 words max   | 500 tokens         |
+
+### Quality Checklist
+
+Before finalizing context_summary:
+
+- [ ] Under 500 tokens?
+- [ ] Contains file paths for next phase?
+- [ ] Includes pattern/convention to follow?
+- [ ] States decision (PROCEED/STOP/CLARIFY)?
+- [ ] Actionable for next phase?
+- [ ] No raw code or full file contents?
+- [ ] No search queries or process details?
 
 ## Examples
 

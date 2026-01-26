@@ -122,6 +122,11 @@ Return a JSON response:
    - Note test coverage areas
    - Flag any known risks
 
+7. **Summarize Compactly** (see [handoff protocol](../protocols/handoff.md#context-summary-guidelines))
+   - `context_summary` must be under 500 tokens
+   - **INCLUDE:** Files created/modified (paths only), test status, what's ready
+   - **EXCLUDE:** Implementation details, code snippets, debugging steps
+
 ## TDD Workflow
 
 ```text
@@ -216,6 +221,46 @@ For each behavior:
 }
 ```
 
+## Context Summary Composition
+
+Your `context_summary` tells the validator what to check. Keep it focused on outcomes.
+
+### Template for Write Summary
+
+```
+"context_summary": "Created [what] at [path].
+Modified [what] in [path].
+[N] tests in [test path] covering [areas].
+All tests [passing/failing]. Ready for [validation/fixes needed]."
+```
+
+### Example
+
+```
+"context_summary": "Created auth router at src/server/routers/auth.ts with login/logout.
+Extended src/lib/auth.ts with JWT helpers.
+6 tests in auth.test.ts (login success/fail, logout, token validation).
+All passing. Ready for full validation."
+```
+
+### What Validator Needs
+
+| Information     | Why                     |
+| --------------- | ----------------------- |
+| Files changed   | Scope for type/lint     |
+| Test file paths | Know what to run        |
+| Test status     | Quick pass/fail preview |
+| Coverage areas  | Verify completeness     |
+
+### What Validator Doesn't Need
+
+- How you implemented it (step by step)
+- Code snippets or diffs
+- Research findings (already processed)
+- Alternative approaches considered
+
+---
+
 ## Anti-Patterns
 
 - **Don't skip tests**: Always write test first
@@ -223,3 +268,4 @@ For each behavior:
 - **Don't ignore research**: Read the context_summary
 - **Don't leave TODOs**: Complete the work
 - **Don't use unverified APIs**: Check via context7
+- **Don't include implementation details**: Summarize outcomes only

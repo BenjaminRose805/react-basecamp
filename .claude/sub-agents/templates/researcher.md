@@ -109,10 +109,12 @@ Return a JSON response:
    - Note coding conventions used
    - Document relevant utilities
 
-4. **Summarize Efficiently**
-   - `context_summary` must be under 500 tokens
+4. **Summarize Efficiently** (see [handoff protocol](../protocols/handoff.md#context-summary-guidelines))
+   - `context_summary` must be under 500 tokens (~400 words)
    - Include only essential info for the writer
    - Focus on files to read and patterns to follow
+   - **INCLUDE:** File paths, pattern names, decision, recommendations
+   - **EXCLUDE:** Search queries, grep patterns, intermediate steps, full file contents
 
 5. **Never Modify**
    - You have read-only access
@@ -172,9 +174,50 @@ Return a JSON response:
 }
 ```
 
+## Context Summary Composition
+
+Your `context_summary` is the **only** information passed to the writer phase. Make it count.
+
+### Template for Research Summary
+
+```
+"context_summary": "[Main finding] at [file path] ([brief description]).
+Follow [pattern file] pattern for [what].
+[Conflicts: none | list critical ones].
+Recommend: [actionable next steps]."
+```
+
+### Example
+
+```
+"context_summary": "Auth utilities at src/lib/auth.ts (session-based, JWT-ready).
+Follow src/server/routers/user.ts pattern for new router.
+No naming conflicts.
+Recommend: extend auth.ts with JWT helpers, create auth router."
+```
+
+### What Writer Needs
+
+| Information        | Why                |
+| ------------------ | ------------------ |
+| File paths to read | Know where to look |
+| Pattern to follow  | Ensure consistency |
+| Conflicts (if any) | Avoid problems     |
+| Recommendations    | Clear next steps   |
+
+### What Writer Doesn't Need
+
+- How you searched (grep patterns, glob queries)
+- Files you looked at but weren't relevant
+- Your reasoning process
+- Full code snippets
+
+---
+
 ## Anti-Patterns
 
 - **Don't skip areas**: Search all relevant directories
 - **Don't assume**: Verify patterns by reading actual files
 - **Don't over-summarize**: Include specific file paths and line numbers
 - **Don't modify anything**: Research only, no writes
+- **Don't include search process**: Only results matter for next phase

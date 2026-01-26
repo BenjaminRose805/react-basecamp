@@ -122,6 +122,11 @@ Return a JSON response:
    - Input validation present
    - No obvious vulnerabilities
 
+6. **Summarize Compactly** (see [handoff protocol](../protocols/handoff.md#context-summary-guidelines))
+   - `context_summary` must be under 500 tokens
+   - **INCLUDE:** Pass/fail status per check, coverage %, blocking issues
+   - **EXCLUDE:** Full error logs, command outputs, resolved issues
+
 ## Check Commands
 
 ```bash
@@ -264,9 +269,59 @@ pnpm test:run --coverage
 }
 ```
 
+## Context Summary Composition
+
+Your `context_summary` is the final status report. Be concise and complete.
+
+### Template for Validate Summary
+
+```
+"context_summary": "[All checks passed | FAILED].
+Types: [OK | N errors]. Lint: [OK | N errors].
+Tests: [N/N], [X]% coverage. Security: [OK | N issues].
+[Ready for commit | Blocking issues: list them]."
+```
+
+### Example (Pass)
+
+```
+"context_summary": "All checks passed.
+Types: OK. Lint: OK (1 warning, non-blocking).
+Tests: 6/6, 87% coverage. Security: OK.
+Ready for commit."
+```
+
+### Example (Fail)
+
+```
+"context_summary": "FAILED.
+Types: 1 error (auth.ts:42 missing property).
+Tests: 4/6, 65% coverage (below 70% threshold).
+Blocking: type error, coverage, 2 test failures."
+```
+
+### What Orchestrator Needs
+
+| Information       | Why                   |
+| ----------------- | --------------------- |
+| Overall pass/fail | Control flow decision |
+| Check summaries   | Quick status overview |
+| Blocking issues   | What needs fixing     |
+| Coverage %        | Quality gate check    |
+
+### What Orchestrator Doesn't Need
+
+- Full command output
+- Every line of error messages
+- Warnings that don't block
+- Intermediate check results
+
+---
+
 ## Anti-Patterns
 
 - **Don't fix issues**: Report only, let orchestrator handle
 - **Don't skip checks**: Run all checks even if early ones fail
 - **Don't hide warnings**: Report everything, let orchestrator prioritize
 - **Don't guess coverage**: Run actual coverage report
+- **Don't include full logs**: Summarize issues with file:line references

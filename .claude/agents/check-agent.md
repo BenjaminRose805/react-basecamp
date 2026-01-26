@@ -254,3 +254,52 @@ You are the check-agent orchestrator. Your job is to:
 | Low coverage     | Add missing tests                  |
 | Hardcoded secret | Move to env var                    |
 | console.log      | Remove or use logger               |
+
+## Context Compaction (Orchestrator)
+
+When spawning sub-agents for checks, follow the [orchestrator memory rules](../sub-agents/protocols/orchestration.md#orchestrator-memory-rules).
+
+### Extract Minimal Results
+
+From each parallel checker, extract only:
+
+```typescript
+// GOOD: Extract essential fields
+const typeResult = {
+  check: "types",
+  passed: result.passed,
+  errors: result.errors?.slice(0, 5), // Max 5 errors
+  summary: result.context_summary, // ≤500 tokens
+};
+
+// BAD: Retain full output
+const typeResult = result; // All raw output
+```
+
+### Aggregation State
+
+```typescript
+{
+  results: {
+    build: { passed: boolean, summary: string },
+    types: { passed: boolean, errors: string[], summary: string },
+    lint: { passed: boolean, errors: string[], summary: string },
+    tests: { passed: boolean, coverage: number, summary: string },
+    security: { passed: boolean, issues: string[], summary: string },
+  },
+  overall_passed: boolean,
+  // DISCARD: raw outputs from each checker
+}
+```
+
+### Why This Matters
+
+Parallel checks produce a lot of output. Without compaction:
+
+- 5 checks × ~5K tokens each = ~25K tokens retained
+
+With compaction:
+
+- 5 checks × ~200 tokens each = ~1K tokens retained
+
+**Savings: ~96%** - more room for fixes if needed.
