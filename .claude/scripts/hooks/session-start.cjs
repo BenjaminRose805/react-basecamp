@@ -23,48 +23,10 @@ const {
   ensureDir,
   logError,
   logContext,
-  readFile,
-  isGitRepo,
-  runCommand,
+  getGitStatus,
+  readContextFile,
 } = require('../lib/utils.cjs');
 const { getPackageManager, getSelectionPrompt } = require('../lib/package-manager.cjs');
-
-/**
- * Get git status information
- * @returns {string|null} Git status string or null if not in repo
- */
-function getGitStatus() {
-  if (!isGitRepo()) {
-    return null;
-  }
-
-  const branchResult = runCommand('git rev-parse --abbrev-ref HEAD');
-  const branch = branchResult.success ? branchResult.output : 'unknown';
-
-  const statusResult = runCommand('git status --porcelain');
-  const uncommittedCount = statusResult.success
-    ? statusResult.output.split('\n').filter(Boolean).length
-    : 0;
-
-  if (uncommittedCount === 0) {
-    return `Branch: ${branch} (clean)`;
-  }
-  return `Branch: ${branch} | ${uncommittedCount} uncommitted file(s)`;
-}
-
-/**
- * Read and truncate a context file
- */
-function readContextFile(filePath, maxLength) {
-  const content = readFile(filePath);
-  if (!content) return null;
-
-  const trimmed = content.trim();
-  if (trimmed.length === 0) return null;
-
-  if (trimmed.length <= maxLength) return trimmed;
-  return trimmed.substring(0, maxLength) + '\n... (truncated)';
-}
 
 async function main() {
   const sessionsDir = getSessionsDir();

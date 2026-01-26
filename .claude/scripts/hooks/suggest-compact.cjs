@@ -13,6 +13,7 @@
  */
 
 const path = require('path');
+const crypto = require('crypto');
 const {
   getTempDir,
   readFile,
@@ -21,11 +22,34 @@ const {
   readStdinJson,
 } = require('../lib/utils.cjs');
 
+/**
+ * Sanitize session ID for safe use in file paths
+ * Prevents directory traversal and invalid filename characters
+ * @param {string} sessionId - Raw session ID from input
+ * @returns {string} Safe session ID for use in file names
+ */
+function sanitizeSessionId(sessionId) {
+  if (!sessionId || typeof sessionId !== 'string') {
+    return 'default';
+  }
+
+  // If session ID looks safe (alphanumeric, dash, underscore only), use it directly
+  if (/^[a-zA-Z0-9_-]{1,64}$/.test(sessionId)) {
+    return sessionId;
+  }
+
+  // Otherwise, hash it to create a safe filename
+  return crypto.createHash('sha256').update(sessionId).digest('hex').substring(0, 32);
+}
+
 async function main() {
   try {
     // Parse JSON from stdin to get session_id
     const input = await readStdinJson();
-    const sessionId = input.session_id || process.env.CLAUDE_SESSION_ID || 'default';
+    const rawSessionId = input.session_id || process.env.CLAUDE_SESSION_ID || 'default';
+
+    // Sanitize session ID to prevent directory traversal
+    const sessionId = sanitizeSessionId(rawSessionId);
 
     // Track tool call count
     const counterFile = path.join(getTempDir(), `claude-tool-count-${sessionId}`);
@@ -36,7 +60,12 @@ async function main() {
     // Read existing count or start at 1
     const existing = readFile(counterFile);
     if (existing) {
-      count = parseInt(existing.trim(), 10) + 1;
+      const parsed = parseInt(existing.trim(), 10);
+      // Validate parsed value is a finite number
+      if (Number.isFinite(parsed) && parsed > 0) {
+        count = parsed + 1;
+      }
+      // If invalid (NaN, negative, etc.), fall back to starting at 1
     }
 
     // Save updated count
