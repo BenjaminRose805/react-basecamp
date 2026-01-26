@@ -4,21 +4,21 @@ on:
   workflow_call:
     inputs:
       specs-directory:
-        description: 'Directory containing spec files'
+        description: "Directory containing spec files"
         type: string
-        default: 'specs/'
+        default: "specs/"
       require-spec-for-features:
-        description: 'Require specs for feature branches'
+        description: "Require specs for feature branches"
         type: boolean
         default: true
       spec-template-path:
-        description: 'Path to spec template for validation'
+        description: "Path to spec template for validation"
         type: string
-        default: ''
+        default: ""
       feature-branch-pattern:
-        description: 'Regex pattern for feature branch names'
+        description: "Regex pattern for feature branch names"
         type: string
-        default: '^(feature|feat)/'
+        default: "^(feature|feat)/"
 
 jobs:
   validate-specs:
@@ -48,7 +48,7 @@ jobs:
             echo "Not a feature branch: $BRANCH"
           fi
 
-      - name: Find related spec
+      - name: Find related spec directory
         id: find-spec
         run: |
           BRANCH="${{ steps.branch-check.outputs.branch }}"
@@ -59,57 +59,88 @@ jobs:
 
           echo "Looking for spec related to: $FEATURE_NAME"
 
-          # Search for matching spec file
-          SPEC_FILE=""
+          # Search for spec directory matching feature name
+          SPEC_DIR=""
           if [ -d "$SPECS_DIR" ]; then
-            SPEC_FILE=$(find "$SPECS_DIR" -name "*.md" -type f | xargs grep -l -i "$FEATURE_NAME" 2>/dev/null | head -1)
-
-            if [ -z "$SPEC_FILE" ]; then
-              # Try partial match on filename
-              SPEC_FILE=$(find "$SPECS_DIR" -name "*${FEATURE_NAME}*" -type f 2>/dev/null | head -1)
-            fi
+            # Look for directory matching feature name (with or without 's' suffix)
+            SPEC_DIR=$(find "$SPECS_DIR" -type d -name "*${FEATURE_NAME}*" 2>/dev/null | head -1)
           fi
 
-          if [ -n "$SPEC_FILE" ]; then
-            echo "Found spec: $SPEC_FILE"
+          if [ -n "$SPEC_DIR" ] && [ -d "$SPEC_DIR" ]; then
+            echo "Found spec directory: $SPEC_DIR"
             echo "spec_found=true" >> $GITHUB_OUTPUT
-            echo "spec_file=$SPEC_FILE" >> $GITHUB_OUTPUT
+            echo "spec_dir=$SPEC_DIR" >> $GITHUB_OUTPUT
+
+            # Check for individual spec files
+            [ -f "$SPEC_DIR/requirements.md" ] && echo "has_requirements=true" >> $GITHUB_OUTPUT || echo "has_requirements=false" >> $GITHUB_OUTPUT
+            [ -f "$SPEC_DIR/design.md" ] && echo "has_design=true" >> $GITHUB_OUTPUT || echo "has_design=false" >> $GITHUB_OUTPUT
+            [ -f "$SPEC_DIR/tasks.md" ] && echo "has_tasks=true" >> $GITHUB_OUTPUT || echo "has_tasks=false" >> $GITHUB_OUTPUT
           else
-            echo "No spec found for feature: $FEATURE_NAME"
+            echo "No spec directory found for feature: $FEATURE_NAME"
             echo "spec_found=false" >> $GITHUB_OUTPUT
-            echo "spec_file=" >> $GITHUB_OUTPUT
+            echo "spec_dir=" >> $GITHUB_OUTPUT
           fi
 
-      - name: Validate spec format
+      - name: Validate spec files
         if: steps.find-spec.outputs.spec_found == 'true'
         id: validate-spec
         run: |
-          SPEC_FILE="${{ steps.find-spec.outputs.spec_file }}"
+          SPEC_DIR="${{ steps.find-spec.outputs.spec_dir }}"
           ERRORS=""
           WARNINGS=""
 
-          echo "Validating spec: $SPEC_FILE"
+          echo "Validating specs in: $SPEC_DIR"
 
-          # Check for required sections
-          REQUIRED_SECTIONS=("Goal" "User Stories" "Success Criteria" "Technical Constraints" "Out of Scope")
+          # Validate requirements.md
+          if [ -f "$SPEC_DIR/requirements.md" ]; then
+            echo "Validating requirements.md..."
+            REQUIRED_SECTIONS=("Goal" "User Stories" "Success Criteria" "Technical Constraints" "Out of Scope")
+            for section in "${REQUIRED_SECTIONS[@]}"; do
+              if ! grep -qi "^##.*$section" "$SPEC_DIR/requirements.md"; then
+                ERRORS="$ERRORS\n- requirements.md: Missing section: $section"
+              fi
+            done
 
-          for section in "${REQUIRED_SECTIONS[@]}"; do
-            if ! grep -qi "^##.*$section" "$SPEC_FILE"; then
-              ERRORS="$ERRORS\n- Missing required section: $section"
+            # Check for success criteria checkboxes
+            if ! grep -qE '^\s*-\s*\[[ x]\]' "$SPEC_DIR/requirements.md"; then
+              WARNINGS="$WARNINGS\n- requirements.md: Success criteria should use checkboxes"
             fi
-          done
 
-          # Check for optional but recommended sections
-          RECOMMENDED_SECTIONS=("Dependencies" "Risks")
-          for section in "${RECOMMENDED_SECTIONS[@]}"; do
-            if ! grep -qi "^##.*$section" "$SPEC_FILE"; then
-              WARNINGS="$WARNINGS\n- Consider adding section: $section"
+            # Recommended sections
+            for section in "Dependencies" "Risks"; do
+              if ! grep -qi "^##.*$section" "$SPEC_DIR/requirements.md"; then
+                WARNINGS="$WARNINGS\n- requirements.md: Consider adding section: $section"
+              fi
+            done
+          else
+            ERRORS="$ERRORS\n- Missing required file: requirements.md"
+          fi
+
+          # Validate design.md (if exists)
+          if [ -f "$SPEC_DIR/design.md" ]; then
+            echo "Validating design.md..."
+            DESIGN_SECTIONS=("Overview" "Architecture" "Component Design")
+            for section in "${DESIGN_SECTIONS[@]}"; do
+              if ! grep -qi "^##.*$section" "$SPEC_DIR/design.md"; then
+                WARNINGS="$WARNINGS\n- design.md: Consider adding section: $section"
+              fi
+            done
+          fi
+
+          # Validate tasks.md (if exists)
+          if [ -f "$SPEC_DIR/tasks.md" ]; then
+            echo "Validating tasks.md..."
+            TASKS_SECTIONS=("Progress" "Phase")
+            for section in "${TASKS_SECTIONS[@]}"; do
+              if ! grep -qi "^##.*$section" "$SPEC_DIR/tasks.md"; then
+                WARNINGS="$WARNINGS\n- tasks.md: Consider adding section: $section"
+              fi
+            done
+
+            # Check for task checkboxes
+            if ! grep -qE '^\s*-\s*\[[ x]\]' "$SPEC_DIR/tasks.md"; then
+              WARNINGS="$WARNINGS\n- tasks.md: Tasks should use checkboxes"
             fi
-          done
-
-          # Check for success criteria checkboxes
-          if ! grep -qE '^\s*-\s*\[[ x]\]' "$SPEC_FILE"; then
-            WARNINGS="$WARNINGS\n- Success criteria should use checkboxes (- [ ] or - [x])"
           fi
 
           if [ -n "$ERRORS" ]; then
@@ -133,7 +164,10 @@ jobs:
           script: |
             const isFeature = '${{ steps.branch-check.outputs.is_feature }}' === 'true';
             const specFound = '${{ steps.find-spec.outputs.spec_found }}' === 'true';
-            const specFile = '${{ steps.find-spec.outputs.spec_file }}';
+            const specDir = '${{ steps.find-spec.outputs.spec_dir }}';
+            const hasRequirements = '${{ steps.find-spec.outputs.has_requirements }}' === 'true';
+            const hasDesign = '${{ steps.find-spec.outputs.has_design }}' === 'true';
+            const hasTasks = '${{ steps.find-spec.outputs.has_tasks }}' === 'true';
             const specValid = '${{ steps.validate-spec.outputs.valid }}' === 'true';
             const errors = `${{ steps.validate-spec.outputs.errors }}`;
             const warnings = `${{ steps.validate-spec.outputs.warnings }}`;
@@ -144,7 +178,11 @@ jobs:
             if (!isFeature) {
               body += '✅ Not a feature branch - spec not required.\n';
             } else if (specFound) {
-              body += `✅ Found spec: \`${specFile}\`\n\n`;
+              body += `✅ Found spec directory: \`${specDir}\`\n\n`;
+              body += '**Files found:**\n';
+              body += `- requirements.md: ${hasRequirements ? '✅' : '❌'}\n`;
+              body += `- design.md: ${hasDesign ? '✅' : '⚠️ (optional)'}\n`;
+              body += `- tasks.md: ${hasTasks ? '✅' : '⚠️ (optional)'}\n\n`;
 
               if (specValid) {
                 body += '✅ Spec format is valid.\n';
@@ -152,16 +190,16 @@ jobs:
                 body += '❌ Spec format issues:\n' + errors + '\n';
               }
 
-              if (warnings) {
+              if (warnings && warnings.trim()) {
                 body += '\n⚠️ Suggestions:\n' + warnings + '\n';
               }
             } else {
               if (requireSpec) {
-                body += '❌ No spec found for this feature branch.\n\n';
-                body += 'Please create a spec file in `${{ inputs.specs-directory }}` before merging.\n';
+                body += '❌ No spec directory found for this feature branch.\n\n';
+                body += 'Please create a spec directory in `${{ inputs.specs-directory }}{feature-name}/` with at least `requirements.md`.\n';
               } else {
-                body += '⚠️ No spec found for this feature branch.\n\n';
-                body += 'Consider creating a spec file in `${{ inputs.specs-directory }}`.\n';
+                body += '⚠️ No spec directory found for this feature branch.\n\n';
+                body += 'Consider creating a spec directory in `${{ inputs.specs-directory }}{feature-name}/`.\n';
               }
             }
 

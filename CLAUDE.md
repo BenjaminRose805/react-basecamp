@@ -113,7 +113,9 @@ Complete feature from spec to PR.
 
 **Domain:** Creating implementation specifications
 
-**MCP Servers:** spec-workflow, linear, cclsp
+**MCP Servers:** cclsp
+
+**CLI Tools:** File-based specs in `specs/`
 
 **Phases:** ANALYZE → CREATE → VALIDATE
 
@@ -123,7 +125,9 @@ Complete feature from spec to PR.
 
 **Domain:** Backend implementation using TDD
 
-**MCP Servers:** cclsp, context7, vitest, spec-workflow, next-devtools
+**MCP Servers:** cclsp, context7, next-devtools
+
+**CLI Tools:** `pnpm test`, file-based specs in `specs/`
 
 **Phases:** RESEARCH → IMPLEMENT → VALIDATE
 
@@ -133,7 +137,9 @@ Complete feature from spec to PR.
 
 **Domain:** Frontend UI components
 
-**MCP Servers:** cclsp, figma, shadcn, playwright, context7, spec-workflow
+**MCP Servers:** cclsp, figma, shadcn, playwright, context7
+
+**CLI Tools:** `pnpm test`, file-based specs in `specs/`
 
 **Phases:** RESEARCH → BUILD → VALIDATE
 
@@ -143,7 +149,9 @@ Complete feature from spec to PR.
 
 **Domain:** Documentation
 
-**MCP Servers:** cclsp, context7, spec-workflow
+**MCP Servers:** cclsp, context7
+
+**CLI Tools:** File-based specs in `specs/`
 
 **Phases:** RESEARCH → WRITE → VALIDATE
 
@@ -153,7 +161,9 @@ Complete feature from spec to PR.
 
 **Domain:** LLM evaluation suites
 
-**MCP Servers:** vitest, cclsp, context7
+**MCP Servers:** cclsp, context7
+
+**CLI Tools:** `pnpm test`, `pnpm eval`
 
 **Phases:** RESEARCH → CREATE → VALIDATE
 
@@ -163,7 +173,9 @@ Complete feature from spec to PR.
 
 **Domain:** Quality verification
 
-**MCP Servers:** cclsp, vitest, next-devtools
+**MCP Servers:** cclsp, next-devtools
+
+**CLI Tools:** `pnpm test`, `pnpm lint`, `pnpm typecheck`
 
 **Phases:** BUILD → TYPES → LINT → TESTS → SECURITY
 
@@ -173,7 +185,9 @@ Complete feature from spec to PR.
 
 **Domain:** Git operations
 
-**MCP Servers:** github
+**MCP Servers:** —
+
+**CLI Tools:** `git`, `gh` CLI
 
 **Actions:** status, branch, switch, sync, commit, worktree, cleanup
 
@@ -183,7 +197,9 @@ Complete feature from spec to PR.
 
 **Domain:** Pull request lifecycle
 
-**MCP Servers:** github, linear
+**MCP Servers:** —
+
+**CLI Tools:** `gh` CLI (pr create, pr merge, pr review)
 
 **Actions:** create, draft, merge, review
 
@@ -193,7 +209,9 @@ Complete feature from spec to PR.
 
 **Domain:** Bug investigation
 
-**MCP Servers:** cclsp, sentry, vitest, playwright, next-devtools, github
+**MCP Servers:** cclsp, sentry, playwright, next-devtools
+
+**CLI Tools:** `pnpm test`, `gh` CLI
 
 **Phases:** GATHER → ANALYZE → REPORT
 
@@ -389,57 +407,79 @@ These limits are enforced by ESLint:
 
 ### Agent MCP Assignments
 
-| Agent         | MCP Servers                                               |
-| ------------- | --------------------------------------------------------- |
-| plan-agent    | spec-workflow, linear, cclsp                              |
-| code-agent    | cclsp, context7, vitest, spec-workflow, next-devtools     |
-| ui-agent      | cclsp, figma, shadcn, playwright, context7, spec-workflow |
-| docs-agent    | cclsp, context7, spec-workflow                            |
-| eval-agent    | vitest, cclsp, context7                                   |
-| check-agent   | cclsp, vitest, next-devtools                              |
-| git-agent     | github                                                    |
-| pr-agent      | github, linear                                            |
-| debug-agent   | cclsp, sentry, vitest, playwright, next-devtools, github  |
-| help-agent    | —                                                         |
-| context-agent | —                                                         |
+| Agent         | MCP Servers                                | CLI Tools         |
+| ------------- | ------------------------------------------ | ----------------- |
+| plan-agent    | cclsp                                      | file-based specs  |
+| code-agent    | cclsp, context7, next-devtools             | pnpm test, specs/ |
+| ui-agent      | cclsp, figma, shadcn, playwright, context7 | pnpm test, specs/ |
+| docs-agent    | cclsp, context7                            | specs/            |
+| eval-agent    | cclsp, context7                            | pnpm test         |
+| check-agent   | cclsp, next-devtools                       | pnpm test         |
+| git-agent     | —                                          | git, gh CLI       |
+| pr-agent      | —                                          | gh CLI            |
+| debug-agent   | cclsp, sentry, playwright, next-devtools   | pnpm test, gh CLI |
+| help-agent    | —                                          | —                 |
+| context-agent | —                                          | —                 |
 
 ### MCP Server Reference
 
-| Server            | Purpose                                            |
-| ----------------- | -------------------------------------------------- |
-| **cclsp**         | TypeScript LSP - code intelligence, symbols, types |
-| **next-devtools** | Next.js dev tools - routes, build status, errors   |
-| **vitest**        | Test runner - run tests, coverage, watch           |
-| **playwright**    | Browser automation - E2E, screenshots              |
-| **github**        | GitHub - PRs, issues, code search                  |
-| **spec-workflow** | Spec management - dashboard, task tracking         |
-| **context7**      | Live docs lookup - prevent hallucinated APIs       |
-| **linear**        | Issue tracking - create/update issues, link PRs    |
-| **sentry**        | Production errors - issues, traces, Seer AI        |
-| **figma**         | Design system - frames, tokens, Code Connect       |
-| **shadcn**        | Component registry - UI primitives                 |
+**Essential (Always Keep):**
+
+| Server         | Purpose                                            |
+| -------------- | -------------------------------------------------- |
+| **cclsp**      | TypeScript LSP - code intelligence, symbols, types |
+| **playwright** | Browser automation - E2E, screenshots              |
+
+**Conditional (Project-Dependent):**
+
+| Server            | Purpose                                          | Keep When                 |
+| ----------------- | ------------------------------------------------ | ------------------------- |
+| **next-devtools** | Next.js dev tools - routes, build status, errors | Using Next.js 16+         |
+| **context7**      | Live docs lookup - prevent hallucinated APIs     | Frequent library usage    |
+| **shadcn**        | Component registry - UI primitives               | Using shadcn/ui           |
+| **figma**         | Design system - frames, tokens, Code Connect     | Design system integration |
+| **sentry**        | Production errors - issues, traces, Seer AI      | Production error tracking |
+| **linear**        | Issue tracking - create/update issues, link PRs  | Using Linear for issues   |
+
+**Removed (Replaced with CLI):**
+
+| Former Server     | Replacement                  |
+| ----------------- | ---------------------------- |
+| ~~github~~        | `gh` CLI (see pr-operations) |
+| ~~vitest~~        | `pnpm test` commands         |
+| ~~spec-workflow~~ | File-based specs in `specs/` |
+
+See `.claude/docs/conditional-mcp-servers.md` for detailed guidance.
 
 ### Setup Commands
 
-**Required:**
+**Essential (Always Install):**
 
 ```bash
 claude mcp add cclsp -- npx cclsp                           # TypeScript LSP
-claude mcp add next-devtools -- npx -y next-devtools-mcp@latest  # Next.js DevTools
 claude mcp add playwright -- npx @playwright/mcp@latest     # Browser automation
-claude mcp add vitest -- npx vitest-mcp                     # Test runner
-claude mcp add github -- npx @anthropic/mcp-github          # GitHub integration
 ```
 
-**Recommended:**
+**Conditional (Project-Dependent):**
 
 ```bash
+claude mcp add next-devtools -- npx -y next-devtools-mcp@latest  # Next.js 16+ only
 claude mcp add context7 -- npx context7-mcp                 # Prevent hallucinated APIs
-claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest .  # SDD workflow
-claude mcp add linear-server -- npx @anthropic/mcp-linear   # Issue tracking
-claude mcp add sentry -- npx @sentry/mcp-server             # Error tracking
-claude mcp add figma -- npx figma-mcp                       # Design system
-claude mcp add shadcn -- npx shadcn-mcp                     # Component registry
+claude mcp add shadcn -- npx shadcn-mcp                     # shadcn/ui projects
+claude mcp add figma -- npx figma-mcp                       # Design system integration
+claude mcp add sentry -- npx @sentry/mcp-server             # Production error tracking
+claude mcp add linear-server -- npx @anthropic/mcp-linear   # Linear issue tracking
+```
+
+**CLI Prerequisites (No MCP Required):**
+
+```bash
+# GitHub CLI - replaces github MCP server
+gh auth login                                               # Authenticate once
+
+# Vitest - replaces vitest MCP server
+pnpm test:run                                               # Run tests
+pnpm test:coverage                                          # Coverage report
 ```
 
 ---
@@ -538,13 +578,13 @@ The AI Development Platform design docs are located at `~/basecamp/docs/`:
 
 Interactive tools available during development:
 
-| Tool                        | URL/Command                             | Purpose                                       |
-| --------------------------- | --------------------------------------- | --------------------------------------------- |
-| **Spec Workflow Dashboard** | [localhost:5000](http://localhost:5000) | Spec management, approvals, progress tracking |
-| **Next.js Dev Server**      | [localhost:3000](http://localhost:3000) | Your application                              |
-| **Vitest UI**               | `pnpm test:ui`                          | Interactive test runner                       |
-| **Playwright UI**           | `pnpm test:e2e --ui`                    | E2E test visualization                        |
-| **Prisma Studio**           | `pnpm prisma studio`                    | Database browser                              |
+| Tool                   | URL/Command                             | Purpose                    |
+| ---------------------- | --------------------------------------- | -------------------------- |
+| **Next.js Dev Server** | [localhost:3000](http://localhost:3000) | Your application           |
+| **Vitest UI**          | `pnpm test:ui`                          | Interactive test runner    |
+| **Playwright UI**      | `pnpm test:e2e --ui`                    | E2E test visualization     |
+| **Prisma Studio**      | `pnpm prisma studio`                    | Database browser           |
+| **Specs Directory**    | `specs/`                                | File-based spec management |
 
 ---
 

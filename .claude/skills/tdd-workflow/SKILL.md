@@ -109,7 +109,7 @@ Improve code quality while keeping tests green:
 ### Step 6: Verify Coverage
 
 ```bash
-pnpm test:run --coverage
+pnpm test:coverage
 # Verify 70%+ coverage achieved
 ```
 
@@ -312,15 +312,30 @@ test("updates user", () => {
 });
 ```
 
-## Test Commands
+## Test Commands (CLI)
+
+All test operations use pnpm scripts directly (no MCP server required):
 
 ```bash
 pnpm test              # Watch mode (development)
 pnpm test:run          # Single run (CI)
-pnpm test:run --coverage  # With coverage report
+pnpm test:coverage     # With coverage report
 pnpm test:e2e          # Playwright E2E tests
 pnpm test:e2e --ui     # Playwright UI mode
 ```
+
+### Command Reference
+
+| Operation         | Command                      |
+| ----------------- | ---------------------------- |
+| Run all tests     | `pnpm test:run`              |
+| Run specific file | `pnpm test:run <path>`       |
+| Run with pattern  | `pnpm test:run -t "pattern"` |
+| Run with coverage | `pnpm test:coverage`         |
+| Watch mode        | `pnpm test`                  |
+| E2E tests         | `pnpm test:e2e`              |
+
+**Note:** The vitest MCP server has been replaced with direct CLI commands.
 
 ## Coverage Thresholds
 
