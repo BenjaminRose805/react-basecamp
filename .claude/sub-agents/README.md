@@ -100,9 +100,16 @@ await Task({
 │   ├── research.md              # + WebFetch, WebSearch
 │   ├── writer.md                # + Write, Edit, Bash
 │   └── full-access.md           # All tools including Task
-└── protocols/
-    ├── handoff.md               # Request/response format
-    └── orchestration.md         # Orchestration patterns
+├── protocols/
+│   ├── handoff.md               # Request/response format
+│   └── orchestration.md         # Orchestration patterns
+└── check/                       # Check-agent sub-agents
+    ├── README.md                # Check sub-agent overview
+    ├── build-checker.md         # Build verification
+    ├── type-checker.md          # TypeScript type check
+    ├── lint-checker.md          # ESLint check
+    ├── test-runner.md           # Test execution + coverage
+    └── security-scanner.md      # Security pattern check
 ```
 
 ## When to Use Sub-Agents

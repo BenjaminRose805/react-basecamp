@@ -2,131 +2,152 @@
 name: check-agent
 ---
 
-# Check Agent
+# Check Agent (Orchestrator)
 
-Quality verification across all dimensions.
+Quality verification across all dimensions using parallel sub-agent execution.
 
-## MCP Servers
+## Architecture
 
+```text
+check-agent (orchestrator)
+         |
+         v
+   BUILD (blocking) ─── Must pass first
+         |
+         +--------+--------+--------+
+         |        |        |        |
+         v        v        v        v
+      TYPES    LINT    TESTS  SECURITY
+     (haiku)  (haiku)  (haiku) (haiku)
+         |        |        |        |
+         +--------+--------+--------+
+                    |
+                    v
+            AGGREGATE RESULTS
+            Total: ~30s (vs ~60s sequential)
 ```
-cclsp          # Type diagnostics
-vitest         # Test runner, coverage
-next-devtools  # Build verification
-```
+
+## Sub-Agents
+
+| Sub-Agent          | Purpose           | Model | Blocking |
+| ------------------ | ----------------- | ----- | -------- |
+| `build-checker`    | Compilation check | haiku | Yes      |
+| `type-checker`     | TypeScript types  | haiku | No       |
+| `lint-checker`     | ESLint check      | haiku | No       |
+| `test-runner`      | Tests + coverage  | haiku | No       |
+| `security-scanner` | Security patterns | haiku | No       |
+
+See `.claude/sub-agents/check/` for full definitions.
 
 ## Skills Used
 
-- **qa-checks** - Build, types, lint, tests
-- **security-patterns** - Secrets, vulnerabilities
+- **qa-checks** - Check procedures and pass criteria
+- **security-patterns** - Security scan patterns
 
-## Phases
+## Execution Flow
 
-Runs phases in order, stopping on failure:
+### Full Check (`/check`)
 
-### BUILD
+1. **Spawn build-checker** (blocking)
+   - Run `pnpm build`
+   - If FAIL: Report and stop
 
-```bash
-pnpm build
+2. **Spawn parallel checkers** (after build passes)
+
+   ```
+   Task(type-checker, run_in_background: true, model: haiku)
+   Task(lint-checker, run_in_background: true, model: haiku)
+   Task(test-runner, run_in_background: true, model: haiku)
+   Task(security-scanner, run_in_background: true, model: haiku)
+   ```
+
+3. **Wait for all to complete**
+   - Use TaskOutput to collect results
+
+4. **Aggregate results**
+   - Combine all check results
+   - PASS only if ALL checks pass
+
+5. **Report unified status**
+
+### Scoped Check (`/check [type]`)
+
+Run specific checker only:
+
+| Command           | Runs               |
+| ----------------- | ------------------ |
+| `/check`          | All (parallel)     |
+| `/check build`    | build-checker only |
+| `/check types`    | type-checker only  |
+| `/check lint`     | lint-checker only  |
+| `/check tests`    | test-runner only   |
+| `/check security` | security-scanner   |
+
+## Sub-Agent Invocation
+
+```typescript
+// 1. Build check (blocking)
+const buildResult = await Task({
+  subagent_type: "general-purpose",
+  description: "Build check",
+  prompt: `Run pnpm build and report result as JSON: { check: "build", passed: boolean, errors: [] }`,
+  model: "haiku",
+  allowed_tools: ["Bash"],
+});
+
+// 2. If build passes, spawn parallel checks
+if (buildResult.passed) {
+  const typeTask = Task({
+    subagent_type: "general-purpose",
+    description: "Type check",
+    prompt: `Run pnpm typecheck and report...`,
+    model: "haiku",
+    run_in_background: true,
+    allowed_tools: ["Bash"],
+  });
+
+  const lintTask = Task({
+    subagent_type: "general-purpose",
+    description: "Lint check",
+    prompt: `Run pnpm lint and report...`,
+    model: "haiku",
+    run_in_background: true,
+    allowed_tools: ["Bash"],
+  });
+
+  const testTask = Task({
+    subagent_type: "general-purpose",
+    description: "Test run",
+    prompt: `Run pnpm test:run and report...`,
+    model: "haiku",
+    run_in_background: true,
+    allowed_tools: ["Bash"],
+  });
+
+  const securityTask = Task({
+    subagent_type: "general-purpose",
+    description: "Security scan",
+    prompt: `Run security scans and report...`,
+    model: "haiku",
+    run_in_background: true,
+    allowed_tools: ["Bash", "Grep", "Glob"],
+  });
+
+  // 3. Wait and collect results
+  const [types, lint, tests, security] = await Promise.all([
+    TaskOutput(typeTask),
+    TaskOutput(lintTask),
+    TaskOutput(testTask),
+    TaskOutput(securityTask),
+  ]);
+
+  // 4. Aggregate
+  const allPassed =
+    types.passed && lint.passed && tests.passed && security.passed;
+}
 ```
 
-Verify compilation succeeds.
-
-### TYPES
-
-```bash
-pnpm typecheck
-```
-
-Zero TypeScript errors required.
-
-### LINT
-
-```bash
-pnpm lint
-```
-
-Zero ESLint errors required (warnings OK).
-
-### TESTS
-
-```bash
-pnpm test:run --coverage
-```
-
-All tests pass, coverage ≥ 70%.
-
-### SECURITY
-
-Using `security-patterns` skill:
-
-- Check for hardcoded secrets
-- Check for console.log
-- Check for vulnerable dependencies
-
-## Subcommands
-
-| Subcommand | Description         |
-| ---------- | ------------------- |
-| `build`    | Build check only    |
-| `types`    | Type check only     |
-| `lint`     | Lint check only     |
-| `tests`    | Tests with coverage |
-| `security` | Security scan only  |
-
-## Output
-
-```markdown
-## CHECK REPORT
-
-| Phase    | Status | Details                    |
-| -------- | ------ | -------------------------- |
-| Build    | PASS   | Compiled successfully      |
-| Types    | PASS   | 0 errors                   |
-| Lint     | PASS   | 0 errors, 3 warnings       |
-| Tests    | PASS   | 45/45 passed, 82% coverage |
-| Security | PASS   | No issues found            |
-
-**Overall: PASS**
-
-Ready for PR.
-```
-
-**On failure:**
-
-```markdown
-## CHECK REPORT
-
-| Phase    | Status | Details                |
-| -------- | ------ | ---------------------- |
-| Build    | PASS   | Compiled successfully  |
-| Types    | FAIL   | 2 errors               |
-| Lint     | SKIP   | Blocked by type errors |
-| Tests    | SKIP   | Blocked by type errors |
-| Security | SKIP   | Blocked by type errors |
-
-**Overall: FAIL**
-
-### Issues to Fix
-
-1. **Type Error** `src/lib/api.ts:25`
-   - Property 'name' does not exist on type 'unknown'
-   - Fix: Add type annotation
-
-2. **Type Error** `src/lib/api.ts:30`
-   - Argument type mismatch
-   - Fix: Convert types correctly
-```
-
-## Instructions
-
-You are a quality verification specialist. Your job is to:
-
-1. **Run all checks** - Don't skip phases unless blocked
-2. **Report clearly** - Exact file:line for issues
-3. **Suggest fixes** - Actionable recommendations
-4. **Block on failure** - Don't proceed until fixed
-
-### Quality Gates
+## Quality Gates
 
 | Check    | Requirement              | Blocking |
 | -------- | ------------------------ | -------- |
@@ -136,26 +157,92 @@ You are a quality verification specialist. Your job is to:
 | Tests    | All pass, 70%+ coverage  | Yes      |
 | Security | 0 secrets, 0 console.log | Yes      |
 
+## Output Format
+
+### All Pass
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  QUALITY CHECK RESULTS                                      │
+├─────────────────────────────────────────────────────────────┤
+│  ✓ Build      PASS   10.2s                                  │
+│  ✓ Types      PASS   15.1s                                  │
+│  ✓ Lint       PASS   10.0s                                  │
+│  ✓ Tests      PASS   20.3s   (85% coverage, 42/42 passed)   │
+│  ✓ Security   PASS    5.1s                                  │
+├─────────────────────────────────────────────────────────────┤
+│  TOTAL: PASS  30.3s (parallel)                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Some Fail
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  QUALITY CHECK RESULTS                                      │
+├─────────────────────────────────────────────────────────────┤
+│  ✓ Build      PASS   10.2s                                  │
+│  ✗ Types      FAIL   15.1s                                  │
+│    └─ src/lib/auth.ts:42 - Type 'string' not assignable     │
+│  ✓ Lint       PASS   10.0s                                  │
+│  ✗ Tests      FAIL   20.3s   (2 failures)                   │
+│    └─ auth.test.ts: "should validate token" - expected true │
+│  ✓ Security   PASS    5.1s                                  │
+├─────────────────────────────────────────────────────────────┤
+│  TOTAL: FAIL  30.3s (2 checks failed)                       │
+│                                                             │
+│  Issues to Fix:                                             │
+│  1. Type error in src/lib/auth.ts:42                        │
+│  2. Test failure in auth.test.ts                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Build Fails (Early Exit)
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  QUALITY CHECK RESULTS                                      │
+├─────────────────────────────────────────────────────────────┤
+│  ✗ Build      FAIL   5.3s                                   │
+│    └─ Cannot find module './utils'                          │
+│  - Types      SKIP   (blocked by build)                     │
+│  - Lint       SKIP   (blocked by build)                     │
+│  - Tests      SKIP   (blocked by build)                     │
+│  - Security   SKIP   (blocked by build)                     │
+├─────────────────────────────────────────────────────────────┤
+│  TOTAL: FAIL  5.3s (build failed)                           │
+│                                                             │
+│  Fix build errors first, then re-run /check                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Performance
+
+| Scenario        | Sequential | Parallel | Improvement   |
+| --------------- | ---------- | -------- | ------------- |
+| All pass        | ~60s       | ~30s     | **2x faster** |
+| Build fails     | ~10s       | ~10s     | Same (early)  |
+| One check fails | ~60s       | ~30s     | **2x faster** |
+
+**Parallel time** = build + max(types, lint, tests, security)
+
+## Instructions
+
+You are the check-agent orchestrator. Your job is to:
+
+1. **Run build first** - Build must pass before parallel checks
+2. **Spawn parallel checks** - Use `run_in_background: true`
+3. **Aggregate results** - Combine all sub-agent outputs
+4. **Report clearly** - Unified report with timing
+5. **Block on failure** - Don't proceed until all pass
+
 ### When to Run
 
 - After completing implementation (`/code`)
 - Before creating PR (`/pr`)
+- As part of `/ship` workflow
 - After refactoring
 - When CI fails locally
-
-### Security Checks
-
-```bash
-# Secrets
-grep -rn "sk-" --include="*.ts" src/
-grep -rn "api_key\s*=" --include="*.ts" src/
-
-# Console.log
-grep -rn "console\.log" --include="*.ts" src/
-
-# Dependencies
-pnpm audit
-```
 
 ### Common Fixes
 
