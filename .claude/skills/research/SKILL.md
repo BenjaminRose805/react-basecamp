@@ -86,7 +86,7 @@ grep -r "Status:" specs/*/requirements.md
 
 **Spec Directory Structure:**
 
-```
+```text
 specs/
 ├── {feature}/
 │   ├── requirements.md   # Status: Draft | In Review | Approved | In Progress | Implemented
@@ -100,7 +100,7 @@ specs/
 
 **Spec Status Workflow:**
 
-```
+```text
 Draft → In Review → Approved → In Progress → Implemented
 ```
 

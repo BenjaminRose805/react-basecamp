@@ -6,7 +6,7 @@
 
 ## Overview
 
-This design replaces two MCP servers (github, vitest) with CLI-based alternatives while documenting conditional servers. The approach prioritizes simplicity: use native CLI tools where they provide equivalent functionality, reserving MCP servers for capabilities that genuinely require them (LSP integration, browser automation).
+This design replaces three MCP servers (github, vitest, spec-workflow) with CLI-based alternatives while documenting conditional servers. The approach prioritizes simplicity: use native CLI tools where they provide equivalent functionality, reserving MCP servers for capabilities that genuinely require them (LSP integration, browser automation).
 
 ---
 
@@ -14,7 +14,7 @@ This design replaces two MCP servers (github, vitest) with CLI-based alternative
 
 ### Current State
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  MCP Servers (8 active)                                     │
 ├─────────────────────────────────────────────────────────────┤
@@ -31,7 +31,7 @@ This design replaces two MCP servers (github, vitest) with CLI-based alternative
 
 ### Target State
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  MCP Servers (5 active)                                     │
 ├─────────────────────────────────────────────────────────────┤
@@ -101,7 +101,7 @@ Direct CLI commands replace MCP tools:
 
 **Optional Enhancement:** Wrapper script for AI-friendly JSON output.
 
-```
+```text
 .claude/scripts/tools/
 └── vitest-runner.cjs    # Optional: JSON output wrapper
 ```
@@ -121,7 +121,7 @@ Replace MCP dashboard with file-based workflow:
 
 **Directory Structure:**
 
-```
+```text
 specs/
 ├── {feature-1}/
 │   ├── requirements.md   # Status: Draft | Approved | Implemented
@@ -134,7 +134,7 @@ specs/
 
 **Status Workflow:**
 
-```
+```text
 Draft → In Review → Approved → In Progress → Implemented
 ```
 
@@ -234,7 +234,7 @@ interface CoverageResult {
 
 ### GitHub Operations (After)
 
-```
+```text
 User Request
     │
     ▼
@@ -255,7 +255,7 @@ Claude formats response for user
 
 ### Test Operations (After)
 
-```
+```text
 User Request ("run tests")
     │
     ▼
@@ -280,7 +280,7 @@ Claude parses and summarizes results
 
 ### GitHub CLI Not Authenticated
 
-```
+```text
 Error: gh: not logged into any GitHub hosts
 ```
 
@@ -288,7 +288,7 @@ Error: gh: not logged into any GitHub hosts
 
 ### Vitest Not Installed
 
-```
+```text
 Error: Command 'vitest' not found
 ```
 

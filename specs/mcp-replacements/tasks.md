@@ -179,7 +179,7 @@ Verify all replacements work correctly.
 
 ## Task Dependencies
 
-```
+```text
 T001 ──┐
        ├──► T003 ─┐
 T002 ──┘    T004 ─┼──► T006 ──► T007 ──► T015

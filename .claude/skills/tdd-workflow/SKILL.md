@@ -109,7 +109,7 @@ Improve code quality while keeping tests green:
 ### Step 6: Verify Coverage
 
 ```bash
-pnpm test:run --coverage
+pnpm test:coverage
 # Verify 70%+ coverage achieved
 ```
 

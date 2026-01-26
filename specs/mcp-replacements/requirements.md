@@ -70,7 +70,7 @@ Reduce MCP server complexity by replacing 3 servers (github, vitest, spec-workfl
 
 - **REQ-4.2:** THE SYSTEM SHALL store specs in `specs/{feature}/` directory with requirements.md, design.md, and tasks.md files.
 
-- **REQ-4.3:** THE SYSTEM SHALL document the file-based spec workflow in `.claude/skills/research/SKILL.md` or a new `spec-workflow` skill as replacement for the dashboard.
+- **REQ-4.3:** THE SYSTEM SHALL document the file-based spec workflow in `.claude/skills/research/SKILL.md` as replacement for the dashboard.
 
 - **REQ-4.4:** WHERE spec approval is needed, THE SYSTEM SHALL use a status field in requirements.md (Draft → Approved → Implemented).
 
@@ -82,7 +82,7 @@ Reduce MCP server complexity by replacing 3 servers (github, vitest, spec-workfl
 
 #### Acceptance Criteria
 
-- **REQ-5.1:** WHEN MCP configuration is modified, THE SYSTEM SHALL preserve a backup of the original `.mcp.json`.
+- **REQ-5.1:** WHEN MCP configuration is modified, THE SYSTEM SHALL preserve a backup of the original `.mcp.json` as `.mcp.json.backup` in the same directory.
 
 - **REQ-5.2:** THE SYSTEM SHALL document the rollback procedure in the spec.
 
@@ -136,7 +136,7 @@ THE SYSTEM SHALL provide comprehensive CLI command reference covering all remove
 - Replacing playwright (essential for browser automation)
 - Modifying the MCP protocol or infrastructure
 - Changes to the hook system
-- Removing MCP servers from other projects (react-basecamp, orchestrator-dashboard)
+- Removing MCP servers from other projects (e.g., orchestrator-dashboard)
 
 ---
 

@@ -41,6 +41,8 @@ gh auth login
 | View review comments | `gh api repos/{owner}/{repo}/pulls/<number>/reviews`          |
 | View issue comments  | `gh pr view <number> --comments`                              |
 
+**Note:** For `{owner}/{repo}`, use: `gh repo view --json owner,name -q '"\(.owner.login)/\(.name)"'`
+
 ### Viewing PR Comments
 
 ```bash
