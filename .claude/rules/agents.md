@@ -159,6 +159,69 @@ Writer agent provides:
 - Known risks
 - Verification focus areas
 
+## Sub-Agent Delegation
+
+For context-efficient execution, agents can spawn isolated sub-agents via the Task tool. This prevents context overflow on complex tasks.
+
+### When to Use Sub-Agents
+
+| Scenario                  | Approach             |
+| ------------------------- | -------------------- |
+| Simple task (1-2 files)   | Direct execution     |
+| Complex task (3+ files)   | Sub-agent delegation |
+| Context approaching limit | Sub-agent delegation |
+| Parallelizable checks     | Parallel sub-agents  |
+
+### Sub-Agent Infrastructure
+
+See [sub-agents/README.md](../sub-agents/README.md) for complete documentation.
+
+| Component | Location                | Purpose                                          |
+| --------- | ----------------------- | ------------------------------------------------ |
+| Templates | `sub-agents/templates/` | researcher, writer, validator, parallel-executor |
+| Profiles  | `sub-agents/profiles/`  | read-only, research, writer, full-access         |
+| Protocols | `sub-agents/protocols/` | handoff format, orchestration patterns           |
+
+### Sub-Agent Invocation
+
+```typescript
+// Spawn a research sub-agent
+await Task({
+  subagent_type: "general-purpose",
+  description: "Research auth patterns",
+  prompt: JSON.stringify(handoffRequest),
+  allowed_tools: ["Read", "Grep", "Glob", "mcp__cclsp__*"],
+  model: "sonnet",
+});
+```
+
+### Handoff Protocol
+
+Sub-agents communicate via structured JSON:
+
+```json
+{
+  "task_id": "auth-001",
+  "phase": "research",
+  "decision": "PROCEED | STOP | CLARIFY",
+  "context_summary": "max 500 tokens for next phase",
+  "findings": { ... }
+}
+```
+
+Key rule: Pass `context_summary` between phases, NOT raw context.
+
+### Permission Profiles
+
+| Profile     | Tools                           | Use For               |
+| ----------- | ------------------------------- | --------------------- |
+| read-only   | Read, Grep, Glob, cclsp         | Code review, analysis |
+| research    | + WebFetch, WebSearch, context7 | Documentation lookup  |
+| writer      | + Write, Edit, Bash             | Implementation        |
+| full-access | All tools + Task                | Orchestration         |
+
+---
+
 ## Anti-Patterns
 
 ### DON'T: Skip Research
