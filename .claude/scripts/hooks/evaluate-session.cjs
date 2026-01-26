@@ -4,13 +4,11 @@
  *
  * Cross-platform (Windows, macOS, Linux)
  *
- * Runs on Stop hook to extract reusable patterns from Claude Code sessions
+ * Runs on Stop hook to evaluate sessions for extractable patterns.
+ * - Checks if session is long enough
+ * - Signals to Claude that patterns could be extracted
  *
- * Why Stop hook instead of UserPromptSubmit:
- * - Stop runs once at session end (lightweight)
- * - UserPromptSubmit runs every message (heavy, adds latency)
- *
- * Adapted from everything-claude-code for react-basecamp
+ * Output: stderr only (status messages visible to user)
  */
 
 const path = require('path');
@@ -20,7 +18,7 @@ const {
   ensureDir,
   readFile,
   countInFile,
-  log
+  logError,
 } = require('../lib/utils.cjs');
 
 async function main() {
@@ -40,7 +38,6 @@ async function main() {
       minSessionLength = config.min_session_length || 10;
 
       if (config.learned_skills_path) {
-        // Handle ~ in path
         learnedSkillsPath = config.learned_skills_path.replace(/^~/, require('os').homedir());
       }
     } catch {
@@ -54,6 +51,7 @@ async function main() {
   // Get transcript path from environment (set by Claude Code)
   const transcriptPath = process.env.CLAUDE_TRANSCRIPT_PATH;
 
+  // Handle missing transcript gracefully (exit silently)
   if (!transcriptPath || !fs.existsSync(transcriptPath)) {
     process.exit(0);
   }
@@ -61,20 +59,19 @@ async function main() {
   // Count user messages in session
   const messageCount = countInFile(transcriptPath, /"type":"user"/g);
 
-  // Skip short sessions
+  // Skip short sessions (silently)
   if (messageCount < minSessionLength) {
-    log(`[ContinuousLearning] Session too short (${messageCount} messages), skipping`);
     process.exit(0);
   }
 
   // Signal to Claude that session should be evaluated for extractable patterns
-  log(`[ContinuousLearning] Session has ${messageCount} messages - evaluate for extractable patterns`);
-  log(`[ContinuousLearning] Save learned skills to: ${learnedSkillsPath}`);
+  logError(`[Hook] Session has ${messageCount} messages - evaluate for extractable patterns`);
+  logError(`[Hook] Save learned skills to: ${learnedSkillsPath}`);
 
   process.exit(0);
 }
 
 main().catch(err => {
-  console.error('[ContinuousLearning] Error:', err.message);
+  logError('[Hook] EvaluateSession error: ' + err.message);
   process.exit(0);
 });

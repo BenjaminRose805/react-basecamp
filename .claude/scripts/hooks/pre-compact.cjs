@@ -4,10 +4,11 @@
  *
  * Cross-platform (Windows, macOS, Linux)
  *
- * Runs before Claude compacts context, giving you a chance to
- * preserve important state that might get lost in summarization.
+ * Runs before Claude compacts context.
+ * - Logs compaction event
+ * - Updates active session file with compaction marker
  *
- * Adapted from everything-claude-code for react-basecamp
+ * Output: stderr only (status messages visible to user)
  */
 
 const path = require('path');
@@ -18,7 +19,7 @@ const {
   findFiles,
   ensureDir,
   appendFile,
-  log
+  logError,
 } = require('../lib/utils.cjs');
 
 async function main() {
@@ -37,14 +38,14 @@ async function main() {
   if (sessions.length > 0) {
     const activeSession = sessions[0].path;
     const timeStr = getTimeString();
-    appendFile(activeSession, `\n---\n**[Compaction occurred at ${timeStr}]** - Context was summarized\n`);
+    appendFile(activeSession, `\n---\n**[Compaction at ${timeStr}]** - Context was summarized\n`);
   }
 
-  log('[PreCompact] State saved before compaction');
+  logError('[Hook] State saved before compaction');
   process.exit(0);
 }
 
 main().catch(err => {
-  console.error('[PreCompact] Error:', err.message);
+  logError('[Hook] PreCompact error: ' + err.message);
   process.exit(0);
 });

@@ -180,6 +180,7 @@ async function readStdinJson() {
 
 /**
  * Log to stderr (visible to user in Claude Code)
+ * @deprecated Use logError() for clarity
  */
 function log(message) {
   console.error(message);
@@ -187,12 +188,87 @@ function log(message) {
 
 /**
  * Output to stdout (returned to Claude)
+ * @deprecated Use logContext() for clarity
  */
 function output(data) {
   if (typeof data === 'object') {
     console.log(JSON.stringify(data));
   } else {
     console.log(data);
+  }
+}
+
+/**
+ * Log error/status message to stderr (visible to user)
+ * Use this for warnings, errors, and status messages
+ * @param {string} message - The message to log
+ */
+function logError(message) {
+  console.error(message);
+}
+
+/**
+ * Log context to stdout (adds to Claude's context)
+ * Use this for injecting context that Claude should see
+ * @param {string} message - The context to inject
+ */
+function logContext(message) {
+  console.log(message);
+}
+
+/**
+ * Get the logs directory for audit logging
+ * @returns {string} Path to .claude/logs in project root
+ */
+function getLogsDir() {
+  // Use project root's .claude/logs, not user home
+  return path.join(process.cwd(), '.claude', 'logs');
+}
+
+/**
+ * Append data to a JSON log file with rotation
+ * Keeps last MAX_LOG_ENTRIES entries
+ * @param {string} logName - Name of the log file (without extension)
+ * @param {object} data - Data to append
+ * @param {number} maxEntries - Maximum entries to keep (default 1000)
+ */
+function appendToLog(logName, data, maxEntries = 1000) {
+  try {
+    const logsDir = getLogsDir();
+    ensureDir(logsDir);
+
+    const logPath = path.join(logsDir, `${logName}.json`);
+    let entries = [];
+
+    // Read existing entries
+    if (fs.existsSync(logPath)) {
+      try {
+        const content = fs.readFileSync(logPath, 'utf8');
+        entries = JSON.parse(content);
+        if (!Array.isArray(entries)) {
+          entries = [];
+        }
+      } catch {
+        entries = [];
+      }
+    }
+
+    // Add new entry with timestamp
+    entries.push({
+      ...data,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Rotate if exceeds max
+    if (entries.length > maxEntries) {
+      entries = entries.slice(-maxEntries);
+    }
+
+    // Write back
+    fs.writeFileSync(logPath, JSON.stringify(entries, null, 2), 'utf8');
+  } catch (err) {
+    // Fail silently - don't break hooks on logging errors
+    logError(`[Hook] Warning: Failed to write to log: ${err.message}`);
   }
 }
 
@@ -359,8 +435,12 @@ module.exports = {
 
   // Hook I/O
   readStdinJson,
-  log,
-  output,
+  log,       // deprecated, use logError
+  output,    // deprecated, use logContext
+  logError,
+  logContext,
+  appendToLog,
+  getLogsDir,
 
   // System
   commandExists,
