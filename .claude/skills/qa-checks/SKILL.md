@@ -15,13 +15,38 @@ Run comprehensive quality verification.
 | ui-agent    | VALIDATE |
 | check-agent | All      |
 
-## MCP Servers
+## CLI Tools
 
+All test operations use pnpm scripts (vitest CLI):
+
+```bash
+# List test files
+find . -name "*.test.ts" -o -name "*.test.tsx" -o -name "*.spec.ts" | head -20
+
+# Run all tests
+pnpm test:run
+
+# Run specific tests
+pnpm test:run src/lib/formatDate
+
+# Run tests with coverage
+pnpm test:coverage
+
+# Run tests in watch mode
+pnpm test
 ```
-vitest         # Test runner with coverage
-cclsp          # TypeScript diagnostics
-next-devtools  # Build status, dev server errors
-```
+
+### Test Command Reference
+
+| Operation         | Command                                         |
+| ----------------- | ----------------------------------------------- |
+| Run all tests     | `pnpm test:run`                                 |
+| Run specific file | `pnpm test:run <path>`                          |
+| Run with coverage | `pnpm test:coverage`                            |
+| Watch mode        | `pnpm test`                                     |
+| List test files   | `find . -name "*.test.ts" -o -name "*.spec.ts"` |
+
+**Note:** The vitest MCP server has been replaced with CLI commands. TypeScript diagnostics still use cclsp MCP.
 
 ## Steps
 

@@ -13,12 +13,53 @@ Pull request lifecycle procedures including create, CI check, merge, and review.
 | -------- | ----------- |
 | pr-agent | All actions |
 
-## MCP Servers
+## CLI Tools
 
+All operations use GitHub CLI (`gh`):
+
+```bash
+# Verify gh CLI is authenticated
+gh auth status
+
+# If not authenticated, run:
+gh auth login
 ```
-github  # PR create, merge, review, status
-linear  # Link PRs to issues (optional)
+
+### gh CLI Command Reference
+
+| Operation            | Command                                                       |
+| -------------------- | ------------------------------------------------------------- |
+| List PRs             | `gh pr list`                                                  |
+| View PR              | `gh pr view <number>`                                         |
+| Create PR            | `gh pr create --title "..." --body "..."`                     |
+| Merge PR             | `gh pr merge <number> --squash --delete-branch`               |
+| Review PR            | `gh pr review <number> --approve/--comment/--request-changes` |
+| Check CI             | `gh pr checks <number>`                                       |
+| PR Diff              | `gh pr diff <number>`                                         |
+| Close PR             | `gh pr close <number>`                                        |
+| View PR comments     | `gh api repos/{owner}/{repo}/pulls/<number>/comments`         |
+| View review comments | `gh api repos/{owner}/{repo}/pulls/<number>/reviews`          |
+| View issue comments  | `gh pr view <number> --comments`                              |
+
+### Viewing PR Comments
+
+```bash
+# View conversation/issue-style comments on PR
+gh pr view <number> --comments
+
+# View inline code review comments (requires API)
+gh api repos/{owner}/{repo}/pulls/<number>/comments
+
+# View reviews with their comments
+gh api repos/{owner}/{repo}/pulls/<number>/reviews
+
+# Get owner/repo from current directory
+gh repo view --json owner,name -q '"\(.owner.login)/\(.name)"'
 ```
+
+**For Linear issue linking:** Include `Fixes LIN-123` in PR body to auto-link.
+
+**Note:** The github MCP server has been replaced with `gh` CLI. All GitHub operations use Bash tool with gh commands.
 
 ## Procedures
 

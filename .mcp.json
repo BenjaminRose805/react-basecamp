@@ -15,21 +15,9 @@
       "command": "npx",
       "args": ["-y", "@playwright/mcp@latest"]
     },
-    "vitest": {
-      "command": "npx",
-      "args": ["-y", "@djankies/vitest-mcp"]
-    },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"]
-    },
     "context7": {
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp"]
-    },
-    "spec-workflow": {
-      "command": "npx",
-      "args": ["-y", "@pimzino/spec-workflow-mcp@latest"]
     },
     "shadcn": {
       "command": "npx",

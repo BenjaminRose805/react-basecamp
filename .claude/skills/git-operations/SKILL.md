@@ -13,11 +13,19 @@ Git command procedures for branch management, commits, and worktrees.
 | --------- | ----------- |
 | git-agent | All actions |
 
-## MCP Servers
+## CLI Tools
 
+All operations use native git and GitHub CLI (`gh`):
+
+```bash
+# Verify gh CLI is authenticated
+gh auth status
+
+# If not authenticated, run:
+gh auth login
 ```
-github  # Branch info, commit history
-```
+
+**Note:** The github MCP server has been replaced with `gh` CLI commands. See pr-operations skill for PR-related commands.
 
 ## Procedures
 

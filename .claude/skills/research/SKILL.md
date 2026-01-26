@@ -69,12 +69,48 @@ grep "export const.*Router" src/server/ --type ts
 
 ### 4. Gather Context
 
-**Read related specs:**
+**Read related specs (file-based workflow):**
 
 ```bash
-# Check for existing specs
-ls .spec-workflow/specs/<feature>/
+# Check for existing specs in specs/ directory
+ls specs/<feature>/
+
+# Read spec files
+cat specs/<feature>/requirements.md
+cat specs/<feature>/design.md
+cat specs/<feature>/tasks.md
+
+# Search all specs by status
+grep -r "Status:" specs/*/requirements.md
 ```
+
+**Spec Directory Structure:**
+
+```
+specs/
+├── {feature}/
+│   ├── requirements.md   # Status: Draft | In Review | Approved | In Progress | Implemented
+│   ├── design.md         # Architecture and component design
+│   └── tasks.md          # Implementation tasks with checkboxes
+└── templates/
+    ├── requirements.md   # Template for new specs
+    ├── design.md
+    └── tasks.md
+```
+
+**Spec Status Workflow:**
+
+```
+Draft → In Review → Approved → In Progress → Implemented
+```
+
+Status is tracked in the `requirements.md` header:
+
+```markdown
+> **Status:** Approved
+```
+
+**Note:** The spec-workflow MCP server has been replaced with file-based specs in `specs/` directory.
 
 **Understand dependencies:**
 
