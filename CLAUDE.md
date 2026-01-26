@@ -36,6 +36,30 @@ The system uses a 4-layer architecture:
 └─────────────────────────────────────────────────────────────┘
 ```
 
+### Sub-Agent System
+
+For complex tasks, agents can spawn isolated sub-agents via the Task tool. This prevents context overflow by running each phase in a fresh context window.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Orchestrator (lightweight, coordinates phases)             │
+└─────────────────────────────────────────────────────────────┘
+         │                    │                    │
+         ▼                    ▼                    ▼
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│ Researcher  │      │   Writer    │      │  Validator  │
+│ (isolated)  │ ───► │ (isolated)  │ ───► │ (isolated)  │
+└─────────────┘      └─────────────┘      └─────────────┘
+```
+
+**Documentation:** [.claude/sub-agents/README.md](.claude/sub-agents/README.md)
+
+| Component | Purpose                                          |
+| --------- | ------------------------------------------------ |
+| Templates | researcher, writer, validator, parallel-executor |
+| Profiles  | read-only, research, writer, full-access         |
+| Protocols | Handoff format, orchestration patterns           |
+
 ---
 
 ## Command Routing

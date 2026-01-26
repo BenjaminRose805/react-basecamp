@@ -195,3 +195,44 @@ throw new TRPCError({
 - Add features not in spec
 - Use APIs without verifying via context7
 - Leave TODO comments
+
+## Context Compaction (Orchestrator)
+
+When using sub-agents, follow the [orchestrator memory rules](../sub-agents/protocols/orchestration.md#orchestrator-memory-rules).
+
+### After Each Phase
+
+```typescript
+// EXTRACT only what's needed
+state.decisions.research = result.decision;
+state.progress.research_summary = result.context_summary; // Max 500 tokens
+// DISCARD the full response - don't store result.findings
+```
+
+### Pass Summaries, Not Raw Data
+
+```typescript
+// GOOD: Pass compact summary to next phase
+await runWriter({
+  previous_findings: researchResult.context_summary, // ~500 tokens
+});
+
+// BAD: Pass full findings
+await runWriter({
+  previous_findings: researchResult.findings, // ~10K tokens
+});
+```
+
+### State Structure
+
+Maintain minimal state between phases:
+
+```typescript
+{
+  progress: {
+    research_summary: string | null;  // ≤500 tokens
+    write_summary: string | null;     // ≤500 tokens
+    files_changed: string[];          // paths only
+  }
+}
+```

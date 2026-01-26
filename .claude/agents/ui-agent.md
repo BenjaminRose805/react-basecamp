@@ -215,3 +215,44 @@ When Figma designs exist:
 - Skip accessibility attributes
 - Hardcode responsive breakpoints (use Tailwind)
 - Create inline styles (use className)
+
+## Context Compaction (Orchestrator)
+
+When using sub-agents, follow the [orchestrator memory rules](../sub-agents/protocols/orchestration.md#orchestrator-memory-rules).
+
+### After Each Phase
+
+```typescript
+// EXTRACT only what's needed
+state.decisions.research = result.decision;
+state.progress.research_summary = result.context_summary; // Max 500 tokens
+// DISCARD the full response - don't store result.findings
+```
+
+### Pass Summaries, Not Raw Data
+
+```typescript
+// GOOD: Pass compact summary to next phase
+await runBuilder({
+  previous_findings: researchResult.context_summary, // ~500 tokens
+});
+
+// BAD: Pass full findings
+await runBuilder({
+  previous_findings: researchResult.findings, // ~10K tokens
+});
+```
+
+### State Structure
+
+Maintain minimal state between phases:
+
+```typescript
+{
+  progress: {
+    research_summary: string | null;  // ≤500 tokens
+    build_summary: string | null;     // ≤500 tokens
+    components_created: string[];     // paths only
+  }
+}
+```
