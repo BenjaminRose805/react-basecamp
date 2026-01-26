@@ -1,89 +1,87 @@
-# /ui - UI Component Building
+# /ui - UI Implementation
 
-Build UI components from designs with accessibility focus.
+Build frontend UI components.
 
 ## Usage
 
 ```
-/ui [component]           # Full flow: research → build → qa
-/ui research [component]  # Research only: find existing components
-/ui build [component]     # Build only: create component (after research)
-/ui qa [component]        # QA only: validate component
+/ui [feature]           # Full flow: research → build → validate
+/ui research [feature]  # Research only
+/ui build [feature]     # Build only (after research)
+/ui validate [feature]  # Validate only (after build)
 ```
 
 ## Examples
 
-```
-# Full flow (recommended)
-/ui IconButton component
-/ui SearchInput with autocomplete
-/ui Modal component from Figma
-
-# Individual phases
-/ui research Card component    # Check for existing components
-/ui build Card component       # Build after research
-/ui qa Card component          # Validate after building
+```bash
+/ui prompt-manager        # Full UI implementation
+/ui research dashboard    # Check existing components
+/ui build user-card       # After research approved
+/ui validate form         # Re-validate after fixes
 ```
 
-## Workflow
+## Agent
 
-Running `/ui [component]` executes all three phases in sequence:
+Routes to: `ui-agent`
 
-### Phase 1: Research (ui-researcher)
+## Phases
 
-- Find existing similar components
-- Analyze component patterns
-- Check design tokens and styling
-- **Outputs: PROCEED, STOP, or CLARIFY**
+### research
 
-### Phase 2: Build (ui-builder)
+- Find existing components
+- Check shadcn registry
+- Check Figma designs (if available)
+- Identify patterns to follow
+- Decision: PROCEED, STOP, or CLARIFY
 
-- Extract design details from Figma
-- Build component following patterns
-- Implement all states
-- **Outputs: Component files created, ready for QA**
+### build
 
-### Phase 3: QA (ui-qa)
+- Check if base components exist in shadcn
+- Write component tests first
+- Build components with accessibility
+- Add styling and polish
+- Log implementations
 
-- Visual validation
-- Accessibility testing (WCAG 2.1 AA)
-- Responsive testing
-- **Outputs: PASS or FAIL**
+### validate
 
-## Agents
+- Run type checking
+- Run component tests
+- Check accessibility
+- Verify responsive behavior
+- Report: PASS or FAIL
 
-| Phase    | Agent         | Instructions                      |
-| -------- | ------------- | --------------------------------- |
-| research | ui-researcher | `.claude/agents/ui-researcher.md` |
-| build    | ui-builder    | `.claude/agents/ui-builder.md`    |
-| qa       | ui-qa         | `.claude/agents/ui-qa.md`         |
-
-## MCP Servers
+## MCP Servers Used
 
 ```
-figma       # Design file access
-playwright  # Browser testing and verification
-cclsp       # TypeScript LSP for code intelligence
+cclsp       # TypeScript
+figma       # Design specs
+shadcn      # Component registry
+playwright  # Visual testing
+context7    # React API verification
+spec-workflow # Task tracking
 ```
 
-## Component States
+## Skills Applied
 
-All components should implement:
+- `research` - Component discovery
+- `tdd-workflow` - Test-first components
+- `qa-checks` - Quality verification
+- `frontend-patterns` - React patterns
+- `coding-standards` - Clean code
 
-1. Default
-2. Hover
-3. Focus
-4. Active
-5. Disabled
-6. Loading (if applicable)
-7. Error (if applicable)
+## shadcn Integration
 
-## After Completion
+```bash
+# Install base components
+pnpm dlx shadcn@latest add button card
 
-After `/ui [component]` (or `/ui qa`):
+# Or use MCP to search
+mcp shadcn search_items_in_registries "button"
+```
 
-1. Run `/test [component]` for test coverage
-2. Run `/security [component]` for vulnerability scanning
-3. Run `/review staged` for final approval
+## After /ui
+
+1. Run `/check` for full verification
+2. Run `/ship` to create PR
 
 $ARGUMENTS

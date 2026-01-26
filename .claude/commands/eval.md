@@ -1,143 +1,90 @@
-# /eval - Evaluation-Driven Development
+# /eval - LLM Evaluations
 
-Create evaluation suites for LLM features where traditional tests don't work.
+Create evaluation suites for LLM features.
 
 ## Usage
 
 ```
-/eval [feature]           # Full flow: research → write → qa
-/eval research [feature]  # Research only: identify LLM touchpoints
-/eval write [feature]     # Write only: create eval suite
-/eval qa [feature]        # QA only: validate and dry run
+/eval [feature]           # Full flow: research → create → validate
+/eval research [feature]  # Identify LLM touchpoints
+/eval create [feature]    # Create eval suite
+/eval validate [feature]  # Run and verify evals
 ```
 
 ## Examples
 
-```
-# Full flow (recommended)
-/eval agent-builder
-/eval execution-engine
-/eval prompt-manager
-
-# Individual phases
-/eval research agent-builder  # Identify LLM touchpoints
-/eval write agent-builder     # Create eval suite
-/eval qa agent-builder        # Validate and dry run
+```bash
+/eval agent-builder         # Create evals for agent builder
+/eval research tool-select  # Find LLM touchpoints
+/eval create prompt-gen     # Create eval suite
+/eval validate safety       # Run safety evals
 ```
 
 ## When to Use
 
-Use `/eval` for features with:
+Use EDD for features with:
 
 - LLM/AI integration
 - Non-deterministic outputs
-- Agent responses
-- Tool selection logic
+- Agent behaviors
 - Prompt engineering
-- Guardrails and safety checks
 
-Skip `/eval` for:
+Skip for:
 
-- CRUD features (prompt-manager UI)
-- Deterministic logic (workflow-designer)
-- Standard UI components
-- Database operations
+- CRUD operations
+- Deterministic logic
+- Standard UI
 
-## Workflow
+## Agent
 
-Running `/eval [feature]` executes all three phases:
+Routes to: `eval-agent`
 
-### Phase 1: Research (eval-researcher)
+## Phases
 
-- Identify LLM touchpoints in the feature
+### research
+
+- Identify LLM touchpoints
 - Determine evaluation dimensions
-- Suggest test cases (happy, edge, adversarial)
-- Recommend grading strategy (code vs LLM-judge)
+- Suggest test cases
+- Recommend grading strategy
 
-**Outputs:** Research brief with eval recommendations
+### create
 
-### Phase 2: Write (eval-writer)
+- Create eval structure in `evals/{feature}/`
+- Write config.ts with dimensions
+- Write test cases
+- Implement graders
 
-Creates evaluation suite structure:
+### validate
+
+- Run dry run with mocks
+- Optionally run smoke test
+- Verify coverage
+- Report: PASS or FAIL
+
+## Eval Structure
 
 ```
-evals/
-└── {feature}/
-    ├── config.ts      # Dimensions, thresholds
-    ├── cases/         # Test cases
-    │   ├── happy.ts
-    │   ├── edge.ts
-    │   └── adversarial.ts
-    ├── graders/       # Evaluation logic
-    │   ├── accuracy.ts
-    │   ├── safety.ts
-    │   └── format.ts
-    └── index.ts       # Export
+evals/{feature}/
+├── config.ts       # Dimensions, thresholds
+├── cases/          # Test cases
+├── graders/        # Evaluation logic
+└── index.ts        # Export
 ```
 
-**Outputs:** Complete eval suite
-
-### Phase 3: QA (eval-qa)
-
-- Validate structure and completeness
-- Dry run with mock responses
-- Optionally smoke run with real LLM
-- Report coverage and quality
-
-**Outputs:** PASS or FAIL with coverage report
-
-## Agents
-
-| Phase    | Agent           | Instructions                        |
-| -------- | --------------- | ----------------------------------- |
-| research | eval-researcher | `.claude/agents/eval-researcher.md` |
-| write    | eval-writer     | `.claude/agents/eval-writer.md`     |
-| qa       | eval-qa         | `.claude/agents/eval-qa.md`         |
-
-## Running Evaluations
-
-After creating evals:
+## Running Evals
 
 ```bash
-pnpm eval [feature]                     # Full suite
-pnpm eval [feature] --smoke             # Quick check (1 trial)
-pnpm eval [feature] --case simple       # Single case
-pnpm eval [feature] --verbose           # Detailed output
+pnpm eval {feature}           # Full suite
+pnpm eval {feature} --smoke   # Quick check
+pnpm eval {feature} --case X  # Single case
 ```
 
-## Key Metrics
+## Metrics
 
-| Metric  | Description              | Target          |
-| ------- | ------------------------ | --------------- |
-| pass@1  | Passes on first attempt  | > 80%           |
-| pass@3  | Passes within 3 attempts | > 95%           |
-| pass^3  | All 3 trials succeed     | > 70%           |
-| Latency | Response time            | < 5s for simple |
-
-## Eval Case Structure
-
-```typescript
-// evals/{feature}/cases/happy.ts
-export const happyPathCases: EvalCase[] = [
-  {
-    name: "simple-request",
-    input: { prompt: "Create a greeting agent" },
-    expected: {
-      hasAgentConfig: true,
-      hasSystemPrompt: true,
-      noHarmfulContent: true,
-    },
-  },
-];
-```
-
-## After Completion
-
-After `/eval [feature]` (or `/eval qa`):
-
-1. Run evals: `pnpm eval [feature] --smoke`
-2. Run `/code [feature]` to implement
-3. Iterate until evals pass consistently
-4. Continue to `/security` and `/review`
+| Metric | Description    | Target |
+| ------ | -------------- | ------ |
+| pass@1 | First attempt  | > 80%  |
+| pass@3 | Within 3 tries | > 95%  |
 
 $ARGUMENTS

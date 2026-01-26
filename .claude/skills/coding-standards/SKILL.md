@@ -7,6 +7,13 @@ description: Universal coding standards for TypeScript, React, and Next.js devel
 
 Universal coding standards for react-basecamp projects.
 
+## When Used
+
+| Agent      | Phase     |
+| ---------- | --------- |
+| code-agent | IMPLEMENT |
+| ui-agent   | BUILD     |
+
 ## Code Quality Principles
 
 ### 1. Readability First

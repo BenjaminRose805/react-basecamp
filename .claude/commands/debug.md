@@ -1,99 +1,103 @@
 # /debug - Bug Investigation
 
-Hunt down and fix bugs when issues are reported.
+Investigate and diagnose bugs.
 
 ## Usage
 
 ```
-/debug [issue description, error, or Sentry ID]
+/debug [issue]
 ```
 
 ## Examples
 
+```bash
+/debug "TypeError in login flow"
+/debug "Tests failing intermittently"
+/debug "Sentry issue PROJ-123"
 ```
-# Investigate reported bugs
-/debug SENTRY-12345
-/debug "Cannot read property of undefined" in Login.tsx
-/debug why is checkout failing intermittently
-/debug users can't submit the contact form
-
-# Investigate failing tests
-/debug auth tests are flaky
-/debug why is this E2E test timing out
-```
-
-## When to Use
-
-Use `/debug` when:
-
-- User reports a bug
-- Production error in Sentry
-- Test suddenly failing
-- Runtime error observed
-- Unexpected behavior found
-
-**Do NOT use `/debug` for routine validation.** Use the QA agents instead:
-
-- `/code qa` for code validation
-- `/test qa` for test validation
-- `/ui qa` for component validation
-
-## Workflow
-
-The debugger agent follows this investigation flow:
-
-### Step 1: Gather Information
-
-- Get bug details and error messages
-- Check production errors (Sentry)
-- Review recent changes
-
-### Step 2: Reproduce
-
-- Reproduce the issue locally
-- Confirm it's actually a bug
-- Create minimal reproduction
-
-### Step 3: Investigate
-
-- Trace code path
-- Identify root cause (not just symptoms)
-- Check for related issues
-
-### Step 4: Fix
-
-- Write failing test first
-- Make minimal fix
-- Verify fix works
-
-### Step 5: Report
-
-- Document root cause
-- Show fix applied
-- List regression test added
 
 ## Agent
 
-| Agent    | Instructions                 |
-| -------- | ---------------------------- |
-| debugger | `.claude/agents/debugger.md` |
+Routes to: `debug-agent`
 
-## MCP Servers
+## Phases
+
+### GATHER
+
+- Collect error information
+- Check Sentry for related issues
+- Check GitHub for similar reports
+- Read relevant code
+
+### ANALYZE
+
+- Identify root cause
+- Trace execution path
+- Check for similar patterns
+- Determine impact scope
+
+### REPORT
+
+- Summarize findings
+- Provide recommended fix
+- Suggest regression test
+- Estimate complexity
+
+## Output
+
+````markdown
+## Bug Investigation
+
+### Root Cause
+
+The issue occurs in `src/lib/api.ts:45` where...
+
+### Recommended Fix
+
+```typescript
+// Before
+const result = data.property;
+
+// After
+const result = data?.property ?? defaultValue;
+```
+````
+
+### Regression Test
+
+```typescript
+it("handles missing property", () => {
+  expect(() => fn({})).not.toThrow();
+});
+```
+
+### Complexity
+
+- Effort: Small
+- Risk: Low
+- Files: 1
 
 ```
-cclsp          # TypeScript LSP for code intelligence
-next-devtools  # Next.js dev server errors
-vitest         # Run tests to verify fixes
-playwright     # E2E reproduction
-sentry         # Production error monitoring
+
+## MCP Servers Used
+
 ```
 
-## After Fix
+cclsp # Code navigation
+sentry # Production errors
+vitest # Run tests
+playwright # Browser issues
+next-devtools # Dev errors
+github # Related issues
 
-After `/debug` successfully fixes the issue:
+```
 
-1. Run `/code qa` to validate the fix
-2. Run `/security` if fix touches security-sensitive code
-3. Run `/review staged` for approval
+## After /debug
+
+1. Run `/code` to implement fix
+2. Add regression test
+3. Run `/check` to verify
+4. Run `/ship` when ready
 
 $ARGUMENTS
+```

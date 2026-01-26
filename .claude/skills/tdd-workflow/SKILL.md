@@ -7,6 +7,13 @@ description: Test-Driven Development workflow skill. Use when writing new featur
 
 This skill ensures all code development follows TDD principles.
 
+## When Used
+
+| Agent      | Phase     |
+| ---------- | --------- |
+| code-agent | IMPLEMENT |
+| ui-agent   | BUILD     |
+
 ## When to Activate
 
 - Writing new features or functionality

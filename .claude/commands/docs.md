@@ -1,81 +1,90 @@
-# /docs - Documentation Writing
+# /docs - Documentation
 
-Generate and maintain project documentation.
+Write and maintain documentation.
 
 ## Usage
 
 ```
-/docs [topic]           # Full flow: research → write → qa
-/docs research [topic]  # Research only: find existing docs
-/docs write [topic]     # Write only: create docs (after research)
-/docs qa [topic]        # QA only: validate docs
+/docs [topic]           # Full flow: research → write → validate
+/docs research [topic]  # Research only
+/docs write [topic]     # Write only (after research)
+/docs validate [topic]  # Validate only (after write)
 ```
 
 ## Examples
 
-```
-# Full flow (recommended)
-/docs useAuth hook
-/docs API authentication endpoints
-/docs update README for new feature
-
-# Individual phases
-/docs research Button component    # Check existing docs
-/docs write Button component       # Write after research
-/docs qa Button component          # Validate after writing
+```bash
+/docs api-reference       # Document APIs
+/docs research prompts    # Find what to document
+/docs write getting-started  # Write guide
+/docs validate readme     # Verify docs
 ```
 
-## Workflow
+## Agent
 
-Running `/docs [topic]` executes all three phases in sequence:
+Routes to: `docs-agent`
 
-### Phase 1: Research (docs-researcher)
+## Phases
+
+### research
 
 - Find existing documentation
-- Analyze doc structure and style
-- Identify coverage gaps
-- **Outputs: PROCEED, STOP, or CLARIFY**
+- Identify what needs documenting
+- Gather code context
+- Verify API accuracy
 
-### Phase 2: Write (docs-writer)
+### write
 
-- Read the source code
-- Follow project doc standards
-- Include runnable examples
-- **Outputs: Doc files created, ready for QA**
+- Follow documentation templates
+- Write clear, actionable docs
+- Include code examples
+- Add cross-references
 
-### Phase 3: QA (docs-qa)
+### validate
 
-- Test code examples
-- Verify API signatures
-- Check links and cross-references
-- **Outputs: PASS or FAIL**
-
-## Agents
-
-| Phase    | Agent           | Instructions                        |
-| -------- | --------------- | ----------------------------------- |
-| research | docs-researcher | `.claude/agents/docs-researcher.md` |
-| write    | docs-writer     | `.claude/agents/docs-writer.md`     |
-| qa       | docs-qa         | `.claude/agents/docs-qa.md`         |
-
-## MCP Servers
-
-```
-cclsp          # TypeScript LSP for code intelligence
-```
+- Verify code examples work
+- Check links are valid
+- Ensure accuracy
+- Report: PASS or FAIL
 
 ## Documentation Types
 
-- **README.md** - Project overview, quick start
-- **API docs** - Endpoints, request/response
-- **Component docs** - Props, usage examples
-- **Architecture docs** - System overview, decisions
+### API Reference
 
-## When to Update Docs
+````markdown
+## Create Prompt
 
-- New feature added → Update README, add feature docs
-- API changed → Update API docs
-- Bug fixed → Update troubleshooting if relevant
-- Architecture changed → Update architecture docs, create ADR
+**Endpoint:** `POST /api/trpc/prompt.create`
+
+**Request:**
+
+```json
+{ "name": "My Prompt", "content": "..." }
+```
+````
+
+````
+
+### Guides
+
+```markdown
+# Getting Started
+
+1. Install dependencies
+2. Configure environment
+3. Run development server
+````
+
+## MCP Servers Used
+
+```
+cclsp     # Read code
+context7  # Verify APIs
+spec-workflow # Track tasks
+```
+
+## After /docs
+
+Review documentation at the target location.
 
 $ARGUMENTS

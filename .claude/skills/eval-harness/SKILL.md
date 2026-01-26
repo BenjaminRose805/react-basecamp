@@ -7,6 +7,12 @@ description: Formal evaluation framework for LLM features implementing Evaluatio
 
 A formal evaluation framework for Claude Code sessions, implementing Evaluation-Driven Development (EDD) principles.
 
+## When Used
+
+| Agent      | Phase  |
+| ---------- | ------ |
+| eval-agent | CREATE |
+
 ## Philosophy
 
 Evaluation-Driven Development treats evals as the "unit tests of AI development":

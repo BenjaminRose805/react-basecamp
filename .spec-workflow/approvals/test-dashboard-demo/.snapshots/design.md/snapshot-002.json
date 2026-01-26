@@ -1,0 +1,16 @@
+{
+  "id": "snapshot_1769275486701_ezqunpnin",
+  "approvalId": "approval_1769275144766_6pnurdfdb",
+  "approvalTitle": "Design: Test Dashboard Demo",
+  "version": 2,
+  "timestamp": "2026-01-24T17:24:46.701Z",
+  "trigger": "approved",
+  "status": "pending",
+  "content": "# Design: Test Dashboard Demo\n\n> **Status:** Draft\n> **Author:** Claude\n> **Created:** 2026-01-24\n\n## Architecture Overview\n\n```\n┌─────────────────────────────────────────────────────────────┐\n│  Spec Workflow Dashboard                                     │\n├─────────────────────────────────────────────────────────────┤\n│                                                             │\n│  ┌──────────────┐    ┌──────────────────────────────────┐  │\n│  │  Spec List   │    │  Spec Details                    │  │\n│  │              │    │                                  │  │\n│  │  ○ spec-1    │───▶│  Requirements: ████████░░ 80%   │  │\n│  │  ● spec-2    │    │  Design:       ██████████ 100%  │  │\n│  │  ○ spec-3    │    │  Tasks:        ░░░░░░░░░░ 0%    │  │\n│  │              │    │                                  │  │\n│  │              │    │  [Approve] [Request Changes]     │  │\n│  └──────────────┘    └──────────────────────────────────┘  │\n│                                                             │\n└─────────────────────────────────────────────────────────────┘\n```\n\n## Data Model\n\n### Spec\n```typescript\ninterface Spec {\n  name: string;           // kebab-case identifier\n  status: SpecStatus;\n  phases: {\n    requirements: PhaseStatus;\n    design: PhaseStatus;\n    tasks: PhaseStatus;\n  };\n  createdAt: Date;\n  updatedAt: Date;\n}\n\ntype SpecStatus = 'draft' | 'in-review' | 'approved' | 'implemented';\ntype PhaseStatus = 'pending' | 'draft' | 'in-review' | 'approved';\n```\n\n## API Endpoints\n\n| Method | Path | Description |\n|--------|------|-------------|\n| GET | `/api/specs` | List all specs |\n| GET | `/api/specs/:name` | Get spec details |\n| POST | `/api/specs/:name/approve` | Approve a phase |\n| POST | `/api/specs/:name/request-changes` | Request changes |\n\n## UI Components\n\n1. **SpecList** - Sidebar showing all specs\n2. **SpecDetails** - Main panel with phase progress\n3. **ApprovalButtons** - Approve/Request Changes actions\n4. **ProgressBar** - Visual phase completion\n\n## Implementation Notes\n\nThis is a test spec to demonstrate the dashboard workflow. The actual implementation already exists in the spec-workflow MCP server.\n",
+  "fileStats": {
+    "size": 2921,
+    "lines": 66,
+    "lastModified": "2026-01-24T17:17:08.103Z"
+  },
+  "comments": []
+}

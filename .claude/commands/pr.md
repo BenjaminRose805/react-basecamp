@@ -1,170 +1,101 @@
-# /pr - Create Pull Request
+# /pr - Pull Request Management
 
-Create well-structured pull requests with comprehensive descriptions.
+Create and manage pull requests.
 
 ## Usage
 
 ```
-/pr                        # Create PR from current branch
-/pr draft                  # Create as draft PR
-/pr [base]                 # Create PR against specific base branch
+/pr                     # Create PR (default)
+/pr create              # Create PR
+/pr draft               # Create draft PR
+/pr merge               # Merge current PR
+/pr review <number>     # Review PR #number
 ```
 
-## Instructions
-
-When this command is invoked:
-
-### Step 1: Verify Branch State
+## Examples
 
 ```bash
-git status
-git branch --show-current
-git log origin/main..HEAD --oneline
+/pr                     # Create PR from current branch
+/pr draft               # Create WIP PR
+/pr merge               # Merge after CI passes
+/pr review 123          # Review PR #123
 ```
 
-Check:
+## Agent
 
-- No uncommitted changes (warn if present)
-- Not on main/master branch
-- Has commits ahead of base
+Routes to: `pr-agent`
 
-### Step 2: Ensure Remote is Updated
+## Subcommands
 
-```bash
-git push -u origin $(git branch --show-current)
-```
+### create (default)
 
-### Step 3: Analyze All Commits
+Create PR from current branch:
 
-**IMPORTANT:** Review ALL commits in the PR, not just the latest.
+- Summarize changes
+- Link Linear issues
+- Set up for review
 
-```bash
-git log origin/main..HEAD --pretty=format:"%h %s"
-git diff origin/main..HEAD --stat
-```
+### draft
 
-Understand the full scope of changes.
+Create draft PR for early feedback:
 
-### Step 4: Check for Related Context
+- Mark as work in progress
+- Include TODO list
 
-Look for:
+### merge
 
-- Spec files (`specs/*.md`) related to the feature
-- Related issues or tickets mentioned in commits
-- Test files added/modified
+Merge after CI passes:
 
-### Step 5: Draft PR Description
+- Wait for CI
+- Squash merge (default)
+- Clean up branch
+
+Merge strategies:
+
+- `--squash` (default) - Clean history
+- `--merge` - Preserve commits
+- `--rebase` - Linear history
+
+### review
+
+Review existing PR:
+
+- Run quality checks on PR branch
+- Analyze changes
+- Provide verdict
+
+## PR Format
 
 ```markdown
 ## Summary
 
-<2-4 bullet points describing what this PR does>
-
-- Add [feature/fix]
-- Update [component/module]
-- Refactor [area] for [reason]
-
-## Changes
-
-<Brief description of key changes by area>
-
-### [Area 1]
-
-- Change description
-
-### [Area 2]
-
-- Change description
+- Bullet point 1
+- Bullet point 2
 
 ## Test Plan
 
-- [ ] Unit tests pass (`pnpm test:run`)
-- [ ] E2E tests pass (`pnpm test:e2e`)
-- [ ] Manual testing: [describe steps]
-- [ ] Tested on: [browsers/devices if UI]
+- [ ] Unit tests pass
+- [ ] Manual testing done
 
-## Related
-
-- Spec: `specs/[feature].md` (if applicable)
-- Fixes #[issue] (if applicable)
-- Depends on #[PR] (if applicable)
-
----
-
-Generated with [Claude Code](https://claude.ai/code)
+🤖 Generated with Claude Code
 ```
 
-### Step 6: Create PR
+## Prerequisites
 
-```bash
-gh pr create --title "<type>: <description>" --body "$(cat <<'EOF'
-## Summary
-...
+For create/draft:
 
-## Test Plan
-...
+- Run `/check` first
+- Branch must be pushed
 
-Generated with [Claude Code](https://claude.ai/code)
-EOF
-)"
-```
+For merge:
 
-For draft PRs:
+- CI must pass
+- Required approvals obtained
 
-```bash
-gh pr create --draft --title "..." --body "..."
-```
+## After /pr create
 
-### Step 6.5: Link to Linear Issue (Optional)
+1. Wait for CI to pass
+2. Request review if needed
+3. Run `/pr merge` when approved
 
-If Linear MCP available:
-
-1. Extract feature from branch: `feature/prompt-manager` → `prompt-manager`
-2. Search: `list_issues(query: "{feature}")`
-3. If found:
-   - `update_issue(id, state: "In Review")`
-   - `create_comment(issueId, "PR created: {pr_url}")`
-4. Add `Fixes LIN-XXX` to PR description if not present
-
-**Fallback:** Continue without linking.
-
-### Step 7: Report PR URL
-
-Output the created PR URL for easy access.
-
-## PR Title Format
-
-Follow conventional commit format:
-
-- `feat: add user authentication`
-- `fix: resolve memory leak in worker`
-- `refactor: simplify routing logic`
-
-## MCP Servers
-
-```text
-github         # PR creation and management
-linear         # Link PR to issue (optional)
-```
-
-**Optional linear tools:**
-
-- `update_issue` - Link PR, update status to "In Review"
-- `list_issues` - Find issue matching branch/feature
-- `create_comment` - Add PR link as comment
-
-## Checklist Before Creating
-
-- [ ] All commits are meaningful (no WIP commits)
-- [ ] Tests pass locally
-- [ ] No console.log statements
-- [ ] No hardcoded secrets
-- [ ] Branch is up to date with base
-
-## After Completion
-
-Suggest:
-
-- Share PR URL with reviewers
-- Monitor CI checks
-- Address review feedback with `/code` then `/commit`
+$ARGUMENTS

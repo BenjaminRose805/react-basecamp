@@ -1,0 +1,22 @@
+{
+  "filePath": ".spec-workflow/specs/test-dashboard-demo/design.md",
+  "currentVersion": 2,
+  "snapshots": [
+    {
+      "version": 1,
+      "filename": "snapshot-001.json",
+      "timestamp": "2026-01-24T17:19:04.769Z",
+      "trigger": "initial",
+      "approvalId": "approval_1769275144766_6pnurdfdb",
+      "approvalTitle": "Design: Test Dashboard Demo"
+    },
+    {
+      "version": 2,
+      "filename": "snapshot-002.json",
+      "timestamp": "2026-01-24T17:24:46.701Z",
+      "trigger": "approved",
+      "approvalId": "approval_1769275144766_6pnurdfdb",
+      "approvalTitle": "Design: Test Dashboard Demo"
+    }
+  ]
+}
