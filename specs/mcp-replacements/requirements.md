@@ -4,7 +4,7 @@
 > **Created:** 2026-01-26
 > **Spec ID:** mcp-replacements
 
-## Overview
+## Goal
 
 Reduce MCP server complexity by replacing 3 servers (github, vitest, spec-workflow) that can be fully replicated with CLI tools, file-based workflows, or lightweight scripts. This simplifies the development environment from 8 to 5 MCP servers while maintaining full functionality.
 
@@ -87,6 +87,30 @@ Reduce MCP server complexity by replacing 3 servers (github, vitest, spec-workfl
 - **REQ-5.2:** THE SYSTEM SHALL document the rollback procedure in the spec.
 
 - **REQ-5.3:** IF a replacement approach fails, THEN THE SYSTEM SHALL provide clear instructions to restore original functionality.
+
+---
+
+## Success Criteria
+
+- [x] `.mcp.json` reduced from 8 to 5 MCP servers
+- [x] Claude Code starts without MCP errors
+- [x] `gh` CLI commands documented in git-operations and pr-operations skills
+- [x] Vitest CLI commands documented in qa-checks and tdd-workflow skills
+- [x] File-based spec workflow documented in research skill
+- [x] Conditional MCP servers guide created
+- [x] CLAUDE.md updated with new server configuration
+- [x] All validation tests pass (gh CLI, pnpm test, cclsp, playwright)
+- [x] Backup file preserved for rollback
+
+---
+
+## Technical Constraints
+
+- Must use `gh` CLI v2.0+ (authenticated)
+- Must use pnpm as package manager for test commands
+- Node.js 18+ required for any wrapper scripts
+- MCP servers removed must have 100% CLI equivalent functionality
+- Essential servers (cclsp, playwright) cannot be replaced
 
 ---
 
