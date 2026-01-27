@@ -123,11 +123,11 @@ This project uses enhanced Claude Code infrastructure for AI-assisted developmen
 
 ### Contributing to Rules
 
-Rules in `.claude/rules/` define coding standards and practices.
+Rules in `.claude/docs/rules/` define coding standards and practices.
 
 **To add a new rule:**
 
-1. Create `.claude/rules/your-rule.md`
+1. Create `.claude/docs/rules/your-rule.md`
 2. Follow the existing format:
 
    ````markdown

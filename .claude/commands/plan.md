@@ -1,78 +1,105 @@
-# /plan - Implementation Planning
+# /plan
 
-Create implementation specifications from requirements.
+Conversational spec creation or PR feedback reconciliation.
 
-## Usage
+## MANDATORY: Preview and Agent Delegation
 
+> **Before executing /plan:**
+>
+> 1. **Show preview** - Display execution plan
+> 2. **Get confirmation** - Wait for [Enter] or [Esc]
+> 3. **Read** `.claude/agents/plan-agent.md`
+> 4. **Use Task tool** - Spawn sub-agents, NEVER execute directly
+
+## Task Examples
+
+### Researcher (Opus)
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Analyze requirements for [feature]",
+  prompt: `You are a requirement-analyzer sub-agent.
+TASK: Analyze requirements for [feature]
+OUTPUT: { "decision": "PROCEED|STOP|CLARIFY", "context_summary": "...", "requirements": [...] }
+Use Read, Grep, Glob, mcp__cclsp__* tools.`,
+  model: "opus",
+  run_in_background: true,
+});
 ```
-/plan [feature]           # Create spec (default: spec subcommand)
-/plan spec [feature]      # Create new spec from scratch
-/plan distill [feature]   # Convert design docs to specs
-/plan slice [feature]     # Break large features into slices
+
+### Writer (Sonnet)
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Write spec for [feature]",
+  prompt: `Create spec files:
+- specs/[feature]/requirements.md (EARS format)
+- specs/[feature]/design.md
+- specs/[feature]/tasks.md
+INPUT SUMMARY: ${analysis_summary}`,
+  model: "sonnet",
+});
 ```
 
-## Examples
+### Validator (Haiku)
 
-```bash
-/plan prompt-manager           # Create spec for prompt manager
-/plan spec auth-flow           # Spec for authentication
-/plan distill workflow-engine  # Convert docs to spec
-/plan slice ai-platform        # Break into vertical slices
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Validate spec",
+  prompt: `Validate specs/[feature]/: EARS compliance, acceptance criteria, _Prompt fields.
+Return: { "passed": true/false, "issues": [...] }`,
+  model: "haiku",
+});
 ```
 
-## Agent
+## Mode Detection
 
-Routes to: `plan-agent`
+- Has CodeRabbit comments → **Reconcile mode** (analyze PR feedback)
+- Otherwise → **Define mode** (conversational spec creation)
 
-## Phases
+## Preview (Define Mode)
 
-1. **ANALYZE** - Research context, check conflicts
-2. **CREATE** - Write spec files
-3. **VALIDATE** - Verify completeness, request approval
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  /plan [feature]                                            │
+├─────────────────────────────────────────────────────────────┤
+│  Mode: Define                                               │
+│                                                             │
+│  PHASES                                                     │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │ 1. RESEARCH         plan-researcher        Opus         ││
+│  │ 2. WRITE            plan-writer            Sonnet       ││
+│  │ 3. VALIDATE         plan-validator         Haiku        ││
+│  └─────────────────────────────────────────────────────────┘│
+│                                                             │
+│  [Enter] Run  [Esc] Cancel                                  │
+└─────────────────────────────────────────────────────────────┘
+```
 
-## Subcommands
+## Preview (Reconcile Mode)
 
-### spec
-
-Create a new specification from requirements:
-
-- Gather requirements from conversation
-- Research existing code for context
-- Create spec in `.spec-workflow/specs/{feature}/`
-- Output requirements.md, design.md, tasks.md
-
-### distill
-
-Convert existing design documents to implementation specs:
-
-- Read from `~/basecamp/docs/`
-- Extract entities, APIs, UI requirements
-- Create actionable tasks with \_Prompt fields
-- Preserve source traceability
-
-### slice
-
-Break large features into vertical slices:
-
-- Analyze feature for independent capabilities
-- Create one spec per slice
-- Define dependencies between slices
-- Each slice is independently deployable
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  /plan (reconcile PR #N)                                    │
+├─────────────────────────────────────────────────────────────┤
+│  Mode: Reconcile                                            │
+│  CodeRabbit comments: N                                     │
+│                                                             │
+│  PHASES                                                     │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │ 1. ANALYZE          plan-researcher        Opus         ││
+│  │ 2. PLAN             plan-writer            Sonnet       ││
+│  └─────────────────────────────────────────────────────────┘│
+│                                                             │
+│  [Enter] Run  [Esc] Cancel                                  │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## Output
 
-Spec files created in `.spec-workflow/specs/{feature}/`:
-
-- `requirements.md` - EARS format requirements
-- `design.md` - Architecture and decisions
-- `tasks.md` - Work items with \_Prompt fields
-
-Dashboard: http://localhost:5000/specs/{feature}
-
-## After /plan
-
-1. Review spec in dashboard
-2. Approve requirements and design
-3. Run `/code {feature}` to implement
+Creates `specs/{feature}/`: requirements.md, design.md, tasks.md
 
 $ARGUMENTS

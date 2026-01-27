@@ -106,13 +106,14 @@ Complete reference for all available commands in the react-basecamp AI developme
 - Approved spec must exist in `specs/` directory
 
 **Routing (based on spec content):**
-| Spec Contains | Routes To |
-| ---------------------------- | ------------------------- |
-| Prisma, tRPC, API only | code-agent |
-| React, components only | ui-agent |
-| Backend + frontend | code-agent → ui-agent |
-| Documentation only | docs-agent |
-| Evaluation/graders only | eval-agent |
+
+| Spec Contains           | Routes To             |
+| ----------------------- | --------------------- |
+| Prisma, tRPC, API only  | code-agent            |
+| React, components only  | ui-agent              |
+| Backend + frontend      | code-agent → ui-agent |
+| Documentation only      | docs-agent            |
+| Evaluation/graders only | eval-agent            |
 
 **Execution Flow:**
 
@@ -153,12 +154,13 @@ All code/ui agents follow red → green → refactor:
 4. **Wait for CodeRabbit:** Poll for review comments
 
 **Outcomes:**
-| Outcome | Next Step |
-| -------------------- | ------------------------------ |
-| CI passes, approved | Offer to merge |
-| CI fails | Recommend `/plan` to fix |
+
+| Outcome             | Next Step                      |
+| ------------------- | ------------------------------ |
+| CI passes, approved | Offer to merge                 |
+| CI fails            | Recommend `/plan` to fix       |
 | CodeRabbit comments | Recommend `/plan` to reconcile |
-| Rate limited | Wait or force merge |
+| Rate limited        | Wait or force merge            |
 
 **Second Ship (after reconcile):**
 
@@ -202,10 +204,11 @@ All code/ui agents follow red → green → refactor:
 ```
 
 **Modes:**
-| Mode | Previews | Sub-agents | Use Case |
-| ------- | -------- | ---------- | ----------------------- |
-| `dev` | Yes | Yes | Normal development |
-| `basic` | No | No | Quick edits, debugging |
+
+| Mode    | Previews | Sub-agents | Use Case               |
+| ------- | -------- | ---------- | ---------------------- |
+| `dev`   | Yes      | Yes        | Normal development     |
+| `basic` | No       | No         | Quick edits, debugging |
 
 **Immediate effect** - no preview needed.
 

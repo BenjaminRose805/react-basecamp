@@ -8,6 +8,112 @@ Execute an approved spec with TDD methodology and automatic agent routing.
 /implement                # Build the approved spec
 ```
 
+---
+
+## MANDATORY: Preview and Agent Delegation
+
+> **STOP. Before executing /implement, you MUST:**
+>
+> 1. **Show preview** - Display the execution plan (see Preview section below)
+> 2. **Get confirmation** - Wait for user to press [Enter] to run or [Esc] to cancel
+> 3. **Load agent file** - Read the appropriate agent file based on routing:
+>    - Backend → `.claude/agents/code-agent.md`
+>    - Frontend → `.claude/agents/ui-agent.md`
+>    - Docs → `.claude/agents/docs-agent.md`
+>    - Evals → `.claude/agents/eval-agent.md`
+> 4. **Follow CRITICAL EXECUTION REQUIREMENT** - Found in the agent file
+> 5. **Use Task tool** - Spawn sub-agents for each phase, NEVER execute directly
+>
+> **If you skip the preview or execute tools directly, you are doing it wrong.**
+
+---
+
+## Task Tool Examples
+
+### Spawn Code Researcher
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Research backend for [feature]",
+  prompt: `You are a code-researcher sub-agent.
+
+TASK: Research existing patterns for [feature]
+SPEC: specs/[feature]/
+
+STEPS:
+1. Read the spec files
+2. Search for existing implementations
+3. Check for naming conflicts
+4. Identify patterns to follow
+
+OUTPUT FORMAT:
+{
+  "decision": "PROCEED | STOP | CLARIFY",
+  "context_summary": "max 500 tokens for writer",
+  "patterns_found": [...],
+  "conflicts": [...]
+}
+
+Use Read, Grep, Glob, mcp__cclsp__* tools.`,
+  model: "opus",
+});
+```
+
+### Spawn Code Writer (TDD)
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Implement backend for [feature]",
+  prompt: `You are a code-writer sub-agent.
+
+TASK: Implement backend for [feature] using TDD
+SPEC: specs/[feature]/tasks.md
+CONTEXT: ${research_summary}
+
+TDD WORKFLOW (MANDATORY):
+1. RED: Write failing test first
+2. GREEN: Minimal code to pass
+3. REFACTOR: Clean up while green
+
+For each task in tasks.md:
+1. Write test
+2. Run test (must fail)
+3. Implement
+4. Run test (must pass)
+5. Mark task [x] complete
+
+Use Edit, Write, Bash tools.
+Return: { "files_changed": [...], "context_summary": "..." }`,
+  model: "sonnet",
+});
+```
+
+### Spawn Code Validator
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Validate implementation",
+  prompt: `You are a code-validator sub-agent.
+
+TASK: Validate the implementation
+FILES_CHANGED: ${files_changed}
+
+RUN THESE CHECKS:
+1. pnpm typecheck
+2. pnpm test:run
+3. pnpm lint
+4. Check for security issues
+
+Return: { "passed": true/false, "issues": [...] }`,
+  model: "haiku",
+});
+```
+
+---
+
 ## Examples
 
 ```bash

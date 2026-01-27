@@ -10,38 +10,87 @@ Documentation writer.
 
 ```text
 docs-agent (orchestrator, Opus)
-├── docs-researcher (Opus)
-│   └── Find existing docs, gather code context
-├── docs-writer (Sonnet)
-│   └── Write documentation
-└── docs-validator (Haiku)
-    └── Verify accuracy, check links
+│
+│ (dynamic sizing based on context)
+│
+├── agentCount == 1:
+│   └─► domain-writer (mode=docs, Sonnet)
+│
+├── agentCount == 2:
+│   ├─► domain-researcher (mode=docs, Opus)
+│   └─► domain-writer (mode=docs, Sonnet)
+│
+└── agentCount >= 3:
+    ├─► domain-researcher (mode=docs, Opus)
+    ├─► domain-writer (mode=docs, Sonnet)
+    └─► quality-validator (Haiku)
 ```
 
 ## Sub-Agents
 
-| Sub-Agent       | Model  | Purpose                                                |
-| --------------- | ------ | ------------------------------------------------------ |
-| docs-researcher | Opus   | Find existing docs, identify gaps, gather code context |
-| docs-writer     | Sonnet | Write API docs, guides, examples                       |
-| docs-validator  | Haiku  | Verify code examples work, check links                 |
+Uses consolidated templates from `.claude/sub-agents/templates/`:
+
+| Template          | Mode   | Model  | Purpose                                  |
+| ----------------- | ------ | ------ | ---------------------------------------- |
+| domain-researcher | docs   | Opus   | Find docs, identify gaps, gather context |
+| domain-writer     | docs   | Sonnet | Write API docs, guides, examples         |
+| quality-validator | (none) | Haiku  | Verify code examples work, check links   |
 
 ## MCP Servers
 
-```
+```text
 cclsp     # Read code to document
 context7  # Verify documented APIs
 ```
 
 ## CLI Tools
 
-```
+```text
 File-based docs in docs/ directory
 ```
 
 ## Skills Used
 
 - **research** - Find existing docs, gather context
+
+## Dynamic Sizing
+
+Uses sizing heuristics from `.claude/sub-agents/lib/sizing-heuristics.md` to determine appropriate sub-agent count.
+
+### Gather Context
+
+```typescript
+const context = {
+  fileCount: await countFilesToModify(),
+  taskCount: await estimateTaskCount(),
+  moduleCount: await countModules(),
+  effort: "small" | "medium" | "large",
+};
+```
+
+### Determine Agent Count
+
+```typescript
+const agentCount = determineSubAgentCount(context);
+```
+
+### Routing
+
+```typescript
+if (agentCount === 1) {
+  // Simple: Just write the docs
+  spawn domain-writer(mode=docs)
+} else if (agentCount === 2) {
+  // Medium: Research + write
+  spawn domain-researcher(mode=docs)
+  spawn domain-writer(mode=docs)
+} else {
+  // Complex: Research + write + validate
+  spawn domain-researcher(mode=docs)
+  spawn domain-writer(mode=docs)
+  spawn quality-validator
+}
+```
 
 ## Phases
 
@@ -116,7 +165,7 @@ File-based docs in docs/ directory
 >
 > **Required pattern:**
 >
-> ```
+> ```typescript
 > Task({ subagent_type: "general-purpose", ... })
 > ```
 
@@ -164,10 +213,9 @@ Creates a new prompt.
 - `400` - Invalid input
 - `401` - Not authenticated
 
-````
-
+````markdown
 **Guide:**
-```markdown
+
 # Getting Started with Prompts
 
 This guide shows you how to create and manage prompts.
@@ -182,6 +230,7 @@ This guide shows you how to create and manage prompts.
 1. Install dependencies:
    ```bash
    pnpm install
+   ```
 ````
 
 2. Create your first prompt:
@@ -192,8 +241,7 @@ This guide shows you how to create and manage prompts.
    });
    ```
 
-```
-
+```markdown
 ### Best Practices
 
 1. **Use present tense** - "Creates a prompt" not "Will create"

@@ -10,21 +10,31 @@ Frontend UI component implementation.
 
 ```text
 ui-agent (orchestrator, Opus)
-├── ui-researcher (Opus)
-│   └── Find components, check design specs
-├── ui-builder (Sonnet)
-│   └── Build components with TDD
-└── ui-validator (Haiku)
-    └── Run tests, accessibility checks
+│
+│ (dynamic sizing based on context)
+│
+├── agentCount == 1:
+│   └─► domain-writer (mode=frontend, Sonnet)
+│
+├── agentCount == 2:
+│   ├─► domain-researcher (mode=frontend, Opus)
+│   └─► domain-writer (mode=frontend, Sonnet)
+│
+└── agentCount >= 3:
+    ├─► domain-researcher (mode=frontend, Opus)
+    ├─► domain-writer (mode=frontend, Sonnet)
+    └─► quality-validator (Haiku)
 ```
 
 ## Sub-Agents
 
-| Sub-Agent     | Model  | Purpose                                               |
-| ------------- | ------ | ----------------------------------------------------- |
-| ui-researcher | Opus   | Find existing components, check shadcn, analyze Figma |
-| ui-builder    | Sonnet | Write component tests, build components, style        |
-| ui-validator  | Haiku  | Run tests, accessibility audit, responsive check      |
+Uses consolidated templates from `.claude/sub-agents/templates/`:
+
+| Template          | Mode     | Model  | Purpose                                              |
+| ----------------- | -------- | ------ | ---------------------------------------------------- |
+| domain-researcher | frontend | Opus   | Find components, check shadcn, analyze Figma         |
+| domain-writer     | frontend | Sonnet | Write component tests, build components, style (TDD) |
+| quality-validator | (none)   | Haiku  | Run tests, accessibility audit, responsive check     |
 
 ## MCP Servers
 
@@ -50,6 +60,45 @@ pnpm typecheck # Type checking
 - **qa-checks** - Build, types, lint, tests
 - **frontend-patterns** - React, hooks, state patterns
 - **coding-standards** - KISS, DRY, YAGNI principles
+
+## Dynamic Sizing
+
+Uses sizing heuristics from `.claude/sub-agents/lib/sizing-heuristics.md` to determine appropriate sub-agent count.
+
+### Gather Context
+
+```typescript
+const context = {
+  fileCount: await countFilesToModify(),
+  taskCount: await estimateTaskCount(),
+  moduleCount: await countModules(),
+  effort: "small" | "medium" | "large",
+};
+```
+
+### Determine Agent Count
+
+```typescript
+const agentCount = determineSubAgentCount(context);
+```
+
+### Routing
+
+```typescript
+if (agentCount === 1) {
+  // Simple: Just build the component
+  spawn domain-writer(mode=frontend)
+} else if (agentCount === 2) {
+  // Medium: Research + build
+  spawn domain-researcher(mode=frontend)
+  spawn domain-writer(mode=frontend)
+} else {
+  // Complex: Research + build + validate
+  spawn domain-researcher(mode=frontend)
+  spawn domain-writer(mode=frontend)
+  spawn quality-validator
+}
+```
 
 ## Orchestration Workflow
 
