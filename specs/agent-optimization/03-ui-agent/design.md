@@ -28,9 +28,16 @@ This design transforms the monolithic ui-agent into an orchestrator that delegat
 
 ### Target State
 
+**Model Assignments:**
+
+- ui-agent orchestrator: **Opus 4.5**
+- ui-researcher: **Opus 4.5**
+- ui-builder: **Sonnet**
+- ui-qa: **Haiku**
+
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  ui-agent (orchestrator)                                    │
+│  ui-agent (orchestrator, Opus)                              │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
@@ -69,6 +76,8 @@ This design transforms the monolithic ui-agent into an orchestrator that delegat
 
 **File:** `.claude/sub-agents/ui/ui-researcher.md`
 
+**Model:** Opus 4.5 (research requires connecting patterns)
+
 **Profile:** Read, Grep, Glob, cclsp, shadcn, figma, context7
 
 **Responsibilities:**
@@ -98,6 +107,8 @@ This design transforms the monolithic ui-agent into an orchestrator that delegat
 ### 2. UI-Builder Sub-Agent
 
 **File:** `.claude/sub-agents/ui/ui-builder.md`
+
+**Model:** Sonnet (component generation follows patterns)
 
 **Profile:** Read, Write, Edit, Bash, Grep, Glob, cclsp, shadcn
 

@@ -1,0 +1,141 @@
+#!/usr/bin/env node
+/**
+ * Command mode detection hook
+ *
+ * Detects when user runs /plan, /implement, /ship and:
+ * 1. Sets a state file indicating "command mode"
+ * 2. Injects a reminder to use Task tool for sub-agents
+ *
+ * This works with pre-tool-use-task-enforcement.cjs to ensure
+ * commands spawn sub-agents via Task instead of executing directly.
+ *
+ * Exit codes:
+ * - 0: Always (detection should not block)
+ */
+
+const path = require('path');
+const {
+  readStdinJson,
+  logContext,
+  logError,
+  ensureDir,
+  writeFile,
+  getGitRoot,
+} = require('../lib/utils.cjs');
+
+// Commands that should trigger command mode (require sub-agent spawning)
+const COMMAND_PATTERNS = [
+  { pattern: /^\/plan\b/i, command: 'plan', agent: 'plan-agent' },
+  { pattern: /^\/implement\b/i, command: 'implement', agent: 'code-agent or ui-agent' },
+  { pattern: /^\/ship\b/i, command: 'ship', agent: 'git-agent + check-agent' },
+];
+
+// Commands that do NOT require sub-agent spawning
+const EXEMPT_PATTERNS = [
+  /^\/start\b/i,   // Direct git operation
+  /^\/guide\b/i,   // Informational only
+  /^\/mode\b/i,    // Mode switch only
+  /^\/help\b/i,    // Help only
+  /^\/clear\b/i,   // Clear only
+  /^\/compact\b/i, // Compact only
+];
+
+function getStateDir() {
+  const gitRoot = getGitRoot() || process.cwd();
+  return path.join(gitRoot, '.claude', 'state');
+}
+
+function getStatePath() {
+  return path.join(getStateDir(), 'command-mode.json');
+}
+
+async function main() {
+  try {
+    const input = await readStdinJson();
+    const message = input.message || input.prompt || '';
+
+    // Skip if not a user message or empty
+    if (!message || typeof message !== 'string') {
+      process.exit(0);
+    }
+
+    const trimmedMessage = message.trim();
+
+    // Check if this is an exempt command (no enforcement needed)
+    for (const exemptPattern of EXEMPT_PATTERNS) {
+      if (exemptPattern.test(trimmedMessage)) {
+        // Clear any existing command mode state
+        clearCommandMode();
+        process.exit(0);
+      }
+    }
+
+    // Check if this is a command that requires sub-agent spawning
+    for (const { pattern, command, agent } of COMMAND_PATTERNS) {
+      if (pattern.test(trimmedMessage)) {
+        // Set command mode state
+        setCommandMode(command, agent, trimmedMessage);
+
+        // Inject reminder to Claude's context
+        logContext(`
+---
+**⚠️ COMMAND MODE ACTIVE: /${command}**
+
+You MUST:
+1. Read the agent file: \`.claude/agents/${agent.split(' ')[0]}.md\`
+2. Follow the CRITICAL EXECUTION REQUIREMENT in that file
+3. Use \`Task({ subagent_type: "general-purpose", ... })\` to spawn sub-agents
+4. DO NOT use Read, Write, Edit, Bash, or MCP tools directly
+
+Quick reference: \`.claude/sub-agents/QUICK-REFERENCE.md\`
+---
+`);
+
+        process.exit(0);
+      }
+    }
+
+    // Not a command - clear any existing command mode
+    // (User is asking a question or doing something else)
+    // Don't clear immediately - they might be in the middle of command execution
+
+    process.exit(0);
+  } catch (err) {
+    // Fail silently - don't block on detection errors
+    process.exit(0);
+  }
+}
+
+function setCommandMode(command, agent, originalMessage) {
+  try {
+    const stateDir = getStateDir();
+    ensureDir(stateDir);
+
+    const state = {
+      command,
+      agent,
+      originalMessage,
+      startedAt: new Date().toISOString(),
+      toolCallCount: 0,
+      taskCallCount: 0,
+    };
+
+    writeFile(getStatePath(), JSON.stringify(state, null, 2));
+  } catch (err) {
+    // Fail silently
+  }
+}
+
+function clearCommandMode() {
+  try {
+    const statePath = getStatePath();
+    const fs = require('fs');
+    if (fs.existsSync(statePath)) {
+      fs.unlinkSync(statePath);
+    }
+  } catch (err) {
+    // Fail silently
+  }
+}
+
+main();

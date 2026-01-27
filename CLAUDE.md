@@ -12,6 +12,36 @@ You MAY answer simple questions directly (e.g., "What framework is this?" or "Wh
 
 ---
 
+## CRITICAL: Command Execution Pattern
+
+> **When executing any command (`/plan`, `/implement`, `/ship`):**
+>
+> 1. **Read the agent file first** - Load `.claude/agents/{agent}-agent.md`
+> 2. **Follow the CRITICAL EXECUTION REQUIREMENT** in that file
+> 3. **Use the Task tool to spawn sub-agents** - NEVER execute directly
+> 4. **Pass context_summary between phases** - NOT raw findings
+>
+> **Anti-patterns (DO NOT DO):**
+>
+> - Using Read, Grep, Glob directly → spawn researcher sub-agent
+> - Using Edit, Write directly → spawn writer sub-agent
+> - Using Bash directly → spawn validator/executor sub-agent
+>
+> **Required pattern:**
+>
+> ```typescript
+> Task({
+>   subagent_type: "general-purpose",
+>   description: "Research/Write/Validate [feature]",
+>   prompt: "...",
+>   model: "opus" | "sonnet" | "haiku",
+> });
+> ```
+>
+> **Quick Reference:** [.claude/sub-agents/QUICK-REFERENCE.md](.claude/sub-agents/QUICK-REFERENCE.md)
+
+---
+
 ## Architecture Overview
 
 The system uses a 5-layer architecture with preview and routing:

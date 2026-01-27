@@ -2,6 +2,24 @@
 
 Infrastructure for delegating work to isolated sub-agents via Claude Code's Task tool.
 
+---
+
+## CRITICAL: How Commands Must Use This System
+
+> **When executing a command (`/plan`, `/implement`, etc.), you MUST:**
+>
+> 1. **Read the agent file** in `.claude/agents/` (e.g., `plan-agent.md`, `code-agent.md`)
+> 2. **Follow the CRITICAL EXECUTION REQUIREMENT** in that file
+> 3. **Use the Task tool** to spawn sub-agents - NEVER execute directly
+> 4. **Reference this documentation** for handoff protocols and templates
+>
+> **If you execute Read, Write, Edit, Bash, or MCP tools directly instead of
+> spawning sub-agents via Task, you are executing INCORRECTLY.**
+>
+> Quick reference: [QUICK-REFERENCE.md](QUICK-REFERENCE.md)
+
+---
+
 ## Overview
 
 The sub-agent system enables context-efficient orchestration by spawning isolated sub-agents for each phase of work. Instead of accumulating context in a single agent, each sub-agent operates in a fresh context window with only the information it needs.

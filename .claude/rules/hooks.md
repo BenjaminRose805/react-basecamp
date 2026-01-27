@@ -82,17 +82,19 @@ Hooks are defined in `.claude/settings.json`:
 
 ### UserPromptSubmit
 
-| Hook                     | Purpose                    | Output |
-| ------------------------ | -------------------------- | ------ |
-| `user-prompt-submit.cjs` | Inject git/TODO/CONTEXT.md | stdout |
+| Hook                      | Purpose                         | Output |
+| ------------------------- | ------------------------------- | ------ |
+| `user-prompt-submit.cjs`  | Inject git/TODO/CONTEXT.md      | stdout |
+| `command-mode-detect.cjs` | Detect /plan, /implement, /ship | stdout |
 
 ### PreToolUse
 
-| Hook                    | Matcher     | Purpose                                | Exit Code |
-| ----------------------- | ----------- | -------------------------------------- | --------- |
-| `pre-tool-use-bash.cjs` | Bash        | Block dangerous commands, quality gate | 2 blocks  |
-| `pre-tool-use-file.cjs` | Edit\|Write | Protect sensitive files                | 2 blocks  |
-| `suggest-compact.cjs`   | Edit\|Write | Suggest compaction at intervals        | 0 always  |
+| Hook                                | Matcher     | Purpose                                | Exit Code |
+| ----------------------------------- | ----------- | -------------------------------------- | --------- |
+| `pre-tool-use-task-enforcement.cjs` | (all)       | Warn when Task should be used          | 0 always  |
+| `pre-tool-use-bash.cjs`             | Bash        | Block dangerous commands, quality gate | 2 blocks  |
+| `pre-tool-use-file.cjs`             | Edit\|Write | Protect sensitive files                | 2 blocks  |
+| `suggest-compact.cjs`               | Edit\|Write | Suggest compaction at intervals        | 0 always  |
 
 ### PostToolUse
 
@@ -151,6 +153,59 @@ Blocks modification of:
 **Allowed exceptions:**
 
 - `.env.example`, `.env.sample`, `.env.template`
+
+## Command Mode Enforcement
+
+The command mode system ensures `/plan`, `/implement`, and `/ship` use the Task tool to spawn sub-agents.
+
+### How It Works
+
+1. **Detection** (`command-mode-detect.cjs` - UserPromptSubmit)
+   - Detects when user runs `/plan`, `/implement`, or `/ship`
+   - Creates state file at `.claude/state/command-mode.json`
+   - Injects reminder to use Task tool
+
+2. **Enforcement** (`pre-tool-use-task-enforcement.cjs` - PreToolUse)
+   - Checks if in command mode
+   - Tracks tool calls and Task usage
+   - Warns when direct tools are used instead of Task
+   - Allows exceptions (reading agent files, specs)
+
+### State File
+
+Located at `.claude/state/command-mode.json`:
+
+```json
+{
+  "command": "plan",
+  "agent": "plan-agent",
+  "startedAt": "2026-01-26T10:30:00.000Z",
+  "toolCallCount": 5,
+  "taskCallCount": 2
+}
+```
+
+**Note:** `.claude/state/` is gitignored.
+
+### Allowed During Command Mode
+
+| Action                    | Allowed | Notes                           |
+| ------------------------- | ------- | ------------------------------- |
+| Read agent/spec files     | Yes     | Needed to understand task       |
+| Task tool                 | Yes     | This is what we want!           |
+| AskUserQuestion           | Yes     | User interaction is fine        |
+| Direct Read (other files) | Warn    | Should use researcher sub-agent |
+| Direct Write/Edit/Bash    | Warn    | Should use writer sub-agent     |
+| MCP tools                 | Warn    | Should delegate to sub-agent    |
+
+### Exempt Commands
+
+These commands don't trigger command mode (no sub-agent requirement):
+
+- `/start` - Direct git operation
+- `/guide` - Informational only
+- `/mode` - Mode switch only
+- `/help` - Help only
 
 ## Audit Logging
 

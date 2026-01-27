@@ -30,9 +30,18 @@ This design transforms the plan-agent to use parallel analysis sub-agents follow
 
 ### Target State
 
+**Model Assignments:**
+
+- plan-agent orchestrator: **Opus 4.5**
+- requirement-analyzer: **Opus 4.5**
+- dependency-analyzer: **Opus 4.5**
+- task-decomposer: **Opus 4.5**
+- plan-writer: **Sonnet**
+- plan-qa: **Haiku**
+
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  plan-agent (orchestrator)                                  │
+│  plan-agent (orchestrator, Opus)                            │
 └─────────────────────────────────────────────────────────────┘
          │
          ├────────────────┬────────────────┐
@@ -75,6 +84,8 @@ Improvement: ~30% faster
 
 **File:** `.claude/sub-agents/plan/requirement-analyzer.md`
 
+**Model:** Opus 4.5
+
 **Profile:** research
 
 **Responsibilities:**
@@ -105,6 +116,8 @@ Improvement: ~30% faster
 
 **File:** `.claude/sub-agents/plan/dependency-analyzer.md`
 
+**Model:** Opus 4.5
+
 **Profile:** research
 
 **Responsibilities:**
@@ -130,6 +143,8 @@ Improvement: ~30% faster
 ### 3. Task Decomposer Sub-Agent
 
 **File:** `.claude/sub-agents/plan/task-decomposer.md`
+
+**Model:** Opus 4.5
 
 **Profile:** research
 
@@ -160,6 +175,8 @@ Improvement: ~30% faster
 ### 4. Plan Writer Sub-Agent
 
 **File:** `.claude/sub-agents/plan/plan-writer.md`
+
+**Model:** Sonnet
 
 **Profile:** writer
 

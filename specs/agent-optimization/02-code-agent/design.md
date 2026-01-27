@@ -1,6 +1,6 @@
 # Design: Code Agent 3-Agent Pattern
 
-> **Status:** Draft
+> **Status:** Implemented
 > **Created:** 2026-01-26
 > **Spec ID:** agent-opt-02
 
@@ -89,6 +89,8 @@ The orchestrator is a lightweight coordinator that manages sub-agent invocation 
 
 **File:** `.claude/agents/code-agent.md` (updated)
 
+**Model:** Opus 4.5 (orchestration requires routing decisions)
+
 ```markdown
 # Agent: code-agent (Orchestrator)
 
@@ -132,12 +134,18 @@ Orchestrate code implementation through sub-agent delegation.
 
 **File:** `.claude/sub-agents/code/code-researcher.md`
 
+**Model:** Opus 4.5 (research requires connecting patterns across codebase)
+
 ```markdown
 # Sub-Agent: code-researcher
 
 ## Role
 
 Find existing implementations, identify conflicts, gather context for implementation.
+
+## Model
+
+Opus 4.5
 
 ## Profile
 
@@ -200,12 +208,18 @@ research (Read, Grep, Glob, WebFetch, WebSearch, mcp**cclsp**_, mcp**context7**_
 
 **File:** `.claude/sub-agents/code/code-writer.md`
 
+**Model:** Sonnet (code generation follows patterns)
+
 ```markdown
 # Sub-Agent: code-writer
 
 ## Role
 
 Implement functionality following TDD and project patterns.
+
+## Model
+
+Sonnet
 
 ## Profile
 

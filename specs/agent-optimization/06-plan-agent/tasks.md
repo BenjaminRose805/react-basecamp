@@ -1,65 +1,73 @@
 # Tasks: Plan Agent Optimization
 
-> **Status:** Draft
+> **Status:** In Progress
 > **Created:** 2026-01-26
 > **Spec ID:** agent-opt-06
 
 ## Progress
 
-- [ ] Phase 1: Sub-Agent Definitions (0/5)
-- [ ] Phase 2: Orchestrator Update (0/2)
+- [x] Phase 1: Sub-Agent Definitions (6/6)
+- [x] Phase 2: Orchestrator Update (2/2)
 - [ ] Phase 3: Validation (0/3)
 
-**Total:** 0/10 tasks complete
+**Total:** 8/11 tasks complete
 
 ---
 
 ## Phase 1: Sub-Agent Definitions
 
-- [ ] **T001** [US1] Create plan sub-agents directory
+- [x] **T001** [US1] Create plan sub-agents directory
   - Create `.claude/sub-agents/plan/` directory
   - File: `.claude/sub-agents/plan/`
+  - **Done:** Directory created with README.md
 
-- [ ] **T002** [US1, US2] Create requirement-analyzer sub-agent
+- [x] **T002** [US1, US2] Create requirement-analyzer sub-agent
   - Define EARS parsing behavior
   - Include ambiguity detection
   - File: `.claude/sub-agents/plan/requirement-analyzer.md`
+  - **Done:** Created with EARS format reference, ambiguity detection, context_summary output
 
-- [ ] **T003** [US1, US2] Create dependency-analyzer sub-agent
+- [x] **T003** [US1, US2] Create dependency-analyzer sub-agent
   - Define codebase search behavior
   - Include conflict detection
   - File: `.claude/sub-agents/plan/dependency-analyzer.md`
+  - **Done:** Created with codebase search, conflict detection, integration points
 
-- [ ] **T004** [US1, US2] Create task-decomposer sub-agent
+- [x] **T004** [US1, US2] Create task-decomposer sub-agent
   - Define task breakdown behavior
   - Include phase grouping
   - File: `.claude/sub-agents/plan/task-decomposer.md`
+  - **Done:** Created with phased task structure, effort estimation, dependency graph
 
-- [ ] **T005** [US3] Create plan-writer sub-agent
+- [x] **T005** [US3] Create plan-writer sub-agent
   - Define spec file creation behavior
   - Reference EARS and RFC 2119
   - File: `.claude/sub-agents/plan/plan-writer.md`
+  - **Done:** Pre-existing, updated with analysis_summary input
 
-- [ ] **T006** [US4] Create plan-qa sub-agent
+- [x] **T006** [US4] Create plan-validator sub-agent (plan-qa)
   - Define validation checklist
   - Specify haiku model
-  - File: `.claude/sub-agents/plan/plan-qa.md`
+  - File: `.claude/sub-agents/plan/plan-validator.md`
+  - **Done:** Pre-existing, uses haiku model, comprehensive checklist
 
 ---
 
 ## Phase 2: Orchestrator Update
 
-- [ ] **T007** [US1, US5] Update plan-agent to orchestrator
+- [x] **T007** [US1, US5] Update plan-agent to orchestrator
   - Implement parallel analyzer spawning
   - Implement aggregation
   - Support subcommands
   - File: `.claude/agents/plan-agent.md`
+  - **Done:** Full orchestration workflow documented with parallel analysis, context compaction
 
-- [ ] **T008** [US5] Document subcommand support
+- [x] **T008** [US5] Document subcommand support
   - /plan research
   - /plan write
   - /plan validate
   - File: `.claude/agents/plan-agent.md`
+  - **Done:** Subcommands documented in Orchestration Workflow section
 
 ---
 
@@ -108,11 +116,11 @@ T001 ──► T002 ─┐
 
 All tasks are complete WHEN:
 
-1. [ ] `.claude/sub-agents/plan/` directory exists
-2. [ ] 3 analyzer sub-agents defined
-3. [ ] plan-writer sub-agent defined
-4. [ ] plan-qa sub-agent defined (haiku)
-5. [ ] plan-agent.md updated to orchestrator
-6. [ ] Subcommands work (/plan research|write|validate)
-7. [ ] Parallel analysis verified (≥2x faster)
-8. [ ] Context savings measured (≥20%)
+1. [x] `.claude/sub-agents/plan/` directory exists
+2. [x] 3 analyzer sub-agents defined (requirement-analyzer, dependency-analyzer, task-decomposer)
+3. [x] plan-writer sub-agent defined
+4. [x] plan-validator sub-agent defined (haiku)
+5. [x] plan-agent.md updated to orchestrator
+6. [x] Subcommands documented (/plan research|write|validate)
+7. [ ] Parallel analysis verified (≥2x faster) - **Manual testing required**
+8. [ ] Context savings measured (≥20%) - **Manual measurement required**

@@ -8,6 +8,111 @@ Execute an approved spec with TDD methodology and automatic agent routing.
 /implement                # Build the approved spec
 ```
 
+---
+
+## MANDATORY: Load Agent Instructions First
+
+> **STOP. Before doing anything else, you MUST:**
+>
+> 1. Determine routing based on spec content (see Routing Logic below)
+> 2. Read the appropriate agent file(s):
+>    - Backend → `.claude/agents/code-agent.md`
+>    - Frontend → `.claude/agents/ui-agent.md`
+>    - Docs → `.claude/agents/docs-agent.md`
+>    - Evals → `.claude/agents/eval-agent.md`
+> 3. Follow the CRITICAL EXECUTION REQUIREMENT in the agent file
+> 4. Use Task tool to spawn sub-agents - NEVER execute directly
+>
+> **If you skip this step, you will execute incorrectly.**
+
+---
+
+## Task Tool Examples
+
+### Spawn Code Researcher
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Research backend for [feature]",
+  prompt: `You are a code-researcher sub-agent.
+
+TASK: Research existing patterns for [feature]
+SPEC: specs/[feature]/
+
+STEPS:
+1. Read the spec files
+2. Search for existing implementations
+3. Check for naming conflicts
+4. Identify patterns to follow
+
+OUTPUT FORMAT:
+{
+  "decision": "PROCEED | STOP | CLARIFY",
+  "context_summary": "max 500 tokens for writer",
+  "patterns_found": [...],
+  "conflicts": [...]
+}
+
+Use Read, Grep, Glob, mcp__cclsp__* tools.`,
+  model: "opus",
+});
+```
+
+### Spawn Code Writer (TDD)
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Implement backend for [feature]",
+  prompt: `You are a code-writer sub-agent.
+
+TASK: Implement backend for [feature] using TDD
+SPEC: specs/[feature]/tasks.md
+CONTEXT: ${research_summary}
+
+TDD WORKFLOW (MANDATORY):
+1. RED: Write failing test first
+2. GREEN: Minimal code to pass
+3. REFACTOR: Clean up while green
+
+For each task in tasks.md:
+1. Write test
+2. Run test (must fail)
+3. Implement
+4. Run test (must pass)
+5. Mark task [x] complete
+
+Use Edit, Write, Bash tools.
+Return: { "files_changed": [...], "context_summary": "..." }`,
+  model: "sonnet",
+});
+```
+
+### Spawn Code Validator
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Validate implementation",
+  prompt: `You are a code-validator sub-agent.
+
+TASK: Validate the implementation
+FILES_CHANGED: ${files_changed}
+
+RUN THESE CHECKS:
+1. pnpm typecheck
+2. pnpm test:run
+3. pnpm lint
+4. Check for security issues
+
+Return: { "passed": true/false, "issues": [...] }`,
+  model: "haiku",
+});
+```
+
+---
+
 ## Examples
 
 ```bash
