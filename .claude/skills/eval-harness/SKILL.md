@@ -374,4 +374,4 @@ Status: SHIP IT
 
 - `/eval` command - EDD workflow
 - `src/lib/eval/types.ts` - Type definitions
-- `.claude/rules/methodology.md` - SDD/TDD/EDD overview
+- `.claude/docs/rules/methodology.md` - SDD/TDD/EDD overview

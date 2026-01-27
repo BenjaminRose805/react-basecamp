@@ -1,26 +1,29 @@
 #!/usr/bin/env node
 /**
- * User prompt submit hook for context injection
+ * User prompt submit hook - ZERO INJECTION APPROACH
  *
- * Responsibilities:
- * 1. Inject git status (branch + uncommitted count) via stdout
- * 2. Inject .claude/CONTEXT.md content (max 1000 chars) via stdout
- * 3. Inject TODO.md content (max 500 chars) via stdout
+ * Purpose: Reserved for future user-facing notifications via stderr only.
  *
- * Output goes to stdout which adds to Claude's context.
- * Silent if no context available.
+ * IMPORTANT: This hook performs ZERO context injection (0 tokens to stdout).
+ * All context loading is now handled by role-specific hooks:
+ * - inject-rules.cjs: Loads relevant .claude/docs/rules/*.md based on agent role
+ * - load-orchestrator-rules.cjs: Loads agents.md for /plan, /implement, /ship
+ *
+ * Why zero injection?
+ * - Eliminates redundant context on every prompt
+ * - Reduces token waste (git status, CONTEXT.md, TODO.md previously loaded every time)
+ * - Role-specific hooks load only what's needed when needed
+ *
+ * Output:
+ * - stdout: NONE (0 tokens)
+ * - stderr: Reserved for user notifications (currently none)
  *
  * Exit codes:
- * - 0: Always (context injection should not block)
+ * - 0: Always (no blocking behavior)
  */
 
-const path = require('path');
 const {
   readStdinJson,
-  logContext,
-  getGitStatus,
-  readContextFile,
-  getGitRoot,
 } = require('../lib/utils.cjs');
 
 async function main() {
@@ -28,40 +31,13 @@ async function main() {
     // Parse JSON input (optional, may be empty)
     await readStdinJson();
 
-    const contextParts = [];
-
-    // Use git root for consistent file resolution (fallback to cwd)
-    const repoRoot = getGitRoot() || process.cwd();
-
-    // Get git status
-    const gitStatus = getGitStatus();
-    if (gitStatus) {
-      contextParts.push(`**Git:** ${gitStatus}`);
-    }
-
-    // Check for CONTEXT.md
-    const contextMdPath = path.join(repoRoot, '.claude', 'CONTEXT.md');
-    const contextMd = readContextFile(contextMdPath, 1000);
-    if (contextMd) {
-      contextParts.push(`**Context:**\n${contextMd}`);
-    }
-
-    // Check for TODO.md
-    const todoPath = path.join(repoRoot, 'TODO.md');
-    const todoContent = readContextFile(todoPath, 500);
-    if (todoContent) {
-      contextParts.push(`**TODO:**\n${todoContent}`);
-    }
-
-    // Output context if we have any
-    if (contextParts.length > 0) {
-      logContext('\n---\n' + contextParts.join('\n\n') + '\n---\n');
-    }
+    // ZERO INJECTION: No stdout output
+    // All context loading is delegated to role-specific hooks
 
     // Always exit 0
     process.exit(0);
   } catch (err) {
-    // Fail silently - don't block on context injection errors
+    // Fail silently - don't block on errors
     process.exit(0);
   }
 }
