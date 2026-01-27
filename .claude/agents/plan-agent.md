@@ -11,46 +11,32 @@ Creates implementation specifications from requirements using parallel analysis.
 ```text
 plan-agent (orchestrator, Opus)
 │
-├─────────────────┬─────────────────┐  (parallel)
-│                 │                 │
-▼                 ▼                 ▼
-┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-│ requirement  │ │ dependency   │ │ task         │
-│ analyzer     │ │ analyzer     │ │ decomposer   │
-│ (Opus)       │ │ (Opus)       │ │ (Opus)       │
-└──────────────┘ └──────────────┘ └──────────────┘
-       │                 │                 │
-       └─────────────────┴─────────────────┘
-                         │
-                         ▼ (aggregate summaries)
-                ┌──────────────────┐
-                │ plan-writer      │
-                │ (Sonnet)         │
-                └──────────────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ plan-validator   │
-                │ (Haiku)          │
-                └──────────────────┘
+│ (dynamic sizing based on context)
+│
+├── agentCount == 1:
+│   └─► domain-writer (mode=plan, Sonnet)
+│
+├── agentCount == 2:
+│   ├─► domain-researcher (mode=plan, Opus)
+│   └─► domain-writer (mode=plan, Sonnet)
+│
+└── agentCount >= 3:
+    ├─► domain-researcher (mode=plan, Opus)
+    ├─► domain-writer (mode=plan, Sonnet)
+    └─► quality-validator (Haiku)
 ```
 
 ## Sub-Agents
 
-### Parallel Analyzers
+Uses consolidated templates from `.claude/sub-agents/templates/`:
 
-| Sub-Agent            | Model | Purpose                                                      |
-| -------------------- | ----- | ------------------------------------------------------------ |
-| requirement-analyzer | Opus  | Parse requirements, convert to EARS format, flag ambiguities |
-| dependency-analyzer  | Opus  | Find related code, identify conflicts, list dependencies     |
-| task-decomposer      | Opus  | Break requirements into phased tasks with dependencies       |
+| Template          | Mode   | Model  | Purpose                                       |
+| ----------------- | ------ | ------ | --------------------------------------------- |
+| domain-researcher | plan   | Opus   | Analyze requirements, dependencies, and tasks |
+| domain-writer     | plan   | Sonnet | Write requirements.md, design.md, tasks.md    |
+| quality-validator | (none) | Haiku  | Verify completeness, template compliance      |
 
-### Sequential Phases
-
-| Sub-Agent      | Model  | Purpose                                    |
-| -------------- | ------ | ------------------------------------------ |
-| plan-writer    | Sonnet | Write requirements.md, design.md, tasks.md |
-| plan-validator | Haiku  | Verify completeness, template compliance   |
+**Note:** The parallel analyzers (requirement-analyzer, dependency-analyzer, task-decomposer) are replaced by domain-researcher (mode=plan) which handles all analysis tasks.
 
 ## MCP Servers
 
@@ -67,6 +53,45 @@ File-based specs in specs/ directory
 ## Skills Used
 
 - **research** - Find existing implementations, check conflicts
+
+## Dynamic Sizing
+
+Uses sizing heuristics from `.claude/sub-agents/lib/sizing-heuristics.md` to determine appropriate sub-agent count.
+
+### Gather Context
+
+```typescript
+const context = {
+  fileCount: await countFilesToModify(),
+  taskCount: await estimateTaskCount(),
+  moduleCount: await countModules(),
+  effort: "small" | "medium" | "large",
+};
+```
+
+### Determine Agent Count
+
+```typescript
+const agentCount = determineSubAgentCount(context);
+```
+
+### Routing
+
+```typescript
+if (agentCount === 1) {
+  // Simple: Just write the spec
+  spawn domain-writer(mode=plan)
+} else if (agentCount === 2) {
+  // Medium: Research + write
+  spawn domain-researcher(mode=plan)
+  spawn domain-writer(mode=plan)
+} else {
+  // Complex: Research + write + validate
+  spawn domain-researcher(mode=plan)
+  spawn domain-writer(mode=plan)
+  spawn quality-validator
+}
+```
 
 ## Orchestration Workflow
 

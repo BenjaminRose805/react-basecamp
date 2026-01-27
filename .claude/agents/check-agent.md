@@ -45,15 +45,17 @@ check-agent (orchestrator, Opus)
 
 ## Sub-Agents
 
-| Sub-Agent          | Model | Purpose           | Blocking |
-| ------------------ | ----- | ----------------- | -------- |
-| `build-checker`    | Haiku | Compilation check | Yes      |
-| `type-checker`     | Haiku | TypeScript types  | No       |
-| `lint-checker`     | Haiku | ESLint check      | No       |
-| `test-runner`      | Haiku | Tests + coverage  | No       |
-| `security-scanner` | Haiku | Security patterns | No       |
+Uses consolidated template from `.claude/sub-agents/templates/quality-checker.md` with different check_type parameters:
 
-See `.claude/sub-agents/check/` for full definitions.
+| Template        | check_type | Model | Purpose           | Blocking |
+| --------------- | ---------- | ----- | ----------------- | -------- |
+| quality-checker | build      | Haiku | Compilation check | Yes      |
+| quality-checker | type       | Haiku | TypeScript types  | No       |
+| quality-checker | lint       | Haiku | ESLint check      | No       |
+| quality-checker | test       | Haiku | Tests + coverage  | No       |
+| quality-checker | security   | Haiku | Security patterns | No       |
+
+**Note:** All checkers use the same template with different `check_type` parameters. No dynamic sizing for check-agent (always runs all 5 checks).
 
 ## Skills Used
 
@@ -102,21 +104,21 @@ Run specific checker only:
 ## Sub-Agent Invocation
 
 ```typescript
-// 1. Build check (blocking)
+// 1. Build check (blocking) - uses quality-checker template
 const buildResult = await Task({
   subagent_type: "general-purpose",
   description: "Build check",
-  prompt: `Run pnpm build and report result as JSON: { check: "build", passed: boolean, errors: [] }`,
+  prompt: `Load quality-checker template with check_type=build. Run pnpm build and report result.`,
   model: "haiku",
   allowed_tools: ["Bash"],
 });
 
-// 2. If build passes, spawn parallel checks
+// 2. If build passes, spawn parallel checks using quality-checker template
 if (buildResult.passed) {
   const typeTask = Task({
     subagent_type: "general-purpose",
     description: "Type check",
-    prompt: `Run pnpm typecheck and report...`,
+    prompt: `Load quality-checker template with check_type=type. Run pnpm typecheck and report.`,
     model: "haiku",
     run_in_background: true,
     allowed_tools: ["Bash"],
@@ -125,7 +127,7 @@ if (buildResult.passed) {
   const lintTask = Task({
     subagent_type: "general-purpose",
     description: "Lint check",
-    prompt: `Run pnpm lint and report...`,
+    prompt: `Load quality-checker template with check_type=lint. Run pnpm lint and report.`,
     model: "haiku",
     run_in_background: true,
     allowed_tools: ["Bash"],
@@ -134,7 +136,7 @@ if (buildResult.passed) {
   const testTask = Task({
     subagent_type: "general-purpose",
     description: "Test run",
-    prompt: `Run pnpm test:run and report...`,
+    prompt: `Load quality-checker template with check_type=test. Run pnpm test:run and report.`,
     model: "haiku",
     run_in_background: true,
     allowed_tools: ["Bash"],
@@ -143,7 +145,7 @@ if (buildResult.passed) {
   const securityTask = Task({
     subagent_type: "general-purpose",
     description: "Security scan",
-    prompt: `Run security scans and report...`,
+    prompt: `Load quality-checker template with check_type=security. Run security scans and report.`,
     model: "haiku",
     run_in_background: true,
     allowed_tools: ["Bash", "Grep", "Glob"],

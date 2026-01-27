@@ -61,10 +61,10 @@ The system uses a 5-layer architecture with preview and routing:
 │  AGENTS (7)            Workers with MCP access              │
 │  plan, code, ui, docs, eval, check, git                     │
 ├─────────────────────────────────────────────────────────────┤
-│  SUB-AGENTS (27)       Isolated context execution           │
-│  Opus: orchestrators, researchers, analyzers                │
-│  Sonnet: writers, builders                                  │
-│  Haiku: validators, checkers, executors                     │
+│  SUB-AGENTS (11)       Isolated context execution           │
+│  7 consolidated + 4 unique templates                        │
+│  Dynamic sizing: 1-7 sub-agents per task                    │
+│  63% reduction from 37 domain-specific templates            │
 ├─────────────────────────────────────────────────────────────┤
 │  SKILLS (13)           Reusable procedures                  │
 │  research, qa-checks, tdd-workflow, coding-standards,       │
@@ -78,25 +78,37 @@ The system uses a 5-layer architecture with preview and routing:
 
 For complex tasks, agents can spawn isolated sub-agents via the Task tool. This prevents context overflow by running each phase in a fresh context window.
 
+**Architecture:** 11 consolidated templates (63% reduction from 37 domain-specific)
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Orchestrator (lightweight, coordinates phases)             │
+│  Orchestrator (analyzes complexity, selects templates)      │
 └─────────────────────────────────────────────────────────────┘
          │                    │                    │
          ▼                    ▼                    ▼
 ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
 │ Researcher  │      │   Writer    │      │  Validator  │
-│ (isolated)  │ ───► │ (isolated)  │ ───► │ (isolated)  │
+│ mode=code   │ ───► │ mode=code   │ ───► │ mode=code   │
+│ (isolated)  │      │ (isolated)  │      │ (isolated)  │
 └─────────────┘      └─────────────┘      └─────────────┘
 ```
 
+**Dynamic Sizing:** 1-7 sub-agents spawned based on task complexity
+
+| Task Complexity | Sub-Agents | Pattern                         |
+| --------------- | ---------- | ------------------------------- |
+| Simple edit     | 1          | writer only                     |
+| Standard CRUD   | 3          | researcher → writer → validator |
+| Complex feature | 5-7        | Full orchestration              |
+
 **Documentation:** [.claude/sub-agents/README.md](.claude/sub-agents/README.md)
 
-| Component | Purpose                                          |
-| --------- | ------------------------------------------------ |
-| Templates | researcher, writer, validator, parallel-executor |
-| Profiles  | read-only, research, writer, full-access         |
-| Protocols | Handoff format, orchestration patterns           |
+| Component  | Purpose                                                           |
+| ---------- | ----------------------------------------------------------------- |
+| Templates  | 7 consolidated + 4 unique = 11 total (domain, quality, git, code) |
+| Profiles   | read-only, research, writer, full-access                          |
+| Protocols  | Handoff format, orchestration patterns                            |
+| Heuristics | Dynamic sizing decision tree (lib/sizing-heuristics.md)           |
 
 ---
 
@@ -657,13 +669,21 @@ All agents use an **Opus orchestrator** with specialized sub-agents:
 | Validators       | Haiku  | code-validator, ui-validator, all checkers                     |
 | Executors        | Haiku  | git-executor, build-checker, test-runner                       |
 
-### Model Distribution (27 sub-agents)
+### Model Distribution (11 consolidated templates)
 
-| Model  | Count | Role Types                              |
-| ------ | ----- | --------------------------------------- |
-| Opus   | 18    | Orchestrators + researchers + analyzers |
-| Sonnet | 8     | Writers + builders                      |
-| Haiku  | 11    | Validators + checkers + executors       |
+**Note:** Actual sub-agent count varies per task (1-7 spawned dynamically).
+
+| Model  | Template Types                                    | Use Cases                           |
+| ------ | ------------------------------------------------- | ----------------------------------- |
+| Opus   | Orchestrators, domain-researcher, code-analyzer   | Research, analysis, coordination    |
+| Sonnet | domain-writer, git-content-generator, pr-reviewer | Code generation, content creation   |
+| Haiku  | quality-validator, quality-checker, git-executor  | Validation, checking, CLI execution |
+
+**Templates by Model:**
+
+- **Opus (4):** domain-researcher, code-analyzer, spec-analyzer, pr-reviewer
+- **Sonnet (4):** domain-writer, git-content-generator, orchestrators
+- **Haiku (3):** quality-validator, quality-checker, parallel-executor, git-executor, security-scanner
 
 ---
 

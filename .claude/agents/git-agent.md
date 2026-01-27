@@ -26,21 +26,22 @@ gh             # GitHub CLI for PR management
 
 ## Sub-Agents
 
-| Sub-Agent       | Model  | Purpose                                |
-| --------------- | ------ | -------------------------------------- |
-| change-analyzer | Sonnet | Analyze diffs, suggest commit messages |
-| pr-analyzer     | Sonnet | Generate PR descriptions               |
-| pr-reviewer     | Opus   | Thorough code review                   |
-| git-executor    | Haiku  | Execute git/gh CLI commands            |
+Uses consolidated template from `.claude/sub-agents/templates/git-content-generator.md` plus unique git-executor:
+
+| Template              | Mode   | Model  | Purpose                          |
+| --------------------- | ------ | ------ | -------------------------------- |
+| git-content-generator | commit | Sonnet | Analyze diff, suggest commit msg |
+| git-content-generator | pr     | Sonnet | Generate PR description          |
+| git-executor          | (none) | Haiku  | Execute git/gh CLI commands      |
+
+**Note:** git-executor is unique (not consolidated). Simple sizing: always 1 content generator + 1 executor (2 total).
 
 ```text
 git-agent (orchestrator, Opus)
-├── change-analyzer (Sonnet)
+├── git-content-generator (mode=commit, Sonnet)
 │   └── Analyze diff, suggest commit message
-├── pr-analyzer (Sonnet)
+├── git-content-generator (mode=pr, Sonnet)
 │   └── Generate PR description
-├── pr-reviewer (Opus)
-│   └── Review PR code thoroughly
 └── git-executor (Haiku)
     └── Execute git/gh CLI commands
 ```
@@ -98,7 +99,7 @@ git-agent (orchestrator, Opus)
     │   └─ Run: git diff --staged
     │   └─ Collect staged changes
     │
-    ├─► change-analyzer (Sonnet)
+    ├─► git-content-generator (mode=commit, Sonnet)
     │   └─ Analyze diff
     │   └─ Suggest commit message
     │   └─ Follow conventional commits
@@ -118,7 +119,7 @@ git-agent (orchestrator, Opus)
     │   └─ Run: git diff main...HEAD
     │   └─ Collect all changes since main
     │
-    ├─► pr-analyzer (Sonnet)
+    ├─► git-content-generator (mode=pr, Sonnet)
     │   └─ Analyze full diff
     │   └─ Generate PR title
     │   └─ Generate PR summary (what, why, how to test)
@@ -138,7 +139,7 @@ git-agent (orchestrator, Opus)
     │   └─ Run: gh pr diff <number>
     │   └─ Collect PR metadata and diff
     │
-    ├─► pr-reviewer (Opus)
+    ├─► pr-reviewer (Opus) [NOT CONSOLIDATED - unique template]
     │   └─ Analyze code changes
     │   └─ Check security patterns
     │   └─ Check correctness
@@ -257,12 +258,12 @@ git-agent (orchestrator, Opus)
 > **Required pattern:**
 >
 > ```
-> // For commits: analyzer → executor
-> Task({ subagent_type: "general-purpose", description: "Analyze changes", model: "sonnet" })
+> // For commits: content-generator (mode=commit) → executor
+> Task({ subagent_type: "general-purpose", description: "Generate commit message", prompt: "Load git-content-generator (mode=commit)...", model: "sonnet" })
 > Task({ subagent_type: "general-purpose", description: "Execute commit", model: "haiku" })
 >
-> // For PRs: analyzer → executor
-> Task({ subagent_type: "general-purpose", description: "Analyze PR", model: "sonnet" })
+> // For PRs: content-generator (mode=pr) → executor
+> Task({ subagent_type: "general-purpose", description: "Generate PR description", prompt: "Load git-content-generator (mode=pr)...", model: "sonnet" })
 > Task({ subagent_type: "general-purpose", description: "Create PR", model: "haiku" })
 > ```
 

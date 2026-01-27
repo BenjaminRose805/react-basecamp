@@ -10,21 +10,31 @@ Creates LLM evaluation suites for non-deterministic features.
 
 ```text
 eval-agent (orchestrator, Opus)
-├── eval-researcher (Opus)
-│   └── Identify LLM touchpoints, define dimensions
-├── eval-writer (Sonnet)
-│   └── Write test cases and graders
-└── eval-validator (Haiku)
-    └── Run dry runs, verify coverage
+│
+│ (dynamic sizing based on context)
+│
+├── agentCount == 1:
+│   └─► domain-writer (mode=eval, Sonnet)
+│
+├── agentCount == 2:
+│   ├─► domain-researcher (mode=eval, Opus)
+│   └─► domain-writer (mode=eval, Sonnet)
+│
+└── agentCount >= 3:
+    ├─► domain-researcher (mode=eval, Opus)
+    ├─► domain-writer (mode=eval, Sonnet)
+    └─► quality-validator (Haiku)
 ```
 
 ## Sub-Agents
 
-| Sub-Agent       | Model  | Purpose                                                       |
-| --------------- | ------ | ------------------------------------------------------------- |
-| eval-researcher | Opus   | Identify LLM touchpoints, determine dimensions, suggest cases |
-| eval-writer     | Sonnet | Write config.ts, test cases, graders                          |
-| eval-validator  | Haiku  | Run dry runs, verify coverage                                 |
+Uses consolidated templates from `.claude/sub-agents/templates/`:
+
+| Template          | Mode   | Model  | Purpose                                     |
+| ----------------- | ------ | ------ | ------------------------------------------- |
+| domain-researcher | eval   | Opus   | Identify LLM touchpoints, define dimensions |
+| domain-writer     | eval   | Sonnet | Write config.ts, test cases, graders        |
+| quality-validator | (none) | Haiku  | Run dry runs, verify coverage               |
 
 ## MCP Servers
 
@@ -44,6 +54,45 @@ pnpm eval  # Run specific eval suite
 
 - **research** - Identify LLM touchpoints
 - **eval-harness** - EDD framework, pass@k metrics
+
+## Dynamic Sizing
+
+Uses sizing heuristics from `.claude/sub-agents/lib/sizing-heuristics.md` to determine appropriate sub-agent count.
+
+### Gather Context
+
+```typescript
+const context = {
+  fileCount: await countFilesToModify(),
+  taskCount: await estimateTaskCount(),
+  moduleCount: await countModules(),
+  effort: "small" | "medium" | "large",
+};
+```
+
+### Determine Agent Count
+
+```typescript
+const agentCount = determineSubAgentCount(context);
+```
+
+### Routing
+
+```typescript
+if (agentCount === 1) {
+  // Simple: Just write the eval suite
+  spawn domain-writer(mode=eval)
+} else if (agentCount === 2) {
+  // Medium: Research + write
+  spawn domain-researcher(mode=eval)
+  spawn domain-writer(mode=eval)
+} else {
+  // Complex: Research + write + validate
+  spawn domain-researcher(mode=eval)
+  spawn domain-writer(mode=eval)
+  spawn quality-validator
+}
+```
 
 ## When to Use
 

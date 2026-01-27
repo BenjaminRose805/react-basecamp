@@ -10,21 +10,31 @@ Backend implementation using TDD methodology.
 
 ```text
 code-agent (orchestrator, Opus)
-├── code-researcher (Opus)
-│   └── Find patterns, check conflicts
-├── code-writer (Sonnet)
-│   └── Implement with TDD
-└── code-validator (Haiku)
-    └── Run quality checks
+│
+│ (dynamic sizing based on context)
+│
+├── agentCount == 1:
+│   └─► domain-writer (mode=backend, Sonnet)
+│
+├── agentCount == 2:
+│   ├─► domain-researcher (mode=backend, Opus)
+│   └─► domain-writer (mode=backend, Sonnet)
+│
+└── agentCount >= 3:
+    ├─► domain-researcher (mode=backend, Opus)
+    ├─► domain-writer (mode=backend, Sonnet)
+    └─► quality-validator (Haiku)
 ```
 
 ## Sub-Agents
 
-| Sub-Agent       | Model  | Purpose                                                           |
-| --------------- | ------ | ----------------------------------------------------------------- |
-| code-researcher | Opus   | Find existing implementations, check conflicts, identify patterns |
-| code-writer     | Sonnet | Write tests first, implement code, refactor                       |
-| code-validator  | Haiku  | Run typecheck, tests, lint                                        |
+Uses consolidated templates from `.claude/sub-agents/templates/`:
+
+| Template          | Mode    | Model  | Purpose                                           |
+| ----------------- | ------- | ------ | ------------------------------------------------- |
+| domain-researcher | backend | Opus   | Find implementations, check conflicts, patterns   |
+| domain-writer     | backend | Sonnet | Write tests first, implement code, refactor (TDD) |
+| quality-validator | (none)  | Haiku  | Run typecheck, tests, lint                        |
 
 ## MCP Servers
 
@@ -49,6 +59,45 @@ pnpm lint      # Linting
 - **qa-checks** - Build, types, lint, tests
 - **backend-patterns** - tRPC, Prisma, API patterns
 - **coding-standards** - KISS, DRY, YAGNI principles
+
+## Dynamic Sizing
+
+Uses sizing heuristics from `.claude/sub-agents/lib/sizing-heuristics.md` to determine appropriate sub-agent count.
+
+### Gather Context
+
+```typescript
+const context = {
+  fileCount: await countFilesToModify(),
+  taskCount: await estimateTaskCount(),
+  moduleCount: await countModules(),
+  effort: "small" | "medium" | "large",
+};
+```
+
+### Determine Agent Count
+
+```typescript
+const agentCount = determineSubAgentCount(context);
+```
+
+### Routing
+
+```typescript
+if (agentCount === 1) {
+  // Simple: Just implement the code
+  spawn domain-writer(mode=backend)
+} else if (agentCount === 2) {
+  // Medium: Research + implement
+  spawn domain-researcher(mode=backend)
+  spawn domain-writer(mode=backend)
+} else {
+  // Complex: Research + implement + validate
+  spawn domain-researcher(mode=backend)
+  spawn domain-writer(mode=backend)
+  spawn quality-validator
+}
+```
 
 ## Orchestration Workflow
 
