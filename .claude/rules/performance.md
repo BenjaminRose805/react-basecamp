@@ -14,14 +14,14 @@ Choose the right model for the task:
 
 ### Agent Model Assignment
 
-| Agent Type       | Recommended Model | Reasoning                      |
-| ---------------- | ----------------- | ------------------------------ |
-| \*-researcher    | Sonnet            | Read-heavy, moderate reasoning |
-| \*-writer        | Sonnet            | Complex generation             |
-| \*-qa            | Haiku             | Verification, checklist-based  |
-| security-auditor | Sonnet            | Security expertise needed      |
-| pr-reviewer      | Sonnet            | Comprehensive review           |
-| debugger         | Sonnet            | Investigation skills           |
+| Agent Type        | Recommended Model | Reasoning                        |
+| ----------------- | ----------------- | -------------------------------- |
+| Orchestrators     | Opus              | Coordination, routing decisions  |
+| \*-researcher     | Opus              | Deep analysis, pattern finding   |
+| \*-analyzer       | Opus              | Investigation, security analysis |
+| \*-writer/builder | Sonnet            | Code generation, documentation   |
+| \*-validator      | Haiku             | Verification, checklist-based    |
+| \*-executor       | Haiku             | Command execution, simple tasks  |
 
 ## Context Window Management
 
@@ -124,8 +124,8 @@ const items = await db.workItem.findMany({
 
 If build fails:
 
-1. Run `/debug` to investigate
-2. Check error messages carefully
+1. Check error messages carefully
+2. Run `/plan` to investigate if complex
 3. Fix incrementally (one issue at a time)
 4. Verify after each fix with `pnpm build`
 

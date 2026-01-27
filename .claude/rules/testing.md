@@ -206,7 +206,7 @@ Before marking tests complete:
 
 ## Troubleshooting Test Failures
 
-1. Use `/debug` command to investigate
+1. Use `/plan` to investigate (reconcile mode analyzes issues)
 2. Check test isolation (tests affecting each other)
 3. Verify mocks are correct and reset
 4. Fix implementation, not tests (unless tests are wrong)

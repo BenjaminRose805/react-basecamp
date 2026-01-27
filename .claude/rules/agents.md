@@ -125,14 +125,14 @@ First agent 1, then agent 2, then agent 3
 
 Optimize cost by using appropriate models:
 
-| Agent Type       | Model  | Reasoning                            |
-| ---------------- | ------ | ------------------------------------ |
-| \*-researcher    | Sonnet | Read-heavy, needs good comprehension |
-| \*-writer        | Sonnet | Complex generation tasks             |
-| \*-qa            | Haiku  | Checklist-based verification         |
-| security-auditor | Sonnet | Needs security expertise             |
-| pr-reviewer      | Sonnet | Comprehensive review                 |
-| debugger         | Sonnet | Investigation skills                 |
+| Agent Type        | Model  | Reasoning                            |
+| ----------------- | ------ | ------------------------------------ |
+| Orchestrators     | Opus   | Coordination, routing decisions      |
+| \*-researcher     | Opus   | Deep analysis, pattern recognition   |
+| \*-analyzer       | Opus   | Investigation, security analysis     |
+| \*-writer/builder | Sonnet | Code generation, documentation       |
+| \*-validator      | Haiku  | Checklist-based verification         |
+| \*-executor       | Haiku  | Command execution, simple operations |
 
 ## Failure Handling
 
