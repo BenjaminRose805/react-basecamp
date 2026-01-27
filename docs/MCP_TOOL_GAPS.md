@@ -18,62 +18,62 @@ Use this document to track progress on integrating underutilized MCP tools into 
 
 ### 1. **spec-workflow** (5 tools)
 
-| Tool                  | Purpose                    | Currently Used By                                                                                       | Gap? |
-| --------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------- | ---- |
-| `spec-workflow-guide` | Load workflow instructions | spec-writer, distill-spec-writer, slice-creator                                                         | No   |
-| `steering-guide`      | Steering document creation | None                                                                                                    | Yes  |
-| `spec-status`         | Check spec progress        | code-writer, code-qa, spec-writer, spec-qa, distill-spec-writer, test-writer, ui-builder, slice-creator | No   |
-| `approvals`           | Request dashboard approval | spec-writer, distill-spec-writer, slice-creator                                                         | No   |
-| `log-implementation`  | Record artifacts           | code-writer, test-writer, ui-builder, security-auditor                                                  | No   |
+| Tool                  | Purpose                    | Currently Used By                                                                                              | Gap? |
+| --------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- | ---- |
+| `spec-workflow-guide` | Load workflow instructions | spec-writer, distill-spec-writer, slice-creator                                                                | No   |
+| `steering-guide`      | Steering document creation | None                                                                                                           | Yes  |
+| `spec-status`         | Check spec progress        | code-writer, code-validator, spec-writer, spec-qa, distill-spec-writer, test-writer, ui-builder, slice-creator | No   |
+| `approvals`           | Request dashboard approval | spec-writer, distill-spec-writer, slice-creator                                                                | No   |
+| `log-implementation`  | Record artifacts           | code-writer, test-writer, ui-builder, security-auditor                                                         | No   |
 
 ### 2. **vitest** (4 tools)
 
-| Tool               | Purpose                               | Currently Used By                       | Gap? |
-| ------------------ | ------------------------------------- | --------------------------------------- | ---- |
-| `set_project_root` | Initialize project context            | Not explicitly documented               | Yes  |
-| `list_tests`       | Discover test files                   | test-researcher                         | No   |
-| `run_tests`        | Execute tests with AI-friendly output | test-writer, test-qa, code-qa, debugger | No   |
-| `analyze_coverage` | Line-by-line coverage analysis        | test-qa                                 | No   |
+| Tool               | Purpose                               | Currently Used By                                     | Gap? |
+| ------------------ | ------------------------------------- | ----------------------------------------------------- | ---- |
+| `set_project_root` | Initialize project context            | Not explicitly documented                             | Yes  |
+| `list_tests`       | Discover test files                   | test-researcher                                       | No   |
+| `run_tests`        | Execute tests with AI-friendly output | test-writer, test-validator, code-validator, debugger | No   |
+| `analyze_coverage` | Line-by-line coverage analysis        | test-validator                                        | No   |
 
 ### 3. **cclsp** (11 tools)
 
-| Tool                     | Purpose                        | Currently Used By                | Gap?                              |
-| ------------------------ | ------------------------------ | -------------------------------- | --------------------------------- |
-| `find_definition`        | Navigate to symbol definition  | debugger, code-researcher        | No                                |
-| `find_references`        | Find all usages of a symbol    | debugger, code-researcher        | No                                |
-| `rename_symbol`          | Rename across codebase         | None                             | Yes - code-writer for refactoring |
-| `rename_symbol_strict`   | Rename at specific position    | None                             | Yes                               |
-| `get_diagnostics`        | Get TypeScript errors          | test-writer, ui-builder, code-qa | No                                |
-| `restart_server`         | Reset LSP state                | None                             | Low priority                      |
-| `get_hover`              | Get type info at position      | None                             | Yes - debugger could use          |
-| `find_workspace_symbols` | Search symbols globally        | None                             | Yes - researchers should use      |
-| `find_implementation`    | Find interface implementations | None                             | Yes - code-researcher             |
-| `prepare_call_hierarchy` | Prepare for call analysis      | None                             | Yes - debugger should use         |
-| `get_incoming_calls`     | Find callers of a function     | None                             | Yes - debugger should use         |
-| `get_outgoing_calls`     | Find callees of a function     | None                             | Yes - debugger should use         |
+| Tool                     | Purpose                        | Currently Used By                       | Gap?                              |
+| ------------------------ | ------------------------------ | --------------------------------------- | --------------------------------- |
+| `find_definition`        | Navigate to symbol definition  | debugger, code-researcher               | No                                |
+| `find_references`        | Find all usages of a symbol    | debugger, code-researcher               | No                                |
+| `rename_symbol`          | Rename across codebase         | None                                    | Yes - code-writer for refactoring |
+| `rename_symbol_strict`   | Rename at specific position    | None                                    | Yes                               |
+| `get_diagnostics`        | Get TypeScript errors          | test-writer, ui-builder, code-validator | No                                |
+| `restart_server`         | Reset LSP state                | None                                    | Low priority                      |
+| `get_hover`              | Get type info at position      | None                                    | Yes - debugger could use          |
+| `find_workspace_symbols` | Search symbols globally        | None                                    | Yes - researchers should use      |
+| `find_implementation`    | Find interface implementations | None                                    | Yes - code-researcher             |
+| `prepare_call_hierarchy` | Prepare for call analysis      | None                                    | Yes - debugger should use         |
+| `get_incoming_calls`     | Find callers of a function     | None                                    | Yes - debugger should use         |
+| `get_outgoing_calls`     | Find callees of a function     | None                                    | Yes - debugger should use         |
 
 ### 4. **playwright** (17 tools)
 
-| Tool                       | Purpose                 | Currently Used By       | Gap?                             |
-| -------------------------- | ----------------------- | ----------------------- | -------------------------------- |
-| `browser_navigate`         | Go to URL               | test-writer, ui-builder | No                               |
-| `browser_click`            | Click elements          | test-writer, ui-builder | No                               |
-| `browser_type`             | Type text               | test-writer             | No                               |
-| `browser_fill_form`        | Fill multiple fields    | test-writer             | No                               |
-| `browser_snapshot`         | Accessibility tree      | None                    | Yes - ui-qa should use           |
-| `browser_take_screenshot`  | Visual screenshot       | ui-builder, debugger    | No                               |
-| `browser_console_messages` | Get console output      | None                    | Yes - ui-qa, debugger should use |
-| `browser_evaluate`         | Run JS in browser       | None                    | Low priority                     |
-| `browser_close`            | Close browser           | None                    | Low priority                     |
-| `browser_resize`           | Change viewport         | None                    | Yes - ui-builder for responsive  |
-| `browser_handle_dialog`    | Accept/dismiss dialogs  | test-writer             | No                               |
-| `browser_network_requests` | Monitor network         | None                    | Yes - debugger should use        |
-| `browser_wait_for`         | Wait for conditions     | test-writer             | No                               |
-| `browser_hover`            | Hover over elements     | None                    | Yes - ui-builder for states      |
-| `browser_select_option`    | Select dropdown options | test-writer             | No                               |
-| `browser_drag`             | Drag and drop           | test-writer             | No                               |
-| `browser_tabs`             | Manage browser tabs     | None                    | Low priority                     |
-| `browser_run_code`         | Execute Playwright code | test-writer             | No                               |
+| Tool                       | Purpose                 | Currently Used By       | Gap?                                    |
+| -------------------------- | ----------------------- | ----------------------- | --------------------------------------- |
+| `browser_navigate`         | Go to URL               | test-writer, ui-builder | No                                      |
+| `browser_click`            | Click elements          | test-writer, ui-builder | No                                      |
+| `browser_type`             | Type text               | test-writer             | No                                      |
+| `browser_fill_form`        | Fill multiple fields    | test-writer             | No                                      |
+| `browser_snapshot`         | Accessibility tree      | None                    | Yes - ui-validator should use           |
+| `browser_take_screenshot`  | Visual screenshot       | ui-builder, debugger    | No                                      |
+| `browser_console_messages` | Get console output      | None                    | Yes - ui-validator, debugger should use |
+| `browser_evaluate`         | Run JS in browser       | None                    | Low priority                            |
+| `browser_close`            | Close browser           | None                    | Low priority                            |
+| `browser_resize`           | Change viewport         | None                    | Yes - ui-builder for responsive         |
+| `browser_handle_dialog`    | Accept/dismiss dialogs  | test-writer             | No                                      |
+| `browser_network_requests` | Monitor network         | None                    | Yes - debugger should use               |
+| `browser_wait_for`         | Wait for conditions     | test-writer             | No                                      |
+| `browser_hover`            | Hover over elements     | None                    | Yes - ui-builder for states             |
+| `browser_select_option`    | Select dropdown options | test-writer             | No                                      |
+| `browser_drag`             | Drag and drop           | test-writer             | No                                      |
+| `browser_tabs`             | Manage browser tabs     | None                    | Low priority                            |
+| `browser_run_code`         | Execute Playwright code | test-writer             | No                                      |
 
 ### 5. **figma** (9 tools)
 
@@ -92,15 +92,15 @@ Use this document to track progress on integrating underutilized MCP tools into 
 
 ### 6. **shadcn** (7 tools)
 
-| Tool                                | Purpose                   | Currently Used By         | Gap?                        |
-| ----------------------------------- | ------------------------- | ------------------------- | --------------------------- |
-| `get_project_registries`            | Get configured registries | ui-researcher             | No                          |
-| `list_items_in_registries`          | List available components | ui-researcher             | No                          |
-| `search_items_in_registries`        | Search for components     | ui-researcher, ui-builder | No                          |
-| `view_items_in_registries`          | Get component details     | ui-builder                | No                          |
-| `get_item_examples_from_registries` | Get usage examples        | None                      | Yes - ui-builder should use |
-| `get_add_command_for_items`         | Get CLI add command       | ui-builder                | No                          |
-| `get_audit_checklist`               | Post-build verification   | None                      | Yes - ui-qa should use      |
+| Tool                                | Purpose                   | Currently Used By         | Gap?                          |
+| ----------------------------------- | ------------------------- | ------------------------- | ----------------------------- |
+| `get_project_registries`            | Get configured registries | ui-researcher             | No                            |
+| `list_items_in_registries`          | List available components | ui-researcher             | No                            |
+| `search_items_in_registries`        | Search for components     | ui-researcher, ui-builder | No                            |
+| `view_items_in_registries`          | Get component details     | ui-builder                | No                            |
+| `get_item_examples_from_registries` | Get usage examples        | None                      | Yes - ui-builder should use   |
+| `get_add_command_for_items`         | Get CLI add command       | ui-builder                | No                            |
+| `get_audit_checklist`               | Post-build verification   | None                      | Yes - ui-validator should use |
 
 ### 7. **sentry** (17 tools)
 
@@ -188,15 +188,15 @@ Use this document to track progress on integrating underutilized MCP tools into 
 
 ### 10. **next-devtools** (6 tools)
 
-| Tool                      | Purpose                          | Currently Used By | Gap?                         |
-| ------------------------- | -------------------------------- | ----------------- | ---------------------------- |
-| `browser_eval`            | Playwright-based browser testing | debugger, code-qa | No                           |
-| `enable_cache_components` | Migrate to Cache Components      | None              | N/A (Next.js 16+)            |
-| `init`                    | Initialize DevTools context      | None              | Yes - session start          |
-| `nextjs_docs`             | Fetch Next.js docs               | None              | Yes - code-writer should use |
-| `nextjs_index`            | Discover dev servers             | debugger, code-qa | No                           |
-| `nextjs_call`             | Call Next.js MCP tools           | debugger, code-qa | No                           |
-| `upgrade_nextjs_16`       | Upgrade Next.js                  | None              | N/A                          |
+| Tool                      | Purpose                          | Currently Used By        | Gap?                         |
+| ------------------------- | -------------------------------- | ------------------------ | ---------------------------- |
+| `browser_eval`            | Playwright-based browser testing | debugger, code-validator | No                           |
+| `enable_cache_components` | Migrate to Cache Components      | None                     | N/A (Next.js 16+)            |
+| `init`                    | Initialize DevTools context      | None                     | Yes - session start          |
+| `nextjs_docs`             | Fetch Next.js docs               | None                     | Yes - code-writer should use |
+| `nextjs_index`            | Discover dev servers             | debugger, code-validator | No                           |
+| `nextjs_call`             | Call Next.js MCP tools           | debugger, code-validator | No                           |
+| `upgrade_nextjs_16`       | Upgrade Next.js                  | None                     | N/A                          |
 
 ### 11. **context7** (2 tools)
 
@@ -217,13 +217,13 @@ Use this document to track progress on integrating underutilized MCP tools into 
 - [x] **pr-reviewer**: Add `create_pull_request_review` - Submit actual GitHub reviews ✓
 - [x] **pr-reviewer**: Add `get_pull_request_files` - See what changed ✓
 - [x] **test-researcher**: Add `list_tests` - Discover existing test files ✓
-- [x] **test-qa**: Add `analyze_coverage` - Line-level coverage analysis ✓
+- [x] **test-validator**: Add `analyze_coverage` - Line-level coverage analysis ✓
 
 ### Medium Priority (Useful additions)
 
-- [x] **ui-qa**: Add `browser_snapshot` - Accessibility validation ✓
-- [x] **ui-qa**: Add `browser_console_messages` - Check for errors ✓
-- [x] **ui-qa**: Add `get_audit_checklist` (shadcn) - Post-build audit ✓
+- [x] **ui-validator**: Add `browser_snapshot` - Accessibility validation ✓
+- [x] **ui-validator**: Add `browser_console_messages` - Check for errors ✓
+- [x] **ui-validator**: Add `get_audit_checklist` (shadcn) - Post-build audit ✓
 - [x] **ui-builder**: Add `get_item_examples_from_registries` - Learn patterns ✓
 - [x] **ui-builder**: Add `browser_resize` - Test responsiveness ✓
 - [x] **ui-builder**: Add `browser_hover` - Verify hover states ✓
@@ -231,7 +231,7 @@ Use this document to track progress on integrating underutilized MCP tools into 
 - [x] **debugger**: Add `update_issue` (GitHub and Linear) - Track resolutions ✓
 - [x] **debugger**: Add `get_trace_details` - Distributed tracing ✓
 - [x] **debugger**: Add `search_issue_events` - Filter events ✓
-- [x] **code-qa**: Add `spec-status` - Verify spec completion ✓
+- [x] **code-validator**: Add `spec-status` - Verify spec completion ✓
 - [x] **code-writer**: Add `rename_symbol` - Safe refactoring ✓
 - [x] **code-writer**: Add `nextjs_docs` - Next.js API verification ✓
 - [x] **code-researcher**: Add `find_workspace_symbols` - Global symbol search ✓
@@ -267,10 +267,10 @@ Track implementation by checking off items above and noting the PR/commit that a
 | 2026-01-24 | debugger         | `analyze_issue_with_seer`, `get_incoming_calls`, `get_outgoing_calls`, `browser_network_requests`, `get_trace_details`, `search_issue_events`, `update_issue` | pending   |
 | 2026-01-24 | pr-reviewer      | `create_pull_request_review`, `get_pull_request_files`, `get_pull_request_status`, `get_pull_request_comments`, `get_pull_request_reviews`                    | pending   |
 | 2026-01-24 | test-researcher  | `list_tests`                                                                                                                                                  | pending   |
-| 2026-01-24 | test-qa          | `analyze_coverage`                                                                                                                                            | pending   |
-| 2026-01-24 | ui-qa            | `browser_snapshot`, `browser_console_messages`, `get_audit_checklist`                                                                                         | pending   |
+| 2026-01-24 | test-validator   | `analyze_coverage`                                                                                                                                            | pending   |
+| 2026-01-24 | ui-validator     | `browser_snapshot`, `browser_console_messages`, `get_audit_checklist`                                                                                         | pending   |
 | 2026-01-24 | ui-builder       | `get_item_examples_from_registries`, `browser_resize`, `browser_hover`, `get_code_connect_map`, `add_code_connect_map`                                        | pending   |
-| 2026-01-24 | code-qa          | `spec-status`                                                                                                                                                 | pending   |
+| 2026-01-24 | code-validator   | `spec-status`                                                                                                                                                 | pending   |
 | 2026-01-24 | code-writer      | `rename_symbol`, `nextjs_docs`                                                                                                                                | pending   |
 | 2026-01-24 | code-researcher  | `find_workspace_symbols`, `find_implementation`                                                                                                               | pending   |
 | 2026-01-24 | security-auditor | `search_events`                                                                                                                                               | pending   |

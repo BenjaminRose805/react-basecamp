@@ -109,14 +109,15 @@ This project uses enhanced Claude Code infrastructure for AI-assisted developmen
 
 ```
 .claude/
-├── agents/           # Agent definitions (researcher, writer, qa)
-├── commands/         # Slash commands (/code, /test, etc.)
-├── contexts/         # Working modes (dev, review, research)
+├── agents/           # Agent definitions (7 agents)
+├── commands/         # Slash commands (/plan, /implement, etc.)
+├── sub-agents/       # Sub-agent templates and profiles
+├── workflows/        # Multi-agent workflow definitions
+├── skills/           # Reusable procedures
 ├── rules/            # Coding rules and guidelines
 ├── scripts/          # Hook scripts and utilities
 │   ├── hooks/        # Lifecycle hook scripts
 │   └── lib/          # Shared utilities
-├── skills/           # Reusable workflows
 └── settings.json     # Hook configuration
 ```
 
@@ -195,17 +196,6 @@ Hooks in `.claude/settings.json` automate checks.
   "description": "Type-check after editing TypeScript"
 }
 ```
-
-### Contributing to Contexts
-
-Contexts in `.claude/contexts/` define working modes.
-
-**To add a new context:**
-
-1. Create `.claude/contexts/your-mode.md`
-2. Define behavior, priorities, tool preferences
-3. Update `/context` command documentation
-4. Update CLAUDE.md Contexts section
 
 ### Automated Checks
 
