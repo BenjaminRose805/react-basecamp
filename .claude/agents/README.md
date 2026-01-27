@@ -1,59 +1,87 @@
----
-name: agents-readme
----
-
 # Agent Specifications
 
-This directory contains detailed specifications for each agent used in the development workflow.
+This directory contains detailed specifications for the 7 agents used in the development workflow.
 
-## Agent Categories
+## Current Agents (7)
 
-### Distill Agents (SDD - from design docs)
+| Agent       | Domain                | Orchestrator | Sub-Agents                                              |
+| ----------- | --------------------- | ------------ | ------------------------------------------------------- |
+| plan-agent  | Specifications        | Opus         | researcher, writer, validator                           |
+| code-agent  | Backend (TDD)         | Opus         | researcher, writer, validator                           |
+| ui-agent    | Frontend              | Opus         | researcher, builder, validator                          |
+| docs-agent  | Documentation         | Opus         | researcher, writer, validator                           |
+| eval-agent  | LLM evaluations       | Opus         | researcher, writer, validator                           |
+| check-agent | Quality verification  | Opus         | 5 parallel checkers (build, type, lint, test, security) |
+| git-agent   | Version control + PRs | Opus         | change-analyzer, pr-analyzer, pr-reviewer, git-executor |
 
-| Agent                 | Purpose                        | See                                                |
-| --------------------- | ------------------------------ | -------------------------------------------------- |
-| `distill-researcher`  | Extract info from design docs  | [distill-researcher.md](./distill-researcher.md)   |
-| `distill-spec-writer` | Create implementation specs    | [distill-spec-writer.md](./distill-spec-writer.md) |
-| `distill-qa`          | Validate specs against sources | [distill-qa.md](./distill-qa.md)                   |
+## Archived Agents
 
-### Eval Agents (EDD - for LLM features)
+Deprecated agents are in `archived/`:
 
-| Agent             | Purpose                    | See                                        |
-| ----------------- | -------------------------- | ------------------------------------------ |
-| `eval-researcher` | Identify LLM touchpoints   | [eval-researcher.md](./eval-researcher.md) |
-| `eval-writer`     | Create evaluation suites   | [eval-writer.md](./eval-writer.md)         |
-| `eval-qa`         | Validate and dry-run evals | [eval-qa.md](./eval-qa.md)                 |
+| Agent         | Reason              | Replacement                  |
+| ------------- | ------------------- | ---------------------------- |
+| debug-agent   | Investigation phase | investigator sub-agent       |
+| pr-agent      | Absorbed into git   | git-agent (pr-\* sub-agents) |
+| help-agent    | Not agent work      | /guide command               |
+| context-agent | Not agent work      | /mode command                |
 
 ## Agent Pattern
 
-All writing agents follow the three-phase pattern:
+All agents use an **Opus orchestrator** with specialized sub-agents:
 
 ```
-RESEARCHER → WRITER → QA
+┌─────────────────────────────────────────────────────────────┐
+│  ORCHESTRATOR (Opus)                                        │
+│  - Coordinates phases                                       │
+│  - Manages handoffs                                         │
+│  - Handles errors                                           │
+└─────────────────────────────────────────────────────────────┘
+         │                    │                    │
+         ▼                    ▼                    ▼
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│ Researcher  │      │   Writer    │      │  Validator  │
+│   (Opus)    │ ───► │  (Sonnet)   │ ───► │   (Haiku)   │
+└─────────────┘      └─────────────┘      └─────────────┘
 ```
 
-- **Researcher**: Gather information, check for conflicts, recommend approach
-- **Writer**: Do the work based on research findings
-- **QA**: Validate the output, report PASS or FAIL
+## Model Assignments
 
-## Adding New Agents
+| Role             | Model  | Examples                                     |
+| ---------------- | ------ | -------------------------------------------- |
+| Orchestrators    | Opus   | All 7 agent orchestrators                    |
+| Researchers      | Opus   | plan-researcher, code-researcher, etc.       |
+| Analyzers        | Opus   | investigator, pr-reviewer, refactor-analyzer |
+| Writers/Builders | Sonnet | code-writer, ui-builder, docs-writer         |
+| Validators       | Haiku  | code-validator, ui-validator, all checkers   |
+| Executors        | Haiku  | git-executor, build-checker, test-runner     |
 
-1. Create `{agent-name}.md` in this directory
-2. Follow the template structure:
-   - Purpose
-   - Inputs
-   - Process (numbered steps)
-   - Output
-   - Success Criteria
-3. Add the agent to the routing table in `CLAUDE.md`
+## Sub-Agent Details
 
-## Invoking Agents
+See `.claude/sub-agents/` for complete sub-agent specifications:
 
-Agents are invoked via commands in `CLAUDE.md`:
-
-```bash
-/distill [feature]           # Full flow
-/distill research [feature]  # Single phase
+```
+sub-agents/
+├── code/           # code-researcher, code-writer, code-validator
+├── docs/           # docs-researcher, docs-writer, docs-validator
+├── eval/           # eval-researcher, eval-writer, eval-validator
+├── git/            # change-analyzer, pr-analyzer, pr-reviewer, git-executor
+├── plan/           # plan-researcher, plan-writer, plan-validator
+├── ui/             # ui-researcher, ui-builder, ui-validator
+├── workflows/      # investigator, refactor-analyzer, security-triager
+├── profiles/       # Permission profiles (read-only, research, writer, full-access)
+├── protocols/      # Handoff and orchestration protocols
+└── templates/      # Base templates for each sub-agent type
 ```
 
-The main Claude instance reads these specs and delegates work accordingly.
+## Routing
+
+Users don't invoke agents directly. Commands route to agents:
+
+| Command    | Routes To                         |
+| ---------- | --------------------------------- |
+| /start     | git-agent (worktree creation)     |
+| /plan      | plan-agent                        |
+| /implement | Routing → code/ui/docs/eval-agent |
+| /ship      | git-agent + check-agent           |
+| /guide     | (informational, no agent)         |
+| /mode      | (mode switch, no agent)           |
