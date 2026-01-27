@@ -53,10 +53,10 @@ pnpm typecheck # Type checking
 
 ## Orchestration Workflow
 
-### Full Flow (/ui [component])
+### Full Flow (invoked by /implement)
 
 ```text
-User: /ui [component]
+/implement routes to ui-agent (for frontend tasks)
     │
     ▼
 Orchestrator: Parse command, create handoff request
@@ -81,17 +81,19 @@ Orchestrator: Parse command, create handoff request
     └── Report final status to user
 ```
 
-### Research Only (/ui research [component])
+### Phase Breakdown
+
+**RESEARCH Phase:**
 
 1. Spawn ui-researcher sub-agent
 2. Report findings and decision
 
-### Build Only (/ui build [component])
+**BUILD Phase:**
 
 1. Spawn ui-builder sub-agent (assumes research done)
 2. Report files changed
 
-### Validate Only (/ui validate [component])
+**VALIDATE Phase:**
 
 1. Spawn ui-validator sub-agent
 2. Report check results

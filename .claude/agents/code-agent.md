@@ -52,10 +52,10 @@ pnpm lint      # Linting
 
 ## Orchestration Workflow
 
-### Full Flow (/code [feature])
+### Full Flow (invoked by /implement)
 
 ```text
-User: /code [feature]
+/implement routes to code-agent (for backend tasks)
     │
     ▼
 Orchestrator: Parse command, create handoff request
@@ -80,17 +80,19 @@ Orchestrator: Parse command, create handoff request
     └── Report final status to user
 ```
 
-### Research Only (/code research [feature])
+### Phase Breakdown
+
+**RESEARCH Phase:**
 
 1. Spawn code-researcher sub-agent
 2. Report findings and decision
 
-### Implement Only (/code implement [feature])
+**IMPLEMENT Phase:**
 
 1. Spawn code-writer sub-agent (assumes research done)
 2. Report files changed
 
-### Validate Only (/code validate [feature])
+**VALIDATE Phase:**
 
 1. Spawn code-validator sub-agent
 2. Report check results
@@ -227,7 +229,7 @@ When code-validator finds issues:
 | Lint  | PASS   | 0 errors            |
 | Build | PASS   | Compiled            |
 
-Ready for `/check` or `/pr create`
+Ready for `/ship`
 ```
 
 ## Instructions
