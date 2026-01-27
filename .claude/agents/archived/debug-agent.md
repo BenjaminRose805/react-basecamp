@@ -1,8 +1,20 @@
 ---
 name: debug-agent
+status: DEPRECATED
+deprecated_in: 08-architecture-v2
 ---
 
-# Debug Agent
+# Debug Agent (DEPRECATED)
+
+> **DEPRECATED:** This agent has been replaced by the **fix workflow** with the **investigator sub-agent**.
+>
+> **Migration:**
+>
+> - Use `/fix [issue]` instead of `/debug [issue]`
+> - The investigator sub-agent now handles bug diagnosis
+> - Routing to code-agent or ui-agent is automatic
+>
+> See: [.claude/sub-agents/workflows/investigator.md](../../sub-agents/workflows/investigator.md)
 
 Bug investigation and diagnosis.
 

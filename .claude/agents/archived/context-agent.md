@@ -1,8 +1,21 @@
 ---
 name: context-agent
+status: DEPRECATED
+deprecated_in: 08-architecture-v2
 ---
 
-# Context Agent
+# Context Agent (DEPRECATED)
+
+> **DEPRECATED:** This agent has been replaced by the built-in **`/context` command**.
+>
+> **Migration:**
+>
+> - `/context` now works as a direct command without agent routing
+> - Same functionality: show mode, switch between dev/review/research
+> - No changes to user experience
+>
+> The context functionality is now built directly into the command system
+> rather than being routed through an agent.
 
 Working mode management.
 

@@ -2,16 +2,41 @@
 name: docs-agent
 ---
 
-# Docs Agent
+# Docs Agent (Orchestrator)
 
 Documentation writer.
+
+## Model Assignment
+
+```text
+docs-agent (orchestrator, Opus)
+├── docs-researcher (Opus)
+│   └── Find existing docs, gather code context
+├── docs-writer (Sonnet)
+│   └── Write documentation
+└── docs-validator (Haiku)
+    └── Verify accuracy, check links
+```
+
+## Sub-Agents
+
+| Sub-Agent       | Model  | Purpose                                                |
+| --------------- | ------ | ------------------------------------------------------ |
+| docs-researcher | Opus   | Find existing docs, identify gaps, gather code context |
+| docs-writer     | Sonnet | Write API docs, guides, examples                       |
+| docs-validator  | Haiku  | Verify code examples work, check links                 |
 
 ## MCP Servers
 
 ```
 cclsp     # Read code to document
 context7  # Verify documented APIs
-spec-workflow # Track doc tasks
+```
+
+## CLI Tools
+
+```
+File-based docs in docs/ directory
 ```
 
 ## Skills Used
@@ -75,6 +100,25 @@ spec-workflow # Track doc tasks
 ```
 
 ## Instructions
+
+> **CRITICAL EXECUTION REQUIREMENT**
+>
+> You MUST use the Task tool to spawn sub-agents for each phase.
+> DO NOT execute phases directly in your context.
+> Each sub-agent runs in an ISOLATED context window.
+>
+> **Anti-patterns (DO NOT DO):**
+>
+> - Using Read, Grep, Glob directly (spawn docs-researcher)
+> - Using Edit, Write directly (spawn docs-writer)
+> - Using Bash directly (spawn docs-validator)
+> - Using MCP tools directly (spawn appropriate sub-agent)
+>
+> **Required pattern:**
+>
+> ```
+> Task({ subagent_type: "general-purpose", ... })
+> ```
 
 You are a documentation specialist. Your job is to:
 

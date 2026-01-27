@@ -103,13 +103,49 @@ await Task({
 ├── protocols/
 │   ├── handoff.md               # Request/response format
 │   └── orchestration.md         # Orchestration patterns
-└── check/                       # Check-agent sub-agents
-    ├── README.md                # Check sub-agent overview
-    ├── build-checker.md         # Build verification
-    ├── type-checker.md          # TypeScript type check
-    ├── lint-checker.md          # ESLint check
-    ├── test-runner.md           # Test execution + coverage
-    └── security-scanner.md      # Security pattern check
+├── plan/                        # Plan-agent sub-agents
+│   ├── README.md                # Plan sub-agent overview
+│   ├── plan-researcher.md       # Requirements analysis
+│   ├── plan-writer.md           # Spec document writing
+│   └── plan-validator.md        # Spec completeness check
+├── code/                        # Code-agent sub-agents
+│   ├── README.md                # Code sub-agent overview
+│   ├── code-researcher.md       # Pattern finding
+│   ├── code-writer.md           # TDD implementation
+│   └── code-validator.md        # Quality checks
+├── ui/                          # UI-agent sub-agents
+│   ├── README.md                # UI sub-agent overview
+│   ├── ui-researcher.md         # Component research
+│   ├── ui-builder.md            # Component building
+│   └── ui-validator.md          # A11y and test checks
+├── docs/                        # Docs-agent sub-agents
+│   ├── README.md                # Docs sub-agent overview
+│   ├── docs-researcher.md       # Documentation gaps
+│   ├── docs-writer.md           # Documentation writing
+│   └── docs-validator.md        # Accuracy verification
+├── eval/                        # Eval-agent sub-agents
+│   ├── README.md                # Eval sub-agent overview
+│   ├── eval-researcher.md       # LLM touchpoint analysis
+│   ├── eval-writer.md           # Cases and graders
+│   └── eval-validator.md        # Dry runs and coverage
+├── check/                       # Check-agent sub-agents
+│   ├── README.md                # Check sub-agent overview
+│   ├── build-checker.md         # Build verification
+│   ├── type-checker.md          # TypeScript type check
+│   ├── lint-checker.md          # ESLint check
+│   ├── test-runner.md           # Test execution + coverage
+│   └── security-scanner.md      # Security pattern check
+├── git/                         # Git-agent sub-agents
+│   ├── README.md                # Git sub-agent overview
+│   ├── change-analyzer.md       # Commit message suggestion
+│   ├── pr-analyzer.md           # PR description generation
+│   ├── pr-reviewer.md           # Code review
+│   └── git-executor.md          # CLI command execution
+└── workflows/                   # Workflow-specific sub-agents
+    ├── README.md                # Workflow sub-agent overview
+    ├── investigator.md          # Bug diagnosis (fix workflow)
+    ├── refactor-analyzer.md     # Safe refactoring (refactor workflow)
+    └── security-triager.md      # Vulnerability triage (security workflow)
 ```
 
 ## When to Use Sub-Agents

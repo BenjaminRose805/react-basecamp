@@ -14,25 +14,33 @@ You MAY answer simple questions directly (e.g., "What framework is this?" or "Wh
 
 ## Architecture Overview
 
-The system uses a 4-layer architecture:
+The system uses a 5-layer architecture with preview and routing:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  COMMANDS (13)         User entry points                    │
-│  /plan, /build, /code, /ui, /docs, /eval, /check,          │
-│  /git, /pr, /ship, /debug, /help, /context                 │
+│  COMMANDS (6)                      User entry points        │
+│  /start  /plan  /implement  /ship  /guide  /mode            │
 ├─────────────────────────────────────────────────────────────┤
-│  WORKFLOWS (4)         Orchestration chains                 │
-│  implement, ship, review, full-feature                      │
+│  PREVIEW LAYER                                              │
+│  Show execution plan → User confirms → Execute              │
+│  (Skipped in basic mode)                                    │
 ├─────────────────────────────────────────────────────────────┤
-│  AGENTS (11)           Workers with MCP access              │
-│  plan, code, ui, docs, eval, check, git, pr,               │
-│  debug, help, context                                       │
+│  ROUTING LAYER                                              │
+│  Analyze spec → Select agent(s) → Orchestrate               │
 ├─────────────────────────────────────────────────────────────┤
-│  SKILLS (10)           Reusable procedures                  │
-│  research, qa-checks, tdd-workflow, coding-standards,      │
+│  AGENTS (7)            Workers with MCP access              │
+│  plan, code, ui, docs, eval, check, git                     │
+├─────────────────────────────────────────────────────────────┤
+│  SUB-AGENTS (27)       Isolated context execution           │
+│  Opus: orchestrators, researchers, analyzers                │
+│  Sonnet: writers, builders                                  │
+│  Haiku: validators, checkers, executors                     │
+├─────────────────────────────────────────────────────────────┤
+│  SKILLS (13)           Reusable procedures                  │
+│  research, qa-checks, tdd-workflow, coding-standards,       │
 │  eval-harness, backend-patterns, frontend-patterns,         │
-│  security-patterns, git-operations, pr-operations           │
+│  security-patterns, git-operations, pr-operations,          │
+│  routing, preview, progress                                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -62,76 +70,138 @@ For complex tasks, agents can spawn isolated sub-agents via the Task tool. This 
 
 ---
 
-## Command Routing
+## Commands (6)
 
-| Command           | Routes To          | Subcommands                                     |
-| ----------------- | ------------------ | ----------------------------------------------- |
-| `/plan [feature]` | plan-agent         | spec, distill, slice                            |
-| `/build`          | implement-workflow | —                                               |
-| `/code [feature]` | code-agent         | research, implement, validate                   |
-| `/ui [component]` | ui-agent           | research, build, validate                       |
-| `/docs [topic]`   | docs-agent         | research, write, validate                       |
-| `/eval [feature]` | eval-agent         | research, create, validate                      |
-| `/check [scope]`  | check-agent        | build, types, lint, tests, security             |
-| `/git [action]`   | git-agent          | branch, switch, sync, commit, worktree, cleanup |
-| `/pr [action]`    | pr-agent           | create, draft, merge, review                    |
-| `/ship`           | ship-workflow      | —                                               |
-| `/debug [issue]`  | debug-agent        | —                                               |
-| `/help [topic]`   | help-agent         | guide, topic, next, recap                       |
-| `/context [mode]` | context-agent      | dev, review, research                           |
+The entire workflow uses just 6 commands. Git operations are invisible to the user.
 
-### Subcommand Usage
+| Command      | Purpose                              | Routes To                    |
+| ------------ | ------------------------------------ | ---------------------------- |
+| `/start`     | Begin work (worktree + branch)       | git-agent                    |
+| `/plan`      | Design spec or reconcile PR feedback | plan-agent                   |
+| `/implement` | Build approved spec                  | Routing → code/ui/docs/eval  |
+| `/ship`      | Commit + PR + CI + CodeRabbit        | git-agent → check-agent      |
+| `/guide`     | Status, help, orientation            | (informational, no agent)    |
+| `/mode`      | Switch working modes (dev/basic)     | (immediate effect, no agent) |
 
-Each agent command supports phases:
+### Git is Invisible
+
+Users never run git commands directly. The system handles all version control:
+
+- `/start` creates worktree and branch automatically
+- `/ship` handles commit, push, PR creation, CI monitoring, and CodeRabbit review
+- `/plan` (reconcile mode) addresses CodeRabbit feedback
+
+### Command Details
+
+**`/start [feature-name]`** - Begin work on a new feature
+
+- Creates worktree at `../project-{name}`
+- Creates branch `feature/{name}`
+- Outputs restart instructions
+
+**`/plan`** - Conversational spec creation or PR feedback reconciliation
+
+- **Define mode** (no CodeRabbit comments): Ask questions → generate spec → ask approval
+- **Reconcile mode** (has CodeRabbit comments): Analyze feedback → create fix plan
+
+**`/implement`** - Execute approved spec
+
+- Requires approved spec from `/plan`
+- Routes to appropriate agent(s) based on spec content
+- Uses TDD (red → green → refactor)
+- Runs final verification (build, types, lint, tests, security)
+
+**`/ship`** - Ship current work
+
+- Stage 1: Commit (change-analyzer → git-executor)
+- Stage 2: Create PR (pr-analyzer → git-executor)
+- Stage 3: Wait for CI (poll GitHub Actions)
+- Stage 4: Wait for CodeRabbit (poll for comments)
+- Outcomes: Clean → offer merge | Comments → recommend `/plan` | CI fail → recommend `/plan`
+
+**`/guide`** - Status and help
+
+- Shows current feature and branch
+- Shows progress (start → plan → implement → ship)
+- Suggests next action
+- Lists available commands
+
+**`/mode [dev|basic]`** - Switch working modes
+
+- `dev` (default): Full orchestration with previews
+- `basic`: Direct tool use, skip sub-agents and previews
+
+### Implement Routing
+
+`/implement` automatically routes based on spec content:
+
+| Spec Contains                      | Routes To                      |
+| ---------------------------------- | ------------------------------ |
+| Backend tasks (tRPC, Prisma, API)  | code-agent                     |
+| Frontend tasks (React, components) | ui-agent                       |
+| Documentation tasks                | docs-agent                     |
+| Evaluation tasks                   | eval-agent                     |
+| Mixed (backend + frontend)         | implement workflow (code → ui) |
+
+---
+
+## Preview System
+
+Before executing action commands (`/start`, `/plan`, `/implement`, `/ship`), the system shows a preview. Skipped in basic mode.
+
+### Preview Display
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  /implement user-authentication                                 │
+├─────────────────────────────────────────────────────────────────┤
+│  Spec: specs/user-authentication/ (approved)                    │
+│  Tasks: 12 across 4 phases                                      │
+│  TDD: Enabled (red → green → refactor)                          │
+│                                                                 │
+│  STAGE 1: DATABASE SCHEMA                                       │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │ Agent: code-agent                                           ││
+│  │                                                             ││
+│  │ 1. RESEARCH         code-researcher        Opus             ││
+│  │    □ Find existing DB patterns                              ││
+│  │ 2. TDD-RED          code-writer            Sonnet           ││
+│  │    □ Write failing tests                                    ││
+│  │ 3. TDD-GREEN        code-writer            Sonnet           ││
+│  │    □ Implement to pass tests                                ││
+│  │ 4. VALIDATE         code-validator         Haiku            ││
+│  │    □ Verify tests pass                                      ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                                                                 │
+│  Tools: cclsp, context7, next-devtools                          │
+│                                                                 │
+│  [Enter] Run  [e] Edit  [?] Details  [Esc] Cancel               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### User Actions
+
+| Key     | Action  | Description                       |
+| ------- | ------- | --------------------------------- |
+| `Enter` | Run     | Execute the plan as shown         |
+| `e`     | Edit    | Modify scope or skip phases       |
+| `?`     | Details | Show MCP servers, tools, spec ref |
+| `Esc`   | Cancel  | Abort without executing           |
+
+### Skip Preview
+
+Use `--yes` to skip preview for automation:
 
 ```bash
-/code [feature]           # Full flow: research → implement → validate
-/code research [feature]  # Research only
-/code implement [feature] # Implement only (after research)
-/code validate [feature]  # Validate only (after implement)
+/implement --yes    # Execute immediately
+/ship --yes         # Ship without confirmation
 ```
 
 ---
 
-## Workflows
+## Agents (7)
 
-Workflows orchestrate multiple agents in sequence.
-
-### implement (for /build)
-
-```
-code-agent → ui-agent
-```
-
-Full-stack implementation: backend first, then frontend.
-
-### ship (for /ship)
-
-```
-check-agent → git-agent → pr-agent
-```
-
-Quality verification, commit, and create PR.
-
-### review (for /pr review)
-
-```
-check-agent → pr-agent
-```
-
-Run quality checks on PR branch, then analyze and provide verdict.
-
-### full-feature (future)
-
-```
-plan-agent → implement-workflow → ship-workflow
-```
-
-Complete feature from spec to PR.
-
----
-
-## Agents
+All agents use an **Opus orchestrator** with specialized sub-agents.
 
 ### plan-agent
 
@@ -142,6 +212,8 @@ Complete feature from spec to PR.
 **CLI Tools:** File-based specs in `specs/`
 
 **Phases:** ANALYZE → CREATE → VALIDATE
+
+**Sub-agents:** plan-researcher (Opus), plan-writer (Sonnet), plan-validator (Haiku)
 
 **Skills:** research
 
@@ -155,6 +227,8 @@ Complete feature from spec to PR.
 
 **Phases:** RESEARCH → IMPLEMENT → VALIDATE
 
+**Sub-agents:** code-researcher (Opus), code-writer (Sonnet), code-validator (Haiku)
+
 **Skills:** research, tdd-workflow, qa-checks, backend-patterns, coding-standards
 
 ### ui-agent
@@ -166,6 +240,8 @@ Complete feature from spec to PR.
 **CLI Tools:** `pnpm test`, file-based specs in `specs/`
 
 **Phases:** RESEARCH → BUILD → VALIDATE
+
+**Sub-agents:** ui-researcher (Opus), ui-builder (Sonnet), ui-validator (Haiku)
 
 **Skills:** research, tdd-workflow, qa-checks, frontend-patterns, coding-standards
 
@@ -179,6 +255,8 @@ Complete feature from spec to PR.
 
 **Phases:** RESEARCH → WRITE → VALIDATE
 
+**Sub-agents:** docs-researcher (Opus), docs-writer (Sonnet), docs-validator (Haiku)
+
 **Skills:** research
 
 ### eval-agent
@@ -191,71 +269,46 @@ Complete feature from spec to PR.
 
 **Phases:** RESEARCH → CREATE → VALIDATE
 
+**Sub-agents:** eval-researcher (Opus), eval-writer (Sonnet), eval-validator (Haiku)
+
 **Skills:** research, eval-harness
 
 ### check-agent
 
-**Domain:** Quality verification
+**Domain:** Quality verification (parallel execution)
 
 **MCP Servers:** cclsp, next-devtools
 
 **CLI Tools:** `pnpm test`, `pnpm lint`, `pnpm typecheck`
 
-**Phases:** BUILD → TYPES → LINT → TESTS → SECURITY
+**Phases:** BUILD → TYPES → LINT → TESTS → SECURITY (parallel)
+
+**Sub-agents:** build-checker, type-checker, lint-checker, test-runner, security-scanner (all Haiku, parallel)
 
 **Skills:** qa-checks, security-patterns
 
 ### git-agent
 
-**Domain:** Git operations
+**Domain:** Git operations + PR lifecycle (absorbed pr-agent)
 
 **MCP Servers:** —
 
 **CLI Tools:** `git`, `gh` CLI
 
-**Actions:** status, branch, switch, sync, commit, worktree, cleanup
+**Actions:** status, branch, switch, sync, commit, worktree, cleanup, pr-create, pr-merge, pr-review
 
-**Skills:** git-operations
+**Sub-agents:** change-analyzer (Sonnet), pr-analyzer (Sonnet), pr-reviewer (Opus), git-executor (Haiku)
 
-### pr-agent
+**Skills:** git-operations, pr-operations
 
-**Domain:** Pull request lifecycle
+### Removed Agents
 
-**MCP Servers:** —
-
-**CLI Tools:** `gh` CLI (pr create, pr merge, pr review)
-
-**Actions:** create, draft, merge, review
-
-**Skills:** pr-operations
-
-### debug-agent
-
-**Domain:** Bug investigation
-
-**MCP Servers:** cclsp, sentry, playwright, next-devtools
-
-**CLI Tools:** `pnpm test`, `gh` CLI
-
-**Phases:** GATHER → ANALYZE → REPORT
-
-**Skills:** research
-
-### help-agent
-
-**Domain:** User assistance
-
-**MCP Servers:** (none required)
-
-**Actions:** guide, topic, next, recap
-
-### context-agent
-
-**Domain:** Working mode management
-
-**MCP Servers:** (none required)
-
-**Actions:** show, dev, review, research
+| Agent         | Reason                             | Replacement                            |
+| ------------- | ---------------------------------- | -------------------------------------- |
+| debug-agent   | Investigation is a workflow phase  | investigator sub-agent in fix workflow |
+| pr-agent      | PRs are version control operations | Absorbed into git-agent                |
+| help-agent    | Not agent work                     | `/guide` command                       |
+| context-agent | Not agent work                     | `/mode` command                        |
 
 ---
 
@@ -263,53 +316,49 @@ Complete feature from spec to PR.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  1. PLAN                                                    │
-│     /plan [feature]   → Create spec, get approval           │
+│  1. START                                                   │
+│     /start [feature]  → Create worktree + branch            │
+│     (Restart session in new worktree)                       │
 ├─────────────────────────────────────────────────────────────┤
-│  2. BUILD                                                   │
-│     /build            → code-agent → ui-agent               │
-│     or                                                      │
-│     /code [feature]   → Backend only                        │
-│     /ui [component]   → Frontend only                       │
+│  2. PLAN                                                    │
+│     /plan             → Conversational spec creation        │
+│     Preview → Confirm → Generate spec → Ask approval        │
 ├─────────────────────────────────────────────────────────────┤
-│  3. EVAL (LLM features only)                                │
-│     /eval [feature]   → Create evaluation suite             │
+│  3. IMPLEMENT                                               │
+│     /implement        → Build approved spec with TDD        │
+│     Preview → Confirm → Execute → Final verification        │
 ├─────────────────────────────────────────────────────────────┤
-│  4. CHECK                                                   │
-│     /check            → Build, types, lint, tests, security │
-├─────────────────────────────────────────────────────────────┤
-│  5. SHIP                                                    │
-│     /ship             → check → commit → PR                 │
-│     or                                                      │
-│     /git commit       → Create commit                       │
-│     /pr create        → Create PR                           │
+│  4. SHIP                                                    │
+│     /ship             → Commit → PR → CI → CodeRabbit       │
+│     If clean: offer merge                                   │
+│     If comments: run /plan to reconcile                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Quick Flows
 
-**New feature:**
+**New feature (standard):**
 
 ```
-/plan → /build → /check → /ship
+/start → /plan → /implement → /ship
 ```
 
-**Bug fix:**
+**PR feedback reconciliation:**
 
 ```
-/debug → /code → /check → /ship
+/plan → /implement → /ship   # /plan detects CodeRabbit comments automatically
 ```
 
-**PR review:**
+**Check status:**
 
 ```
-/pr review 123
+/guide   # Shows progress and suggests next action
 ```
 
-**LLM feature:**
+**Switch to direct mode:**
 
 ```
-/plan → /eval → /build → /check → /ship
+/mode basic   # Disable orchestration for simple tasks
 ```
 
 ---
@@ -318,36 +367,40 @@ Complete feature from spec to PR.
 
 Reusable procedures that agents invoke. Skills contain no decision-making logic.
 
-| Skill             | Purpose                             | Used By                           |
-| ----------------- | ----------------------------------- | --------------------------------- |
-| research          | Find existing code, check conflicts | plan, code, ui, docs, eval, debug |
-| qa-checks         | Build, types, lint, tests, security | code, ui, check                   |
-| tdd-workflow      | Red-Green-Refactor cycle            | code, ui                          |
-| coding-standards  | KISS, DRY, YAGNI                    | code, ui                          |
-| eval-harness      | EDD framework, pass@k               | eval                              |
-| backend-patterns  | tRPC, Prisma, API                   | code                              |
-| frontend-patterns | React, hooks, state                 | ui                                |
-| security-patterns | OWASP, vulnerability scan           | check                             |
-| git-operations    | Branch, commit procedures           | git                               |
-| pr-operations     | PR lifecycle procedures             | pr                                |
+| Skill             | Purpose                             | Used By                          |
+| ----------------- | ----------------------------------- | -------------------------------- |
+| research          | Find existing code, check conflicts | plan, code, ui, docs, eval       |
+| qa-checks         | Build, types, lint, tests, security | code, ui, check                  |
+| tdd-workflow      | Red-Green-Refactor cycle            | code, ui                         |
+| coding-standards  | KISS, DRY, YAGNI                    | code, ui                         |
+| eval-harness      | EDD framework, pass@k               | eval                             |
+| backend-patterns  | tRPC, Prisma, API                   | code                             |
+| frontend-patterns | React, hooks, state                 | ui                               |
+| security-patterns | OWASP, vulnerability scan           | check                            |
+| git-operations    | Branch, commit procedures           | git                              |
+| pr-operations     | PR lifecycle procedures             | git                              |
+| routing           | Spec analysis, agent selection      | /implement                       |
+| preview           | Execution plan display              | /start, /plan, /implement, /ship |
+| progress          | Real-time execution display         | /plan, /implement, /ship         |
 
 ---
 
-## Contexts (Working Modes)
+## Working Modes
 
-Switch context to adjust agent behavior.
+Switch mode to adjust orchestration behavior.
 
-| Mode       | Focus          | Behavior                                |
-| ---------- | -------------- | --------------------------------------- |
-| `dev`      | Implementation | Code first, TDD, atomic commits         |
-| `review`   | Quality        | Security first, thorough analysis       |
-| `research` | Exploration    | Read first, no changes without approval |
+| Mode    | Focus          | Behavior                                           |
+| ------- | -------------- | -------------------------------------------------- |
+| `dev`   | Implementation | Full orchestration, previews, sub-agents (default) |
+| `basic` | Direct         | Skip sub-agents, skip previews, direct tool use    |
 
 ```bash
-/context dev       # Switch to implementation mode
-/context review    # Switch to review mode
-/context research  # Switch to exploration mode
+/mode           # Show current mode
+/mode dev       # Switch to full orchestration (default)
+/mode basic     # Switch to direct tool use
 ```
+
+Use `basic` mode for simple tasks where full orchestration is overkill.
 
 ---
 
@@ -431,19 +484,23 @@ These limits are enforced by ESLint:
 
 ### Agent MCP Assignments
 
-| Agent         | MCP Servers                                | CLI Tools         |
-| ------------- | ------------------------------------------ | ----------------- |
-| plan-agent    | cclsp                                      | file-based specs  |
-| code-agent    | cclsp, context7, next-devtools             | pnpm test, specs/ |
-| ui-agent      | cclsp, figma, shadcn, playwright, context7 | pnpm test, specs/ |
-| docs-agent    | cclsp, context7                            | specs/            |
-| eval-agent    | cclsp, context7                            | pnpm test         |
-| check-agent   | cclsp, next-devtools                       | pnpm test         |
-| git-agent     | —                                          | git, gh CLI       |
-| pr-agent      | —                                          | gh CLI            |
-| debug-agent   | cclsp, sentry, playwright, next-devtools   | pnpm test, gh CLI |
-| help-agent    | —                                          | —                 |
-| context-agent | —                                          | —                 |
+| Agent       | MCP Servers                                | CLI Tools                |
+| ----------- | ------------------------------------------ | ------------------------ |
+| plan-agent  | cclsp                                      | file-based specs         |
+| code-agent  | cclsp, context7, next-devtools             | pnpm test, specs/        |
+| ui-agent    | cclsp, figma, shadcn, playwright, context7 | pnpm test, specs/        |
+| docs-agent  | cclsp, context7                            | specs/                   |
+| eval-agent  | cclsp, context7                            | pnpm test, pnpm eval     |
+| check-agent | cclsp, next-devtools                       | pnpm test/lint/typecheck |
+| git-agent   | —                                          | git, gh CLI              |
+
+**Workflow Sub-agents:**
+
+| Sub-agent         | MCP Servers                              | Used By           |
+| ----------------- | ---------------------------------------- | ----------------- |
+| investigator      | cclsp, sentry, playwright, next-devtools | fix workflow      |
+| refactor-analyzer | cclsp                                    | refactor workflow |
+| security-triager  | cclsp                                    | security workflow |
 
 ### MCP Server Reference
 
@@ -551,23 +608,32 @@ Automated checks run at various lifecycle points. Defined in `.claude/settings.j
 
 ## Model Selection
 
-| Model      | Use For                         | Cost   |
-| ---------- | ------------------------------- | ------ |
-| **Haiku**  | Validation, simple tasks        | Low    |
-| **Sonnet** | Main development, coding        | Medium |
-| **Opus**   | Architecture, complex reasoning | High   |
+| Model      | Use For                               | Cost   |
+| ---------- | ------------------------------------- | ------ |
+| **Haiku**  | Validation, checkers, executors       | Low    |
+| **Sonnet** | Writers, builders, code generation    | Medium |
+| **Opus**   | Orchestrators, researchers, analyzers | High   |
 
-### Agent Model Assignment
+### Sub-Agent Model Assignment
 
-| Agent       | Model  | Reasoning              |
-| ----------- | ------ | ---------------------- |
-| plan-agent  | Sonnet | Complex analysis       |
-| code-agent  | Sonnet | Code generation        |
-| ui-agent    | Sonnet | Component building     |
-| check-agent | Haiku  | Checklist verification |
-| git-agent   | Haiku  | Simple operations      |
-| pr-agent    | Sonnet | PR descriptions        |
-| debug-agent | Sonnet | Investigation skills   |
+All agents use an **Opus orchestrator** with specialized sub-agents:
+
+| Role             | Model  | Examples                                                       |
+| ---------------- | ------ | -------------------------------------------------------------- |
+| Orchestrators    | Opus   | All agent orchestrators (routing, coordination)                |
+| Researchers      | Opus   | code-researcher, ui-researcher, docs-researcher                |
+| Analyzers        | Opus   | investigator, refactor-analyzer, security-triager, pr-reviewer |
+| Writers/Builders | Sonnet | code-writer, ui-builder, docs-writer, pr-analyzer              |
+| Validators       | Haiku  | code-validator, ui-validator, all checkers                     |
+| Executors        | Haiku  | git-executor, build-checker, test-runner                       |
+
+### Model Distribution (27 sub-agents)
+
+| Model  | Count | Role Types                              |
+| ------ | ----- | --------------------------------------- |
+| Opus   | 18    | Orchestrators + researchers + analyzers |
+| Sonnet | 8     | Writers + builders                      |
+| Haiku  | 11    | Validators + checkers + executors       |
 
 ---
 

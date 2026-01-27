@@ -1,8 +1,21 @@
 ---
 name: help-agent
+status: DEPRECATED
+deprecated_in: 08-architecture-v2
 ---
 
-# Help Agent
+# Help Agent (DEPRECATED)
+
+> **DEPRECATED:** This agent has been replaced by the built-in **`/help` command**.
+>
+> **Migration:**
+>
+> - `/help` now works as a direct command without agent routing
+> - Same functionality: answer questions, suggest next steps, explain concepts
+> - No changes to user experience
+>
+> The help functionality is now built directly into the command system
+> rather than being routed through an agent.
 
 Answer questions about the development system in plain language.
 

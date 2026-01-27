@@ -159,43 +159,43 @@ evals/
 
 ## Command Mapping
 
-| Task              | Methodology | Command    |
-| ----------------- | ----------- | ---------- |
-| Design doc → Spec | SDD         | `/distill` |
-| New feature spec  | SDD         | `/spec`    |
-| Write tests       | TDD         | `/test`    |
-| Write evals       | EDD         | `/eval`    |
-| Implement code    | TDD         | `/code`    |
+| Task                    | Methodology | Command      |
+| ----------------------- | ----------- | ------------ |
+| Start new feature       | —           | `/start`     |
+| Design spec             | SDD         | `/plan`      |
+| Implement (TDD + evals) | TDD/EDD     | `/implement` |
+| Ship to PR              | —           | `/ship`      |
 
 ## Decision Tree
 
 ```
 New Feature Request
 │
-├─ Is it already designed?
-│  ├─ Yes → /distill (convert docs to spec)
-│  └─ No → /spec (write new spec)
+├─ /start [feature-name]
+│  └─ Creates worktree and branch
 │
-├─ Does it involve LLM?
-│  ├─ Yes → /eval (write evaluations)
-│  └─ No → Skip evals
+├─ /plan
+│  └─ Conversational spec design
+│  └─ User approves spec
 │
-├─ Write tests
-│  └─ /test (TDD - tests first)
+├─ /implement
+│  └─ Routes to agents based on spec
+│  └─ TDD: tests before code
+│  └─ EDD: evals for LLM features
 │
-└─ Implement
-   └─ /code (make tests pass)
+└─ /ship
+   └─ Commit + PR + CI + CodeRabbit
 ```
 
 ## Quality Gates
 
 Every feature must pass these gates:
 
-| Gate                | Check              | Command     |
-| ------------------- | ------------------ | ----------- |
-| Spec Approved       | User sign-off      | `/spec qa`  |
-| Tests Written       | Coverage > 70%     | `/test qa`  |
-| Evals Pass (if LLM) | pass@1 > 80%       | `pnpm eval` |
-| Implementation Done | Tests pass         | `/code qa`  |
-| Security Clear      | No vulnerabilities | `/security` |
-| Review Approved     | Final sign-off     | `/review`   |
+| Gate                | Check              | Command      |
+| ------------------- | ------------------ | ------------ |
+| Spec Approved       | User sign-off      | `/plan`      |
+| Tests Written       | Coverage > 70%     | `/implement` |
+| Evals Pass (if LLM) | pass@1 > 80%       | `/implement` |
+| Implementation Done | Tests pass         | `/implement` |
+| Security Clear      | No vulnerabilities | `/implement` |
+| PR Created          | CI passes          | `/ship`      |

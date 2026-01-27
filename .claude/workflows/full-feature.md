@@ -5,51 +5,183 @@ description: Complete feature development from planning to PR
 
 # Full Feature Workflow
 
-Complete end-to-end feature development.
+Complete end-to-end feature development orchestrating plan → implement → ship.
 
-## Steps
+## Trigger
 
-```
-plan-agent (ANALYZE → CREATE → VALIDATE)
+- `/feature [name]` (future command)
+- Can be invoked manually via sequential `/plan` → `/implement` → `/ship`
+
+## Stages
+
+```text
+plan-agent orchestrator (Opus)
+├── plan-researcher (Opus) - analyze requirements
+├── plan-writer (Sonnet) - write spec
+└── plan-validator (Haiku) - verify completeness
     ↓
-implement workflow (code-agent → ui-agent)
+(APPROVAL GATE - user approves spec)
     ↓
-ship workflow (check-agent → git-agent → pr-agent)
+(context compaction)
+    ↓
+implement workflow
+├── code-agent orchestrator (Opus)
+│   ├── code-researcher, code-writer, code-validator
+├── ui-agent orchestrator (Opus)
+│   ├── ui-researcher, ui-builder, ui-validator
+    ↓
+(context compaction)
+    ↓
+ship workflow
+├── check-agent orchestrator (Opus)
+│   ├── build, types, lint, tests, security (parallel)
+└── git-agent orchestrator (Opus)
+    ├── change-analyzer, pr-analyzer, git-executor
 ```
 
-## Used By
+## Stage 1: Planning
 
-Reserved for future orchestration.
+**Orchestrator:** plan-agent (Opus)
 
-## Execution
+| Sub-agent       | Model  | Task                                     |
+| --------------- | ------ | ---------------------------------------- |
+| plan-researcher | Opus   | Analyze requirements, find existing code |
+| plan-writer     | Sonnet | Write spec with tasks                    |
+| plan-validator  | Haiku  | Verify spec completeness                 |
 
-### Phase 1: Planning
+**Output:**
 
-Delegate to `plan-agent`:
+```json
+{
+  "spec_path": "specs/feature-name/",
+  "tasks": 8,
+  "spec_summary": "max 500 tokens"
+}
+```
 
-1. Analyze requirements
-2. Research existing code
-3. Create spec with tasks
-4. Get user approval
+**Gate:** User must approve spec before proceeding.
 
-**Gate:** Spec must be approved in dashboard.
+---
 
-### Phase 2: Implementation
+## Approval Gate
 
-Run `implement` workflow:
+Present spec to user:
 
-1. Backend implementation (code-agent)
-2. UI implementation (ui-agent)
+```markdown
+## Spec Ready: feature-name
 
-**Gate:** Both agents must return PASS.
+### Summary
 
-### Phase 3: Shipping
+[Brief description of the feature]
 
-Run `ship` workflow:
+### Tasks
 
-1. Quality verification (check-agent)
-2. Git operations (git-agent)
-3. PR creation (pr-agent)
+1. Create Prisma model
+2. Implement tRPC router
+3. Build component
+   ...
+
+### Estimated Effort
+
+- Backend: 3 tasks
+- Frontend: 2 tasks
+
+[Approve] [Edit] [Cancel]
+```
+
+**If approved:** Continue to Stage 2
+**If rejected:** Revise spec with feedback
+
+---
+
+## Context Compaction (Stage 1 → Stage 2)
+
+**KEEP:**
+
+- `spec_reference` - Path to spec files
+- `spec_summary` - Max 500 token summary
+- `task_list` - Brief task descriptions
+
+**DISCARD:**
+
+- Full spec content
+- Research findings
+- Alternative approaches
+
+---
+
+## Stage 2: Implementation
+
+Run **implement workflow** with spec reference:
+
+**Input:**
+
+```json
+{
+  "spec_reference": "specs/feature-name/",
+  "spec_summary": "from Stage 1"
+}
+```
+
+**Execution:**
+
+1. code-agent implements backend (reads spec from file)
+2. Context compaction (keep files_changed, api_contracts)
+3. ui-agent implements frontend (reads spec from file)
+
+**Output:**
+
+```json
+{
+  "files_changed": ["backend files", "frontend files"],
+  "implementation_summary": "max 500 tokens"
+}
+```
+
+---
+
+## Context Compaction (Stage 2 → Stage 3)
+
+**KEEP:**
+
+- `files_changed` - List of all files created/modified
+- `implementation_summary` - Brief summary
+
+**DISCARD:**
+
+- Test details
+- Build logs
+- Research context
+
+---
+
+## Stage 3: Shipping
+
+Run **ship workflow** with files changed:
+
+**Input:**
+
+```json
+{
+  "files_changed": ["from Stage 2"],
+  "feature_name": "for commit message"
+}
+```
+
+**Execution:**
+
+1. check-agent runs parallel quality checks
+2. Context compaction (keep check_summary)
+3. git-agent creates commit + PR
+
+**Output:**
+
+```json
+{
+  "pr_url": "https://github.com/...",
+  "pr_number": 123
+}
+```
 
 ## Input
 
@@ -65,9 +197,8 @@ design_doc?: string  # Path to design doc for distill
 
 ### Planning
 
-- Spec: `.spec-workflow/specs/prompt-manager/`
+- Spec: `specs/prompt-manager/`
 - Tasks: 8 created
-- Linear: LIN-123
 
 ### Implementation
 
@@ -93,10 +224,33 @@ design_doc?: string  # Path to design doc for distill
 ### Timeline
 
 - Planning: 10 min
-- Backend: 25 min
-- UI: 15 min
-- Shipping: 5 min
-- Total: 55 min
+- Backend: 20 min
+- UI: 10 min
+- Shipping: 3 min
+- Total: ~43 min
+```
+
+## Context Flow
+
+```text
+┌────────────────┐     spec_summary      ┌────────────────┐
+│  plan-agent    │ ─────────────────────►│  implement     │
+│  (Opus orch)   │       ~500 tokens     │  workflow      │
+└────────────────┘                       └────────────────┘
+        │                                        │
+   USER APPROVAL                          files_changed
+        │                                        │
+        ▼                                        ▼
+┌────────────────┐                       ┌────────────────┐
+│  User approves │                       │  ship workflow │
+│  or revises    │                       │                │
+└────────────────┘                       └────────────────┘
+                                                │
+                                                ▼
+                                         ┌────────────────┐
+                                         │  PR created    │
+                                         │  github.com/...│
+                                         └────────────────┘
 ```
 
 ## Error Handling
@@ -107,10 +261,25 @@ design_doc?: string  # Path to design doc for distill
 | Implementation fails | Stop, report issues            |
 | Quality fails        | Stop at ship phase             |
 
+## Performance Target
+
+| Metric     | Current  | Optimized | Improvement |
+| ---------- | -------- | --------- | ----------- |
+| Total time | ~45 min  | ~30 min   | 33% faster  |
+| Context    | 150k tok | 90k tok   | 40% less    |
+
+## Approval Gates
+
+| After Stage | Gate                        | Action if Fails |
+| ----------- | --------------------------- | --------------- |
+| Plan        | User approves spec          | Revise          |
+| Implement   | Automated (proceed to ship) | N/A             |
+| Ship        | CI passes (external)        | Fix and re-run  |
+
 ## Notes
 
-- This is the "happy path" automation
-- Each phase can be run individually
-- User approval required at planning phase
-- Designed for straightforward features
-- Complex features should use individual commands
+- Uses Opus orchestrators at each stage
+- Context compaction between ALL stages
+- User approval required after planning
+- Each stage can be run individually
+- For complex features, use individual commands instead

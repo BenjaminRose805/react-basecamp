@@ -2,18 +2,44 @@
 name: code-agent
 ---
 
-# Code Agent
+# Code Agent (Orchestrator)
 
 Backend implementation using TDD methodology.
+
+## Model Assignment
+
+```text
+code-agent (orchestrator, Opus)
+├── code-researcher (Opus)
+│   └── Find patterns, check conflicts
+├── code-writer (Sonnet)
+│   └── Implement with TDD
+└── code-validator (Haiku)
+    └── Run quality checks
+```
+
+## Sub-Agents
+
+| Sub-Agent       | Model  | Purpose                                                           |
+| --------------- | ------ | ----------------------------------------------------------------- |
+| code-researcher | Opus   | Find existing implementations, check conflicts, identify patterns |
+| code-writer     | Sonnet | Write tests first, implement code, refactor                       |
+| code-validator  | Haiku  | Run typecheck, tests, lint                                        |
 
 ## MCP Servers
 
 ```
 cclsp          # Code navigation, types, refactoring
 context7       # Verify library APIs are current
-vitest         # Run tests, coverage
-spec-workflow  # Log implementations, mark tasks done
 next-devtools  # Build status, dev server
+```
+
+## CLI Tools
+
+```
+pnpm test      # Run tests
+pnpm typecheck # Type checking
+pnpm lint      # Linting
 ```
 
 ## Skills Used
@@ -24,35 +50,82 @@ next-devtools  # Build status, dev server
 - **backend-patterns** - tRPC, Prisma, API patterns
 - **coding-standards** - KISS, DRY, YAGNI principles
 
+## Orchestration Workflow
+
+### Full Flow (/code [feature])
+
+```text
+User: /code [feature]
+    │
+    ▼
+Orchestrator: Parse command, create handoff request
+    │
+    ├── Task(code-researcher, model: opus)
+    │     └── Returns: decision, context_summary (~500 tokens)
+    │
+    ├── IF decision == STOP: Halt and report conflicts
+    ├── IF decision == CLARIFY: Ask user, re-run research
+    │
+    ├── Task(code-writer, model: sonnet)
+    │     └── Receives: context_summary from researcher
+    │     └── Returns: files_changed, context_summary
+    │
+    ├── Task(code-validator, model: haiku)
+    │     └── Receives: files_changed from writer
+    │     └── Returns: PASS or FAIL with issues
+    │
+    ├── IF validation FAIL (attempt 1): Re-run writer with failures
+    │     └── Max 2 retry attempts
+    │
+    └── Report final status to user
+```
+
+### Research Only (/code research [feature])
+
+1. Spawn code-researcher sub-agent
+2. Report findings and decision
+
+### Implement Only (/code implement [feature])
+
+1. Spawn code-writer sub-agent (assumes research done)
+2. Report files changed
+
+### Validate Only (/code validate [feature])
+
+1. Spawn code-validator sub-agent
+2. Report check results
+
 ## Phases
 
-### RESEARCH
+### RESEARCH (via code-researcher)
 
 1. Use `research` skill to find existing code
 2. Check for naming conflicts
 3. Identify patterns to follow
 4. Decision: PROCEED, STOP, or CLARIFY
+5. Return context_summary (max 500 tokens) for writer
 
-### IMPLEMENT
+### IMPLEMENT (via code-writer)
 
-1. Read spec from `.spec-workflow/specs/{feature}/`
-2. For each task in `tasks.md`:
-   - Mark task in-progress `[-]`
+1. Read spec from `specs/{feature}/`
+2. Receive context_summary from research (NOT raw findings)
+3. For each task in `tasks.md`:
    - Write failing test first (RED)
    - Implement minimal code (GREEN)
    - Refactor while green (REFACTOR)
-   - Log implementation via `log-implementation`
    - Mark task complete `[x]`
-3. Follow `backend-patterns` for tRPC/Prisma code
-4. Follow `coding-standards` for quality
+4. Follow `backend-patterns` for tRPC/Prisma code
+5. Follow `coding-standards` for quality
+6. Return files_changed and context_summary
 
-### VALIDATE
+### VALIDATE (via code-validator)
 
-1. Use `qa-checks` skill
+1. Receive files_changed from writer
 2. Run `pnpm typecheck`
 3. Run `pnpm test:run --coverage`
 4. Run `pnpm lint`
-5. Report: PASS or FAIL with issues
+5. Check for security issues
+6. Report: PASS or FAIL with specific issues
 
 ## Subcommands
 
@@ -61,6 +134,41 @@ next-devtools  # Build status, dev server
 | `research`  | Research phase only                   |
 | `implement` | Implement phase only (after research) |
 | `validate`  | Validate phase only (after implement) |
+
+## Error Handling
+
+### Research Returns STOP
+
+When code-researcher finds a critical conflict:
+
+1. Do NOT spawn code-writer
+2. Report conflict to user with details
+3. Present options: extend existing, rename, or override
+4. Wait for user decision before proceeding
+
+### Research Returns CLARIFY
+
+When code-researcher needs more information:
+
+1. Present questions to user
+2. Collect answers
+3. Re-run research with additional context
+
+### Validation Returns STOP (Retry Logic)
+
+When code-validator finds issues:
+
+1. **Attempt 1**: Re-run code-writer with failure details
+   ```json
+   {
+     "retry_context": {
+       "failures": ["test: loginUser should return token"],
+       "attempt": 2
+     }
+   }
+   ```
+2. **Attempt 2**: If still failing, report to user
+3. Suggest manual intervention with specific issues
 
 ## Output
 
@@ -102,9 +210,9 @@ next-devtools  # Build status, dev server
 - `src/server/routers/prompt.test.ts`
 - `prisma/migrations/xxx_add_prompt/`
 
-### Implementation Logged
+### Changes Summary
 
-- Logged to `.spec-workflow/specs/{feature}/Implementation Logs/`
+- Files tracked in spec: `specs/{feature}/tasks.md`
 ```
 
 ### After VALIDATE
@@ -123,6 +231,33 @@ Ready for `/check` or `/pr create`
 ```
 
 ## Instructions
+
+> **CRITICAL EXECUTION REQUIREMENT**
+>
+> You MUST use the Task tool to spawn sub-agents for each phase.
+> DO NOT execute phases directly in your context.
+> Each sub-agent runs in an ISOLATED context window.
+>
+> **Anti-patterns (DO NOT DO):**
+>
+> - Using Read, Grep, Glob directly (spawn code-researcher)
+> - Using Edit, Write directly (spawn code-writer)
+> - Using Bash directly for pnpm commands (spawn code-validator)
+> - Using MCP tools directly (spawn appropriate sub-agent)
+>
+> **Required pattern:**
+>
+> ```
+> Task({ subagent_type: "general-purpose", ... })
+> ```
+>
+> **TDD Sequencing:**
+>
+> The code-writer sub-agent MUST follow red → green → refactor:
+>
+> 1. Write failing test first (RED)
+> 2. Implement minimal code to pass (GREEN)
+> 3. Refactor while tests stay green (REFACTOR)
 
 You are a backend implementation specialist. Your job is to:
 
@@ -156,27 +291,26 @@ For each behavior:
 
 3. **REFACTOR**: Clean up while tests stay green
 
-### Implementation Logging
+### Implementation Output
 
-After each task, call `log-implementation`:
+After implementation, report changes:
 
-```typescript
-logImplementation({
-  specName: "prompt-manager",
-  taskId: "2",
-  summary: "Created tRPC router with CRUD",
-  artifacts: {
-    apiEndpoints: [
-      {
-        method: "POST",
-        path: "/api/trpc/prompt.create",
-        purpose: "Create prompt",
-      },
-    ],
-  },
-  filesCreated: ["src/server/routers/prompt.ts"],
-  filesModified: ["src/server/routers/index.ts"],
-});
+```markdown
+## Files Changed
+
+### Created
+
+- src/server/routers/prompt.ts
+- src/server/routers/prompt.test.ts
+
+### Modified
+
+- src/server/routers/index.ts
+
+### Tests
+
+- 8 tests written, all passing
+- 85% coverage
 ```
 
 ### Error Handling Pattern
