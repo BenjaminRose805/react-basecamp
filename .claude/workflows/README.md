@@ -21,26 +21,26 @@ Workflows orchestrate multiple agents in sequence to complete complex tasks. Eac
 
 ### By Intent
 
-| You Want To...                        | Use Workflow      | Command               |
-| ------------------------------------- | ----------------- | --------------------- |
-| Build a new feature (backend + UI)    | implement         | `/build [feature]`    |
-| Build backend only                    | (routes to agent) | `/build [api/router]` |
-| Build UI only                         | (routes to agent) | `/build [component]`  |
-| Fix a bug                             | fix               | `/fix [issue]`        |
-| Restructure code (no behavior change) | refactor          | `/refactor [scope]`   |
-| Ship current work                     | ship              | `/ship`               |
-| Review a pull request                 | review            | `/review [PR#]`       |
-| Fix security vulnerabilities          | security          | `/security [scope]`   |
-| Explore/understand code               | research          | `/research [topic]`   |
+| You Want To...                        | Use Workflow      | Command                   |
+| ------------------------------------- | ----------------- | ------------------------- |
+| Build a new feature (backend + UI)    | implement         | `/implement [feature]`    |
+| Build backend only                    | (routes to agent) | `/implement [api/router]` |
+| Build UI only                         | (routes to agent) | `/implement [component]`  |
+| Fix a bug                             | fix               | `/fix [issue]`            |
+| Restructure code (no behavior change) | refactor          | `/refactor [scope]`       |
+| Ship current work                     | ship              | `/ship`                   |
+| Review a pull request                 | review            | `/review [PR#]`           |
+| Fix security vulnerabilities          | security          | `/security [scope]`       |
+| Explore/understand code               | research          | `/research [topic]`       |
 
 ### By Task Complexity
 
 | Complexity     | Recommended Approach                                   |
 | -------------- | ------------------------------------------------------ |
 | Simple fix     | `/fix [issue]` - investigates and routes automatically |
-| Backend change | `/build [api]` - routes to code-agent                  |
-| UI change      | `/build [component]` - routes to ui-agent              |
-| Full feature   | `/build [feature]` - runs implement workflow           |
+| Backend change | `/implement [api]` - routes to code-agent              |
+| UI change      | `/implement [component]` - routes to ui-agent          |
+| Full feature   | `/implement [feature]` - runs implement workflow       |
 | Major refactor | `/refactor [scope]` - ensures tests pass before/after  |
 | Security audit | `/security` - full audit → triage → fix → re-audit     |
 
@@ -50,7 +50,7 @@ Workflows orchestrate multiple agents in sequence to complete complex tasks. Eac
 
 ### 1. implement
 
-**Trigger:** `/build [feature]` when full-stack is detected
+**Trigger:** `/implement [feature]` when full-stack is detected
 
 **Chain:**
 

@@ -23,12 +23,12 @@ React-basecamp uses a hybrid development methodology combining SDD, TDD, and EDD
 ### Workflow
 
 ```
-1. /distill or /spec
-   └── Create specification document
+1. /plan
+   └── Conversational spec creation
    └── Define acceptance criteria
    └── Get user approval
 
-2. Implement to spec
+2. /implement
    └── Spec is source of truth
    └── Ask questions if spec is unclear
    └── Update spec if requirements change
@@ -119,12 +119,12 @@ function isValidEmail(email: string): boolean {
 ### Workflow
 
 ```
-1. /eval research
-   └── Identify LLM touchpoints
+1. /plan (for LLM features)
+   └── Identify LLM touchpoints during spec
    └── Define evaluation dimensions
    └── Determine grading strategy
 
-2. /eval write
+2. /implement (routes to eval-agent for LLM features)
    └── Create test cases
    └── Implement graders
    └── Set pass thresholds

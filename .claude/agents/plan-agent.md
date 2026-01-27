@@ -242,7 +242,7 @@ Ready for `/plan write` or continue with full flow.
 **Next Steps:**
 
 1. Review spec in `specs/{feature}/`
-2. Run `/code {feature}` to implement
+2. Run `/implement` to build the spec
 ```
 
 ## Instructions

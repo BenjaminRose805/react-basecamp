@@ -96,57 +96,38 @@ claude mcp add playwright -- npx @playwright/mcp@latest
 - Test user flows without screenshots
 - Uses accessibility tree (not screenshots) for efficiency
 
-### 4. Vitest MCP
+### 4. CLI Tools (Replacing Former MCP Servers)
 
-AI-optimized test runner for TDD workflows.
+Some MCP servers have been replaced with CLI equivalents for better reliability:
 
-**Setup:**
-
-```bash
-claude mcp add vitest -- npx @djankies/vitest-mcp
-```
-
-**Capabilities:**
-
-| Tool                   | What It Does                             |
-| ---------------------- | ---------------------------------------- |
-| `run_tests`            | Run tests with clean, AI-readable output |
-| `run_tests_with_watch` | Watch mode for iterative TDD             |
-| `get_coverage`         | Get coverage analysis for specific files |
-| `list_test_files`      | Discover test files in the project       |
-
-**Benefits:**
-
-- Test output optimized for AI consumption (no ANSI codes, structured)
-- Automatic test file discovery
-- Coverage analysis to identify untested code
-- Supports iterative TDD workflow
-
-### 5. GitHub MCP
-
-GitHub integration for PR reviews, issues, and repository management.
-
-**Setup:**
+**Vitest → pnpm test**
 
 ```bash
-claude mcp add github -- npx @modelcontextprotocol/server-github
+pnpm test              # Watch mode
+pnpm test:run          # Single run
+pnpm test:coverage     # With coverage
 ```
 
-**Capabilities:**
+**GitHub → gh CLI**
 
-| Tool                  | What It Does                       |
-| --------------------- | ---------------------------------- |
-| `create_pull_request` | Create PRs with title and body     |
-| `get_pull_request`    | Get PR details and diff            |
-| `list_issues`         | List and search repository issues  |
-| `create_issue`        | Create issues for bugs or features |
-| `get_file_contents`   | Read files from any branch         |
+```bash
+gh auth login          # Authenticate once
+gh pr create           # Create PR
+gh pr view [PR#]       # View PR details
+gh issue list          # List issues
+```
 
-**Benefits:**
+**Spec Workflow → File-based specs**
 
-- Claude can review PRs and suggest changes
-- Create issues for discovered bugs
-- Understand code changes across branches
+Specs are now managed as files in `specs/` directory:
+
+```
+specs/
+└── feature-name/
+    ├── requirements.md
+    ├── design.md
+    └── tasks.md
+```
 
 ## Recommended MCP Servers
 
@@ -298,64 +279,19 @@ claude mcp add shadcn -- npx shadcn@latest mcp
 npx shadcn@latest add button card
 ```
 
-## TDD/SDD MCP Servers
+## Quick Setup (Essential Servers)
 
-### 11. Spec Workflow MCP (Recommended for SDD)
-
-Complete spec-driven development workflow with real-time dashboard.
-
-**Setup:**
-
-```bash
-claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest
-```
-
-**Capabilities:**
-
-| Tool           | What It Does                                         |
-| -------------- | ---------------------------------------------------- |
-| `create_spec`  | Create complete spec (Requirements → Design → Tasks) |
-| `list_specs`   | Show all specs and their status                      |
-| `execute_task` | Run a specific task from a spec                      |
-| `approve_spec` | Approve spec for implementation                      |
-| `get_progress` | View progress with visual indicators                 |
-
-**Benefits:**
-
-- Sequential workflow: Requirements → Design → Tasks → Implementation
-- Real-time web dashboard on port 5000
-- VSCode extension for integrated monitoring
-- Approval workflow with revision support
-- Implementation logs with code statistics
-- Keeps human as architect, AI as executor
-
-**Dashboard:** http://localhost:5000
-
-**Usage Examples:**
-
-- "Create a spec for user authentication"
-- "List my specs"
-- "Execute task 1.2 in spec user-auth"
-
-## Quick Setup (All Required Servers)
-
-Run these commands to set up all required MCP servers:
+Run these commands to set up essential MCP servers:
 
 ```bash
 # TypeScript LSP (requires config file - see section 1)
 claude mcp add cclsp -e CCLSP_CONFIG_PATH=.claude/cclsp.json -- npx -y cclsp
 
-# Next.js DevTools
+# Next.js DevTools (Next.js 16+ only)
 claude mcp add next-devtools -- npx -y next-devtools-mcp@latest
 
 # Playwright
 claude mcp add playwright -- npx @playwright/mcp@latest
-
-# Vitest (for TDD)
-claude mcp add vitest -- npx @djankies/vitest-mcp
-
-# GitHub (for PR reviews)
-claude mcp add github -- npx @modelcontextprotocol/server-github
 ```
 
 ## Recommended Setup
@@ -375,9 +311,17 @@ claude mcp add --transport http figma https://mcp.figma.com/mcp
 
 # shadcn/ui (component registry access)
 claude mcp add shadcn -- npx shadcn@latest mcp
+```
 
-# Spec Workflow (for SDD - includes web dashboard)
-claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest
+## CLI Prerequisites (No MCP Required)
+
+```bash
+# GitHub CLI - replaces github MCP server
+gh auth login
+
+# Vitest - replaces vitest MCP server (use pnpm test commands)
+pnpm test:run
+pnpm test:coverage
 ```
 
 ## Verification
@@ -409,38 +353,33 @@ You should see all configured servers listed.
 1. Ensure dev server is running: `pnpm dev`
 2. Check that the MCP server is connected to the right port
 
-### Vitest MCP not running tests
-
-1. Ensure vitest is installed: `pnpm add -D vitest`
-2. Check `vitest.config.ts` exists and is valid
-3. Verify test files match the configured pattern
-
 ## Configuration Summary
 
-| Server        | Priority    | Use Case                                        |
-| ------------- | ----------- | ----------------------------------------------- |
-| cclsp         | Required    | Code intelligence, go-to-definition, references |
-| next-devtools | Required    | Dev server errors, project context              |
-| playwright    | Required    | Browser testing, UI verification                |
-| vitest        | Required    | TDD workflow, test running, coverage            |
-| github        | Required    | PR reviews, issues, repository management       |
-| linear        | Recommended | Issue tracking, link PRs to issues, workflows   |
-| context7      | Recommended | Up-to-date library docs, prevent hallucinations |
-| sentry        | Recommended | Production error debugging                      |
-| figma         | Recommended | Design-to-code workflow, design tokens          |
-| shadcn        | Recommended | shadcn/ui components, blocks, examples          |
-| spec-workflow | Recommended | Spec-driven development with dashboard          |
+| Server        | Priority    | Use Case                                         |
+| ------------- | ----------- | ------------------------------------------------ |
+| cclsp         | Essential   | Code intelligence, go-to-definition, references  |
+| next-devtools | Essential   | Dev server errors, project context (Next.js 16+) |
+| playwright    | Essential   | Browser testing, UI verification                 |
+| linear        | Recommended | Issue tracking, link PRs to issues, workflows    |
+| context7      | Recommended | Up-to-date library docs, prevent hallucinations  |
+| sentry        | Recommended | Production error debugging                       |
+| figma         | Recommended | Design-to-code workflow, design tokens           |
+| shadcn        | Recommended | shadcn/ui components, blocks, examples           |
+
+**CLI Replacements:**
+
+| Former MCP    | Replacement                            |
+| ------------- | -------------------------------------- |
+| vitest        | `pnpm test` commands                   |
+| github        | `gh` CLI                               |
+| spec-workflow | File-based specs in `specs/` directory |
 
 ## SDD/TDD Workflow
 
 For full spec-driven and test-driven development:
 
-1. **Create spec**: Use `spec-workflow` to create requirements → design → tasks
-2. **Approve spec**: Review and approve via dashboard (http://localhost:5000)
-3. **Write tests first**: Use `vitest` to write failing tests
-4. **Implement**: Execute tasks from spec with AI assistance
-5. **Verify**: Run tests, check coverage, validate against spec
-
-**Sources:**
-
-- [Spec Workflow MCP](https://github.com/Pimzino/spec-workflow-mcp)
+1. **Create spec**: Use `/plan` command to create specs in `specs/` directory
+2. **Approve spec**: Review and approve the generated spec files
+3. **Write tests first**: Run `pnpm test` for TDD workflow
+4. **Implement**: Use `/implement` to build the approved spec
+5. **Verify**: Run `pnpm test:run && pnpm typecheck` to validate

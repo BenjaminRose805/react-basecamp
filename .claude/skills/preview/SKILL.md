@@ -36,7 +36,7 @@ if (mode === "basic") {
 ```typescript
 interface ExecutionPreview {
   // Command context
-  command: string; // Original command (e.g., "/build login form")
+  command: string; // Original command (e.g., "/implement login form")
   detected: string; // What was detected (e.g., "Frontend component")
   scope: string; // Scope description (e.g., "Login form UI")
 

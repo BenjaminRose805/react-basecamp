@@ -386,7 +386,7 @@ function formatOutput(output: string, maxLength: number = 60): string {
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
-│  /build login form                                [COMPLETED]   │
+│  /implement login form                                [COMPLETED]   │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ✓ All stages completed successfully                            │
@@ -400,7 +400,7 @@ function formatOutput(output: string, maxLength: number = 60): string {
 │  ├─ Coverage: 85%                                               │
 │  └─ Duration: 45.2s                                             │
 │                                                                 │
-│  Next: /check → /ship                                           │
+│  Next: /ship                                           │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -409,7 +409,7 @@ function formatOutput(output: string, maxLength: number = 60): string {
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
-│  /build login form                                   [FAILED]   │
+│  /implement login form                                   [FAILED]   │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ✗ Stage 2 (BUILD) failed                                       │
@@ -426,7 +426,7 @@ function formatOutput(output: string, maxLength: number = 60): string {
 │  ├─ ✓ ui-builder completed                                      │
 │  └─ ✗ ui-validator failed                                       │
 │                                                                 │
-│  Recovery: Fix type error and run /build login form again       │
+│  Recovery: Fix type error and run /implement login form again       │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```

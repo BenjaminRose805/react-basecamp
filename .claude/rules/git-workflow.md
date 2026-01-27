@@ -81,13 +81,13 @@ main
 
 ### Creating PR
 
-Use `/review` command which will:
+Use `/ship` command which will:
 
-1. Analyze full commit history (not just latest)
-2. Run `git diff [base-branch]...HEAD`
-3. Draft comprehensive PR summary
-4. Include test plan
-5. Create PR with proper formatting
+1. Analyze all changes and create commit
+2. Create PR with comprehensive summary
+3. Wait for CI to complete
+4. Wait for CodeRabbit review
+5. Offer merge if clean, or recommend `/plan` to reconcile feedback
 
 ### PR Template
 
@@ -107,55 +107,48 @@ Use `/review` command which will:
 
 ## Feature Implementation Workflow
 
-### 1. Plan First
+### 1. Start
 
 ```bash
-# Create spec before coding
-/spec feature-name
+# Create worktree and branch
+/start feature-name
 ```
 
-- Identify dependencies and risks
-- Break down into phases
-- Get user approval
+- Restart Claude Code in new worktree
+- Clean isolation from other work
 
-### 2. TDD Approach
+### 2. Plan
 
 ```bash
-# Write tests first
-/test feature-name
-
-# Then implement
-/code feature-name
+# Create spec through conversation
+/plan
 ```
 
-- Red → Green → Refactor
+- Answer clarifying questions
+- Review and approve generated spec
+
+### 3. Implement
+
+```bash
+# Build spec with TDD
+/implement
+```
+
+- TDD: Red → Green → Refactor
+- Final verification (build, types, lint, tests, security)
 - Verify 70%+ coverage
 
-### 3. Security Check
+### 4. Ship
 
 ```bash
-/security
+# Commit, PR, CI, CodeRabbit
+/ship
 ```
 
-- Address all CRITICAL issues
-- Address HIGH issues when possible
-
-### 4. Code Review
-
-```bash
-/review staged
-```
-
-- Address CRITICAL and HIGH feedback
-- Address MEDIUM when possible
-
-### 5. Commit & Push
-
-```bash
-git add <specific-files>
-git commit -m "feat: description"
-git push -u origin feature/branch-name
-```
+- Creates commit with conventional format
+- Creates PR with summary
+- Waits for CI and CodeRabbit
+- If clean: merge; if comments: `/plan` to reconcile
 
 ## Pre-Commit Checks
 
