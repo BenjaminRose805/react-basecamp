@@ -112,7 +112,7 @@ throw new TRPCError({
 If security issue found:
 
 1. **STOP** immediately
-2. Use `/security` command to run security-auditor
+2. Security scans run automatically via check-agent during `/implement` and `/ship`
 3. Fix CRITICAL issues before continuing
 4. Rotate any exposed secrets
 5. Review entire codebase for similar issues

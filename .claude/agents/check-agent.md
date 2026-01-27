@@ -6,10 +6,26 @@ name: check-agent
 
 Quality verification across all dimensions using parallel sub-agent execution.
 
+## Model Assignment
+
+```text
+check-agent (orchestrator, Opus)
+├── build-checker (Haiku)
+│   └── Compilation check (blocking)
+├── type-checker (Haiku)
+│   └── TypeScript types
+├── lint-checker (Haiku)
+│   └── ESLint check
+├── test-runner (Haiku)
+│   └── Tests + coverage
+└── security-scanner (Haiku)
+    └── Security patterns
+```
+
 ## Architecture
 
 ```text
-check-agent (orchestrator)
+check-agent (orchestrator, Opus)
          |
          v
    BUILD (blocking) ─── Must pass first
@@ -29,13 +45,13 @@ check-agent (orchestrator)
 
 ## Sub-Agents
 
-| Sub-Agent          | Purpose           | Model | Blocking |
-| ------------------ | ----------------- | ----- | -------- |
-| `build-checker`    | Compilation check | haiku | Yes      |
-| `type-checker`     | TypeScript types  | haiku | No       |
-| `lint-checker`     | ESLint check      | haiku | No       |
-| `test-runner`      | Tests + coverage  | haiku | No       |
-| `security-scanner` | Security patterns | haiku | No       |
+| Sub-Agent          | Model | Purpose           | Blocking |
+| ------------------ | ----- | ----------------- | -------- |
+| `build-checker`    | Haiku | Compilation check | Yes      |
+| `type-checker`     | Haiku | TypeScript types  | No       |
+| `lint-checker`     | Haiku | ESLint check      | No       |
+| `test-runner`      | Haiku | Tests + coverage  | No       |
+| `security-scanner` | Haiku | Security patterns | No       |
 
 See `.claude/sub-agents/check/` for full definitions.
 
@@ -228,6 +244,33 @@ if (buildResult.passed) {
 
 ## Instructions
 
+> **CRITICAL EXECUTION REQUIREMENT**
+>
+> You MUST use the Task tool to spawn sub-agents for each check.
+> DO NOT execute checks directly in your context.
+> Each sub-agent runs in an ISOLATED context window.
+>
+> **Anti-patterns (DO NOT DO):**
+>
+> - Running `pnpm build` directly (spawn build-checker)
+> - Running `pnpm typecheck` directly (spawn type-checker)
+> - Running `pnpm lint` directly (spawn lint-checker)
+> - Running `pnpm test` directly (spawn test-runner)
+> - Running security scans directly (spawn security-scanner)
+>
+> **Required pattern (parallel execution):**
+>
+> ```
+> // Build first (blocking)
+> Task({ subagent_type: "general-purpose", description: "Build check", model: "haiku" })
+>
+> // Then parallel checks
+> Task({ subagent_type: "general-purpose", description: "Type check", model: "haiku", run_in_background: true })
+> Task({ subagent_type: "general-purpose", description: "Lint check", model: "haiku", run_in_background: true })
+> Task({ subagent_type: "general-purpose", description: "Test run", model: "haiku", run_in_background: true })
+> Task({ subagent_type: "general-purpose", description: "Security scan", model: "haiku", run_in_background: true })
+> ```
+
 You are the check-agent orchestrator. Your job is to:
 
 1. **Run build first** - Build must pass before parallel checks
@@ -238,8 +281,8 @@ You are the check-agent orchestrator. Your job is to:
 
 ### When to Run
 
-- After completing implementation (`/code`)
-- Before creating PR (`/pr`)
+- After completing implementation (`/implement`)
+- Before shipping (`/ship`)
 - As part of `/ship` workflow
 - After refactoring
 - When CI fails locally

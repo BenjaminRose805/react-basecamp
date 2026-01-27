@@ -56,38 +56,44 @@ All writing tasks follow the same pattern:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Agent Routing
+## Command → Agent Routing
 
-| Command              | Agents                                                |
-| -------------------- | ----------------------------------------------------- |
-| `/distill [feature]` | distill-researcher → distill-spec-writer → distill-qa |
-| `/spec [feature]`    | spec-researcher → spec-writer → spec-qa               |
-| `/test [feature]`    | test-researcher → test-writer → test-qa               |
-| `/eval [feature]`    | eval-researcher → eval-writer → eval-qa               |
-| `/code [feature]`    | code-researcher → code-writer → code-qa               |
-| `/ui [component]`    | ui-researcher → ui-builder → ui-qa                    |
-| `/docs [topic]`      | docs-researcher → docs-writer → docs-qa               |
+Users interact with 6 commands. Agents are internal implementation details.
 
-## Standalone Agents
+| Command      | Routes To                               |
+| ------------ | --------------------------------------- |
+| `/start`     | git worktree (direct)                   |
+| `/plan`      | plan-agent (spec creation/reconcile)    |
+| `/implement` | code/ui/docs/eval-agent (based on spec) |
+| `/ship`      | git-agent + check-agent                 |
+| `/guide`     | — (informational)                       |
+| `/mode`      | — (mode switch)                         |
 
-These don't follow the 3-agent pattern:
+### /implement Routing
 
-| Agent              | Command     | Purpose                |
-| ------------------ | ----------- | ---------------------- |
-| `debugger`         | `/debug`    | Reactive bug hunting   |
-| `security-auditor` | `/security` | Vulnerability scanning |
-| `pr-reviewer`      | `/review`   | Final quality gate     |
+The `/implement` command routes to agents based on spec content:
 
-## Subcommand Usage
+| Spec Contains           | Routes To             |
+| ----------------------- | --------------------- |
+| Backend only (Prisma)   | code-agent            |
+| Frontend only (React)   | ui-agent              |
+| Both backend + frontend | code-agent → ui-agent |
+| Documentation           | docs-agent            |
+| Evaluation/graders      | eval-agent            |
 
-Run individual phases when needed:
+### Internal Agents
 
-```bash
-/code [feature]           # Full flow: research → write → qa
-/code research [feature]  # Research only
-/code write [feature]     # Write only (after research)
-/code qa [feature]        # QA only (after write)
-```
+These agents are invoked internally by commands, not directly by users:
+
+| Agent       | Invoked By            | Purpose                      |
+| ----------- | --------------------- | ---------------------------- |
+| plan-agent  | `/plan`               | Spec creation and reconcile  |
+| code-agent  | `/implement`          | Backend implementation (TDD) |
+| ui-agent    | `/implement`          | Frontend implementation      |
+| docs-agent  | `/implement`          | Documentation writing        |
+| eval-agent  | `/implement`          | Evaluation suite creation    |
+| check-agent | `/implement`, `/ship` | Quality verification         |
+| git-agent   | `/start`, `/ship`     | Git and PR operations        |
 
 ## Parallel Execution
 
@@ -224,7 +230,7 @@ Key rule: Pass `context_summary` between phases, NOT raw context.
 
 ## Anti-Patterns
 
-### DON'T: Skip Research
+### DON'T: Skip Planning
 
 ```markdown
 # BAD
@@ -235,7 +241,7 @@ Agent: _immediately writes code_
 # GOOD
 
 User: "Add a login form"
-Agent: "Let me run /code research first to check for existing auth patterns..."
+Agent: "Let me run /plan first to design the spec and get approval..."
 ```
 
 ### DON'T: Ignore QA Failures
@@ -249,7 +255,7 @@ Agent: "I'll commit anyway and fix later"
 # GOOD
 
 QA: "FAIL - TypeScript errors in auth.ts"
-Agent: "Running /code write to fix the type errors..."
+Agent: "Fixing the type errors and re-running /implement..."
 ```
 
 ### DON'T: Bypass Security
