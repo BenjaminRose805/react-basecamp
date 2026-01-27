@@ -25,9 +25,9 @@ const {
 
 // Commands that should trigger command mode (require sub-agent spawning)
 const COMMAND_PATTERNS = [
-  { pattern: /^\/plan\b/i, command: 'plan', agent: 'plan-agent' },
-  { pattern: /^\/implement\b/i, command: 'implement', agent: 'code-agent or ui-agent' },
-  { pattern: /^\/ship\b/i, command: 'ship', agent: 'git-agent + check-agent' },
+  { pattern: /^\/plan\b/i, command: 'plan', agents: ['plan-agent'] },
+  { pattern: /^\/implement\b/i, command: 'implement', agents: ['code-agent', 'ui-agent'] },
+  { pattern: /^\/ship\b/i, command: 'ship', agents: ['git-agent', 'check-agent'] },
 ];
 
 // Commands that do NOT require sub-agent spawning
@@ -71,10 +71,10 @@ async function main() {
     }
 
     // Check if this is a command that requires sub-agent spawning
-    for (const { pattern, command, agent } of COMMAND_PATTERNS) {
+    for (const { pattern, command, agents } of COMMAND_PATTERNS) {
       if (pattern.test(trimmedMessage)) {
         // Set command mode state
-        setCommandMode(command, agent, trimmedMessage);
+        setCommandMode(command, agents, trimmedMessage);
 
         // Inject reminder to Claude's context
         logContext(`
@@ -84,7 +84,7 @@ async function main() {
 You MUST follow the MANDATORY steps:
 1. **Show preview** - Display execution plan from Preview section
 2. **Get confirmation** - Wait for [Enter] to run or [Esc] to cancel
-3. **Load agent file** - Read \`.claude/agents/${agent.split(' ')[0]}.md\`
+3. **Load agent file** - Read \`.claude/agents/${agents[0]}.md\`
 4. **Follow CRITICAL EXECUTION REQUIREMENT** in that file
 5. **Use Task tool** - Spawn sub-agents, NEVER execute directly
 
@@ -107,14 +107,14 @@ Quick reference: \`.claude/sub-agents/QUICK-REFERENCE.md\`
   }
 }
 
-function setCommandMode(command, agent, originalMessage) {
+function setCommandMode(command, agents, originalMessage) {
   try {
     const stateDir = getStateDir();
     ensureDir(stateDir);
 
     const state = {
       command,
-      agent,
+      agents,
       originalMessage,
       startedAt: new Date().toISOString(),
       toolCallCount: 0,

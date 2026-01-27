@@ -165,5 +165,3 @@ Use `basic` mode for:
 - Experienced developers
 - When you need precise control
 - Debugging orchestration issues
-
-$ARGUMENTS

@@ -124,7 +124,9 @@ async function main() {
     // Special handling for Read - allow if reading allowed files
     if (toolName === 'Read') {
       const filePath = toolInput.file_path || '';
-      const isAllowed = ALLOWED_READ_PATTERNS.some(pattern => pattern.test(filePath));
+      // Normalize path separators for Windows compatibility
+      const normalizedPath = filePath.replace(/\\/g, '/');
+      const isAllowed = ALLOWED_READ_PATTERNS.some(pattern => pattern.test(normalizedPath));
 
       if (isAllowed) {
         updateCommandMode(commandMode);
@@ -174,7 +176,7 @@ Task({
 })
 \`\`\`
 
-Read the agent file: \`.claude/agents/${commandMode.agent.split(' ')[0]}.md\`
+Read the agent file: \`.claude/agents/${commandMode.agents[0]}.md\`
 ---
 `);
       }

@@ -193,7 +193,9 @@ function routeImplement(specPath: string): RoutingResult {
 
   // 4. Handle ambiguous case
   if (agents.length === 0) {
-    return askForClarification(spec);
+    throw new Error(
+      "Unable to determine implementation type. Please clarify: backend, frontend, full-stack, docs, or eval?"
+    );
   }
 
   return {

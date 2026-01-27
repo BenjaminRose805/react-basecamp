@@ -38,14 +38,14 @@ Uses consolidated templates from `.claude/sub-agents/templates/`:
 
 ## MCP Servers
 
-```
+```text
 cclsp     # Read code to document
 context7  # Verify documented APIs
 ```
 
 ## CLI Tools
 
-```
+```text
 File-based docs in docs/ directory
 ```
 
@@ -165,7 +165,7 @@ if (agentCount === 1) {
 >
 > **Required pattern:**
 >
-> ```
+> ```typescript
 > Task({ subagent_type: "general-purpose", ... })
 > ```
 
@@ -213,10 +213,9 @@ Creates a new prompt.
 - `400` - Invalid input
 - `401` - Not authenticated
 
-````
-
+````markdown
 **Guide:**
-```markdown
+
 # Getting Started with Prompts
 
 This guide shows you how to create and manage prompts.
@@ -231,6 +230,7 @@ This guide shows you how to create and manage prompts.
 1. Install dependencies:
    ```bash
    pnpm install
+   ```
 ````
 
 2. Create your first prompt:
@@ -241,8 +241,7 @@ This guide shows you how to create and manage prompts.
    });
    ```
 
-```
-
+```markdown
 ### Best Practices
 
 1. **Use present tense** - "Creates a prompt" not "Will create"

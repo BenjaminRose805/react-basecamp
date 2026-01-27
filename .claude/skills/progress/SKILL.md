@@ -311,14 +311,26 @@ function applyUpdate(
       break;
 
     case "subagent_start":
-      stage.subAgents[update.subAgentIndex!].status = "running";
+      if (
+        update.subAgentIndex !== undefined &&
+        update.subAgentIndex >= 0 &&
+        update.subAgentIndex < stage.subAgents.length
+      ) {
+        stage.subAgents[update.subAgentIndex].status = "running";
+      }
       break;
 
     case "subagent_complete":
-      const subAgent = stage.subAgents[update.subAgentIndex!];
-      subAgent.status = "completed";
-      subAgent.duration = update.data.duration;
-      subAgent.output = update.data.output;
+      if (
+        update.subAgentIndex !== undefined &&
+        update.subAgentIndex >= 0 &&
+        update.subAgentIndex < stage.subAgents.length
+      ) {
+        const subAgent = stage.subAgents[update.subAgentIndex];
+        subAgent.status = "completed";
+        subAgent.duration = update.data.duration;
+        subAgent.output = update.data.output;
+      }
       break;
 
     case "stage_complete":
@@ -328,7 +340,13 @@ function applyUpdate(
       break;
 
     case "error":
-      stage.subAgents[update.subAgentIndex!].status = "failed";
+      if (
+        update.subAgentIndex !== undefined &&
+        update.subAgentIndex >= 0 &&
+        update.subAgentIndex < stage.subAgents.length
+      ) {
+        stage.subAgents[update.subAgentIndex].status = "failed";
+      }
       stage.status = "failed";
       break;
   }

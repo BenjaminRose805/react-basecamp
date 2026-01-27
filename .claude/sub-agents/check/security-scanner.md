@@ -43,27 +43,45 @@ Run security scans:
 ### 1. Console.log Detection
 
 ```bash
-grep -rn "console\.log" --include="*.ts" --include="*.tsx" src/ 2>/dev/null | head -20
+grep -rn "console\.log" --include="*.ts" --include="*.tsx" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ 2>/dev/null | head -20
 ```
 
 ### 2. Hardcoded Secrets
 
 ```bash
 # API keys
-grep -rn "sk-" --include="*.ts" --include="*.tsx" src/ 2>/dev/null | head -10
-grep -rn "api[_-]?key\s*=" --include="*.ts" src/ 2>/dev/null | head -10
+grep -rn "sk-" --include="*.ts" --include="*.tsx" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ 2>/dev/null | head -10
+grep -rn "api[_-]?key\s*=" --include="*.ts" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ 2>/dev/null | head -10
 
 # Passwords
-grep -rn "password\s*=" --include="*.ts" src/ 2>/dev/null | grep -v "password:" | head -10
+grep -rn "password\s*=" --include="*.ts" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ 2>/dev/null | grep -v "password:" | head -10
 
 # Credentials in URLs
-grep -rn "://.*:.*@" --include="*.ts" src/ 2>/dev/null | head -10
+grep -rn "://.*:.*@" --include="*.ts" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ 2>/dev/null | head -10
 ```
 
 ### 3. TODO/FIXME in Production
 
 ```bash
-grep -rn "TODO\|FIXME" --include="*.ts" --include="*.tsx" src/ 2>/dev/null | head -20
+grep -rn "TODO\|FIXME" --include="*.ts" --include="*.tsx" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ 2>/dev/null | head -20
 ```
 
 ### 4. Env Files Committed
@@ -177,12 +195,24 @@ Detect these patterns:
 
 ## Exclusions
 
-Ignore these (not security issues):
+The security scanner excludes these paths to reduce noise:
 
-- `.env.example` files
-- Test files containing mock data
-- Documentation examples
+**File patterns:**
+
+- `*.test.ts`, `*.spec.ts` - Test files with mock/fixture data
+- `*.config.js`, `*.config.ts` - Configuration files with expected patterns
+
+**Directories:**
+
+- `test/`, `tests/` - Test directories with intentional test data
+- `docs/` - Documentation with code examples
+- `node_modules/` - Third-party dependencies
+
+**Content patterns (not security issues):**
+
+- `.env.example` files - Template files without real secrets
 - Type definitions with "password" in property names
+- Mock credentials in test fixtures
 
 ## Exit Criteria
 

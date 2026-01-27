@@ -38,14 +38,14 @@ Uses consolidated templates from `.claude/sub-agents/templates/`:
 
 ## MCP Servers
 
-```
+```text
 cclsp     # Navigate eval code
 context7  # Verify LLM SDK usage
 ```
 
 ## CLI Tools
 
-```
+```bash
 pnpm test  # Run evaluations
 pnpm eval  # Run specific eval suite
 ```
@@ -175,11 +175,10 @@ Skip EDD for:
 
 ### After CREATE
 
-```markdown
+````markdown
 ## Eval Suite Created
 
 ### Structure
-```
 
 evals/agent-builder/
 ├── config.ts
@@ -193,18 +192,17 @@ evals/agent-builder/
 │ └── accuracy.ts
 └── index.ts
 
-````
-
 ### Thresholds
+
 - pass@1: 80%
 - pass@3: 95%
 
 ### Run Commands
+
 ```bash
 pnpm eval agent-builder           # Full suite
 pnpm eval agent-builder --smoke   # Quick check
-````
-
+```
 ````
 
 ### After VALIDATE
@@ -213,17 +211,19 @@ pnpm eval agent-builder --smoke   # Quick check
 ## Eval Validation: PASS
 
 ### Dry Run Results
+
 - 10 test cases executed
 - All graders functioning
 - No runtime errors
 
 ### Coverage
+
 - Happy path: 4 cases
 - Edge cases: 4 cases
 - Adversarial: 2 cases
 
 ### Ready for implementation testing
-````
+```
 
 ## Instructions
 
@@ -242,7 +242,7 @@ pnpm eval agent-builder --smoke   # Quick check
 >
 > **Required pattern:**
 >
-> ```
+> ```typescript
 > Task({ subagent_type: "general-purpose", ... })
 > ```
 

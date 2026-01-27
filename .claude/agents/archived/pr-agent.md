@@ -9,12 +9,13 @@ deprecated_in: 08-architecture-v2
 > **DEPRECATED:** This agent has been absorbed into **git-agent**.
 >
 > **Migration:**
-> | Old Command | New Command |
-> | ----------- | ----------- |
-> | `/pr` | `/git pr` |
-> | `/pr create` | `/git pr` |
-> | `/pr draft` | `/git pr draft` |
-> | `/pr merge` | `/git pr merge` |
+>
+> | Old Command      | New Command          |
+> | ---------------- | -------------------- |
+> | `/pr`            | `/git pr`            |
+> | `/pr create`     | `/git pr`            |
+> | `/pr draft`      | `/git pr draft`      |
+> | `/pr merge`      | `/git pr merge`      |
 > | `/pr review <N>` | `/git pr review <N>` |
 >
 > See: [.claude/agents/git-agent.md](../git-agent.md)

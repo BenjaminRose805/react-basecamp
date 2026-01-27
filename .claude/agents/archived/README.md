@@ -110,15 +110,14 @@ The original 11 agents had overlapping responsibilities:
 
 ### User Interface Simplification
 
-Users now have 5 core commands:
+Users now have 6 core commands:
 
-- `/plan` - Design
-- `/build` - Create
-- `/fix` - Correct
-- `/check` - Verify
-- `/ship` - Deploy
-
-Power users can still access specific agents via `/code`, `/ui`, `/git`, etc.
+- `/start` - Start work (git-agent)
+- `/plan` - Create spec (plan-agent)
+- `/implement` - Build feature (routing-agent)
+- `/ship` - Push & PR (git-agent + check-agent)
+- `/guide` - Status & help
+- `/mode` - Switch dev/basic mode
 
 ### Better Model Utilization
 

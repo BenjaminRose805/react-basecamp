@@ -22,7 +22,7 @@ React-basecamp uses a hybrid development methodology combining SDD, TDD, and EDD
 
 ### Workflow
 
-```
+```text
 1. /plan
    └── Conversational spec creation
    └── Define acceptance criteria
@@ -58,7 +58,7 @@ Every spec must include:
 
 ### Workflow (Red-Green-Refactor)
 
-```
+```text
 1. RED: Write a failing test
    └── Test describes expected behavior
    └── Run test - MUST fail
@@ -118,7 +118,7 @@ function isValidEmail(email: string): boolean {
 
 ### Workflow
 
-```
+```text
 1. /plan (for LLM features)
    └── Identify LLM touchpoints during spec
    └── Define evaluation dimensions
@@ -141,7 +141,7 @@ function isValidEmail(email: string): boolean {
 
 ### Eval Structure
 
-```
+```text
 evals/
 └── agent-builder/
     ├── config.ts      # Dimensions, thresholds
@@ -168,7 +168,7 @@ evals/
 
 ## Decision Tree
 
-```
+```text
 New Feature Request
 │
 ├─ /start [feature-name]
