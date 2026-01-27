@@ -9,7 +9,7 @@ Complete feature implementation combining code-agent and ui-agent with Opus orch
 
 ## Trigger
 
-- `/build [feature]` (when full-stack detected)
+- `/implement [feature]` (when full-stack detected)
 
 ## Stages
 
