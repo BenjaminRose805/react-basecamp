@@ -81,11 +81,12 @@ async function main() {
 ---
 **⚠️ COMMAND MODE ACTIVE: /${command}**
 
-You MUST:
-1. Read the agent file: \`.claude/agents/${agent.split(' ')[0]}.md\`
-2. Follow the CRITICAL EXECUTION REQUIREMENT in that file
-3. Use \`Task({ subagent_type: "general-purpose", ... })\` to spawn sub-agents
-4. DO NOT use Read, Write, Edit, Bash, or MCP tools directly
+You MUST follow the MANDATORY steps:
+1. **Show preview** - Display execution plan from Preview section
+2. **Get confirmation** - Wait for [Enter] to run or [Esc] to cancel
+3. **Load agent file** - Read \`.claude/agents/${agent.split(' ')[0]}.md\`
+4. **Follow CRITICAL EXECUTION REQUIREMENT** in that file
+5. **Use Task tool** - Spawn sub-agents, NEVER execute directly
 
 Quick reference: \`.claude/sub-agents/QUICK-REFERENCE.md\`
 ---

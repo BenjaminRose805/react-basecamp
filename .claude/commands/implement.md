@@ -10,20 +10,21 @@ Execute an approved spec with TDD methodology and automatic agent routing.
 
 ---
 
-## MANDATORY: Load Agent Instructions First
+## MANDATORY: Preview and Agent Delegation
 
-> **STOP. Before doing anything else, you MUST:**
+> **STOP. Before executing /implement, you MUST:**
 >
-> 1. Determine routing based on spec content (see Routing Logic below)
-> 2. Read the appropriate agent file(s):
+> 1. **Show preview** - Display the execution plan (see Preview section below)
+> 2. **Get confirmation** - Wait for user to press [Enter] to run or [Esc] to cancel
+> 3. **Load agent file** - Read the appropriate agent file based on routing:
 >    - Backend → `.claude/agents/code-agent.md`
 >    - Frontend → `.claude/agents/ui-agent.md`
 >    - Docs → `.claude/agents/docs-agent.md`
 >    - Evals → `.claude/agents/eval-agent.md`
-> 3. Follow the CRITICAL EXECUTION REQUIREMENT in the agent file
-> 4. Use Task tool to spawn sub-agents - NEVER execute directly
+> 4. **Follow CRITICAL EXECUTION REQUIREMENT** - Found in the agent file
+> 5. **Use Task tool** - Spawn sub-agents for each phase, NEVER execute directly
 >
-> **If you skip this step, you will execute incorrectly.**
+> **If you skip the preview or execute tools directly, you are doing it wrong.**
 
 ---
 

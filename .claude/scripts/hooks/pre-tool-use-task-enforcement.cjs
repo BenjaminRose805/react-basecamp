@@ -137,14 +137,12 @@ async function main() {
 ---
 **⚠️ REMINDER: You are in /${commandMode.command} command mode**
 
-You just used \`Read\` directly. For command execution, you should:
-1. Spawn a researcher sub-agent via \`Task\` tool
-2. Let the sub-agent do the reading in isolated context
+You used \`Read\` directly. Remember the MANDATORY steps:
+1. Show preview first and get user confirmation
+2. Then spawn sub-agents via \`Task\` tool for research work
 
-This prevents context overflow and follows the 3-agent pattern.
-
-If you're reading an agent/spec file to understand what to do, that's OK.
-But for actual research work, use: \`Task({ subagent_type: "general-purpose", description: "Research...", ... })\`
+Reading agent/spec files is OK, but for actual research:
+\`Task({ subagent_type: "general-purpose", description: "Research...", model: "opus" })\`
 ---
 `);
       }
@@ -162,9 +160,9 @@ But for actual research work, use: \`Task({ subagent_type: "general-purpose", de
 ---
 **⚠️ WARNING: Direct tool use in /${commandMode.command} command mode**
 
-You used \`${toolName}\` directly. During command execution, you should:
-1. Spawn a sub-agent via \`Task\` tool
-2. Let the sub-agent use \`${toolName}\` in isolated context
+You used \`${toolName}\` directly. Remember the MANDATORY steps:
+1. Show preview first and get user confirmation
+2. Then spawn sub-agents via \`Task\` tool
 
 **Required pattern:**
 \`\`\`typescript
@@ -172,11 +170,11 @@ Task({
   subagent_type: "general-purpose",
   description: "...",
   prompt: "...",
-  model: "sonnet",  // or opus/haiku
+  model: "sonnet",
 })
 \`\`\`
 
-Read the agent file first: \`.claude/agents/${commandMode.agent.split(' ')[0]}.md\`
+Read the agent file: \`.claude/agents/${commandMode.agent.split(' ')[0]}.md\`
 ---
 `);
       }

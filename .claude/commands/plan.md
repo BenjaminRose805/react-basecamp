@@ -12,15 +12,17 @@ Conversational spec creation or PR feedback reconciliation.
 
 ---
 
-## MANDATORY: Load Agent Instructions First
+## MANDATORY: Preview and Agent Delegation
 
-> **STOP. Before doing anything else, you MUST:**
+> **STOP. Before executing /plan, you MUST:**
 >
-> 1. Read the agent file: `.claude/agents/plan-agent.md`
-> 2. Follow the CRITICAL EXECUTION REQUIREMENT in that file
-> 3. Use Task tool to spawn sub-agents - NEVER execute directly
+> 1. **Show preview** - Display the execution plan (see Preview section below)
+> 2. **Get confirmation** - Wait for user to press [Enter] to run or [Esc] to cancel
+> 3. **Load agent file** - Read `.claude/agents/plan-agent.md`
+> 4. **Follow CRITICAL EXECUTION REQUIREMENT** - Found in the agent file
+> 5. **Use Task tool** - Spawn sub-agents for each phase, NEVER execute directly
 >
-> **If you skip this step, you will execute incorrectly.**
+> **If you skip the preview or execute tools directly, you are doing it wrong.**
 
 ---
 

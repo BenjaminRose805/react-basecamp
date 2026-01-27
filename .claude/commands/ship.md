@@ -8,6 +8,22 @@ Commit, create PR, wait for CI and CodeRabbit.
 /ship                    # Full ship workflow
 ```
 
+---
+
+## MANDATORY: Preview and Agent Delegation
+
+> **STOP. Before executing /ship, you MUST:**
+>
+> 1. **Show preview** - Display the execution plan (see Preview section below)
+> 2. **Get confirmation** - Wait for user to press [Enter] to run or [Esc] to cancel
+> 3. **Load agent file** - Read `.claude/agents/git-agent.md`
+> 4. **Follow CRITICAL EXECUTION REQUIREMENT** - Found in the agent file
+> 5. **Use Task tool** - Spawn sub-agents for each phase, NEVER execute directly
+>
+> **If you skip the preview or execute tools directly, you are doing it wrong.**
+
+---
+
 ## Examples
 
 ```bash
