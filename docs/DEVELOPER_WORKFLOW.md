@@ -7,13 +7,12 @@ A comprehensive guide for implementing features using the AI-assisted developmen
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Git Workflow](#git-workflow)
+2. [The 6 Commands](#the-6-commands)
 3. [Your Role as Developer](#your-role-as-developer)
-4. [MCP Server Interactions](#mcp-server-interactions)
-5. [The Complete Workflow](#the-complete-workflow)
-6. [Phase-by-Phase Guide](#phase-by-phase-guide)
-7. [Feature Implementation Examples](#feature-implementation-examples)
-8. [Troubleshooting](#troubleshooting)
+4. [The Complete Workflow](#the-complete-workflow)
+5. [MCP Server Interactions](#mcp-server-interactions)
+6. [Feature Implementation Examples](#feature-implementation-examples)
+7. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -53,256 +52,48 @@ This workflow combines four methodologies:
 
 ---
 
-## Git Workflow
+## The 6 Commands
 
-### Golden Rule: Never Work on Main
+The entire workflow uses just **6 user-facing commands**. Git operations are handled automatically.
 
-**Direct pushes to `main` are blocked.** The pre-push hook enforces this automatically.
+| Command      | Purpose                     | What Happens                                       |
+| ------------ | --------------------------- | -------------------------------------------------- |
+| `/start`     | Begin work on a feature     | Creates worktree + branch, outputs restart info    |
+| `/plan`      | Design spec or reconcile PR | Conversational spec creation or CodeRabbit fixes   |
+| `/implement` | Build the approved spec     | Routes to agents, TDD workflow, final verification |
+| `/ship`      | Ship current work           | Commit → PR → CI → CodeRabbit review               |
+| `/guide`     | Status and help             | Shows progress and suggests next action            |
+| `/mode`      | Switch working modes        | `dev` (full orchestration) or `basic` (direct)     |
 
-### Git Commands
+### Git is Invisible
 
-Use these commands to manage git state throughout your workflow:
+Users never run git commands directly. The system handles all version control:
 
-| Command                   | Purpose                           |
-| ------------------------- | --------------------------------- |
-| `/branch`                 | Show current branch status        |
-| `/branch start <feature>` | Create and switch to new branch   |
-| `/branch switch <name>`   | Switch to existing branch         |
-| `/branch sync`            | Sync with main (rebase)           |
-| `/branch cleanup`         | Delete merged branches            |
-| `/worktree add <feature>` | Create worktree for parallel work |
-| `/worktree status`        | Status of all worktrees           |
-| `/commit`                 | Create conventional commit        |
-| `/pr`                     | Create pull request               |
-| `/status`                 | Full development status           |
+- `/start` creates worktree and branch automatically
+- `/ship` handles commit, push, PR creation, CI monitoring, and CodeRabbit review
+- `/plan` (reconcile mode) addresses CodeRabbit feedback
 
-### Starting a Feature
-
-**Step 1: Create a feature branch using `/branch`**
-
-```bash
-# Use the /branch command to create your feature branch
-/branch start prompt-manager
-```
-
-This will:
-
-- Ensure you're starting from a clean state
-- Pull latest main
-- Create `feature/prompt-manager` branch
-- Switch to the new branch
-
-**Step 2: Then start the AI workflow**
-
-```bash
-# Now you can work with AI agents
-/distill prompt-manager
-```
-
-### Branch Naming Conventions
-
-| Prefix      | Use For          | Example                       |
-| ----------- | ---------------- | ----------------------------- |
-| `feature/`  | New features     | `feature/prompt-manager`      |
-| `fix/`      | Bug fixes        | `fix/variable-persistence`    |
-| `docs/`     | Documentation    | `docs/developer-workflow`     |
-| `refactor/` | Code refactoring | `refactor/api-error-handling` |
-| `test/`     | Test additions   | `test/workflow-integration`   |
-
-### Commit Conventions
-
-Use conventional commits with AI co-authorship:
+### Standard Development Flow
 
 ```text
-<type>: <description>
-
-<optional body>
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-
-### Types
-
-`feat`, `fix`, `docs`, `test`, `refactor`, `chore`, `perf`, `ci`
-
-**Examples:**
-
-```bash
-feat: add prompt variable validation
-fix: resolve race condition in task queue
-docs: add developer workflow guide
-test: add integration tests for workflow router
-```
-
-### The Complete Git + AI Flow
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  1. CREATE BRANCH (use /branch command)                                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  /branch start prompt-manager                                               │
-│                                                                             │
-│  Creates feature/prompt-manager and switches to it                          │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  2. AI DEVELOPMENT PHASES                                                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  /distill prompt-manager    → Creates spec, you approve                     │
-│  /test prompt-manager       → Writes tests (TDD red)                        │
-│  /code prompt-manager       → Implements (TDD green)                        │
-│  /ui PromptEditor           → Builds UI                                     │
-│                                                                             │
-│  Use /commit when ready to commit changes                                   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  3. VERIFICATION (AI runs these)                                            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  /verify                    → Build, types, lint, tests, security           │
-│  /security                  → Vulnerability scan                            │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  4. SYNC & PR (use /branch sync and /pr)                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  /branch sync               → Rebase on latest main                         │
-│  /pr                        → Push and create PR with summary               │
-│                                                                             │
-│  Pre-push hook runs: typecheck, tests, dead code, circular deps             │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  5. MERGE (you do this in GitHub)                                           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  Review PR in GitHub                                                        │
-│  Approve and merge (squash recommended)                                     │
-│  /branch cleanup            → Delete merged branches locally                │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Pre-Push Checks (Automatic)
-
-When you push, these checks run automatically:
-
-| Check             | Blocking     | Purpose                      |
-| ----------------- | ------------ | ---------------------------- |
-| Branch protection | Yes          | Prevents direct push to main |
-| TypeScript        | Yes          | No type errors               |
-| Tests             | Yes          | All tests pass               |
-| Dead code         | No (warning) | Identifies unused code       |
-| Circular deps     | Yes          | No circular imports          |
-
-### When to Commit
-
-AI agents commit at logical checkpoints:
-
-| Phase      | Commit After                   |
-| ---------- | ------------------------------ |
-| `/distill` | Spec file created              |
-| `/test`    | Test files created             |
-| `/code`    | Each component/module complete |
-| `/ui`      | Each UI component complete     |
-
-You can also ask AI to commit at any point:
-
-```text
-"Commit the current progress"
-```
-
-### Handling Multiple Features (Worktrees)
-
-Use git worktrees for true parallel development without stashing:
-
-```bash
-# Create worktrees for parallel work
-/worktree add prompt-manager      # Creates ../react-basecamp--prompt-manager/
-/worktree add agent-builder       # Creates ../react-basecamp--agent-builder/
-
-# Terminal 1: Working on prompt-manager
-cd ../react-basecamp--prompt-manager
-/code prompt-manager
-
-# Terminal 2: Working on agent-builder (fully parallel!)
-cd ../react-basecamp--agent-builder
-/code agent-builder
-
-# Terminal 3: Quick bug fix in main repo
-cd ../react-basecamp
-/branch start fix/auth-bug
-/code fix/auth-bug
-/pr
-```
-
-**Why worktrees?**
-
-- No stashing or context switching
-- Each worktree has independent working directory
-- Run tests in one while coding in another
-- Compare implementations side-by-side
-
-**Check worktree status:**
-
-```bash
-/worktree status    # Shows status of all worktrees
-```
-
-**Cleanup after merge:**
-
-```bash
-/worktree remove prompt-manager   # Removes worktree (branch preserved)
-/branch cleanup                   # Deletes merged branches
-```
-
-### Recovery Commands
-
-If something goes wrong:
-
-```bash
-# Check current status
-/status git
-
-# Undo last commit, keep changes
-git reset --soft HEAD~1
-
-# Discard all uncommitted changes
-git checkout -- .
-
-# Start fresh
-/branch switch main
-/branch start fresh-attempt
-```
-
-### Branch Cleanup
-
-After PR is merged:
-
-```bash
-# Use /branch cleanup to delete all merged branches
-/branch cleanup
-
-# Or delete a specific branch
-/branch switch main
-git branch -d feature/prompt-manager
-```
-
-### Worktree Cleanup
-
-After feature is complete:
-
-```bash
-# List all worktrees
-/worktree
-
-# Remove worktree (keeps branch for PR)
-/worktree remove prompt-manager
-
-# After PR merges, clean up the branch
-/branch cleanup
+┌─────────────────────────────────────────────────────────────┐
+│  1. START                                                   │
+│     /start [feature]  → Create worktree + branch            │
+│     (Restart session in new worktree)                       │
+├─────────────────────────────────────────────────────────────┤
+│  2. PLAN                                                    │
+│     /plan             → Conversational spec creation        │
+│     Preview → Confirm → Generate spec → Ask approval        │
+├─────────────────────────────────────────────────────────────┤
+│  3. IMPLEMENT                                               │
+│     /implement        → Build approved spec with TDD        │
+│     Preview → Confirm → Execute → Final verification        │
+├─────────────────────────────────────────────────────────────┤
+│  4. SHIP                                                    │
+│     /ship             → Commit → PR → CI → CodeRabbit       │
+│     If clean: offer merge                                   │
+│     If comments: run /plan to reconcile                     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -311,16 +102,12 @@ After feature is complete:
 
 ### Decision Points (Where You're Needed)
 
-| Phase        | Your Action                                       | AI Waits For             |
-| ------------ | ------------------------------------------------- | ------------------------ |
-| **Start**    | Tell AI what feature to build                     | Feature name/description |
-| **Distill**  | Review extracted spec, approve or request changes | Spec approval            |
-| **Test**     | Review test strategy, approve coverage            | Test plan approval       |
-| **Eval**     | Define success criteria for LLM behavior          | Eval thresholds          |
-| **Code**     | Resolve blockers, answer clarifying questions     | Decisions on ambiguity   |
-| **UI**       | Provide design guidance if no Figma               | Design decisions         |
-| **Security** | Acknowledge and prioritize findings               | Risk acceptance          |
-| **Review**   | Final approval before merge                       | PR approval              |
+| Phase         | Your Action                                   | AI Waits For             |
+| ------------- | --------------------------------------------- | ------------------------ |
+| **Start**     | Tell AI what feature to build                 | Feature name/description |
+| **Plan**      | Review spec, approve or request changes       | Spec approval            |
+| **Implement** | Resolve blockers, answer clarifying questions | Decisions on ambiguity   |
+| **Ship**      | Review PR, handle CodeRabbit feedback         | PR approval              |
 
 ### How to Give Instructions
 
@@ -334,7 +121,6 @@ Build the Prompt Manager feature from the design docs at ../docs/specs/prompt-ma
 
 ```text
 Build Prompt Manager:
-- Start with /distill to create implementation spec from ../docs/specs/prompt-manager.md
 - Focus on basic phase features only (no array/object variables)
 - Use TipTap for the rich text editor
 - Skip auth (single user for now)
@@ -343,263 +129,9 @@ Build Prompt Manager:
 ### Monitoring Progress
 
 1. **Claude Code terminal** - See agent output in real-time
-2. **Spec Workflow Dashboard** - Track specs at [localhost:5000](http://localhost:5000)
+2. **Specs directory** - Track specs at `specs/`
 3. **Linear** - Track issues and link PRs
 4. **GitHub** - Review PRs and CI status
-
----
-
-## MCP Server Interactions
-
-### 1. Spec Workflow Dashboard
-
-**URL:** [localhost:5000](http://localhost:5000) (starts automatically when spec-workflow MCP is active)
-
-**What you see:**
-
-- List of all specs with status (Draft, In Review, Approved, Implemented)
-- Progress indicators for each spec
-- Approval workflow buttons
-- Implementation logs
-
-**How to interact:**
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  SPEC WORKFLOW DASHBOARD                                    │
-│  localhost:5000                                             │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  📋 Specs                                                   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ prompt-manager          [██████████] 100%  ✅ Done  │   │
-│  │ agent-builder           [████░░░░░░]  40%  🔶 Code  │   │
-│  │ workflow-designer       [░░░░░░░░░░]   0%  📝 Draft │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-│  📄 Selected: agent-builder                                 │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ Status: In Progress                                 │   │
-│  │ Phase: Implementation                               │   │
-│  │                                                     │   │
-│  │ Tasks:                                              │   │
-│  │ ✅ 1. Create Prisma schema                          │   │
-│  │ ✅ 2. Create tRPC router                            │   │
-│  │ 🔶 3. Create AgentConfigForm component              │   │
-│  │ ⬜ 4. Create ToolSelector component                 │   │
-│  │ ⬜ 5. Write E2E tests                               │   │
-│  │                                                     │   │
-│  │ [Approve Spec] [Request Changes] [View Logs]        │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Your actions in the dashboard:**
-
-- **Approve Spec** - Allow implementation to proceed
-- **Request Changes** - Send spec back for revision with comments
-- **View Logs** - See what the AI has done
-
-**CLI equivalent:**
-
-```bash
-# AI can also interact via commands:
-"List my specs"           # Shows all specs
-"Approve spec agent-builder"  # Approves a spec
-"Show progress for prompt-manager"  # Detailed view
-```
-
-#### Implementation Logs (log-implementation)
-
-A key feature of spec-workflow is **implementation logging**. Every agent that writes code, tests, or UI logs what it created:
-
-```text
-.spec-workflow/specs/prompt-manager/
-├── requirements.md
-├── design.md
-├── tasks.md
-└── Implementation Logs/
-    ├── task-1-prisma-schema.json
-    ├── task-2-trpc-router.json
-    ├── test-suite.json
-    └── ui-components.json
-```
-
-**What gets logged:**
-
-| Phase       | Artifacts Logged                            |
-| ----------- | ------------------------------------------- |
-| `/code`     | API endpoints, functions, database models   |
-| `/test`     | Test suites, fixtures, mocks, helpers       |
-| `/ui`       | Components, patterns, design tokens         |
-| `/security` | Findings, remediation status, passed checks |
-
-**Why this matters:**
-
-1. **Prevents duplication** - Future agents search logs before writing new code
-2. **Maintains patterns** - "How did we do X in feature Y?"
-3. **Enables reuse** - Test fixtures, mocks, and utilities are discoverable
-4. **Tracks progress** - See what was built across sessions
-
-### Example: Test researcher finding existing fixtures
-
-```bash
-# AI searches implementation logs before writing tests:
-grep -r "fixtures\|mocks" .spec-workflow/specs/*/Implementation\ Logs/
-
-# Finds:
-# prompt-manager/test-suite.json:
-#   fixtures: [{ name: "mockUser", file: "src/test/fixtures/user.ts" }]
-#   mocks: [{ name: "mockApiClient", file: "src/test/mocks/api.ts" }]
-```
-
-The researcher then tells the test writer: "Reuse mockUser and mockApiClient from prompt-manager."
-
-### 2. Linear (Issue Tracking)
-
-**How AI uses it:**
-
-- Checks for existing related issues before creating specs
-- Links PRs to issues with `Fixes BAS-XXX`
-- Updates issue status as work progresses
-
-**Your interactions:**
-
-- Create issues for features you want built
-- Review AI-created issues
-- Prioritize backlog
-
-**Example flow:**
-
-```text
-You: Create issue "Build Prompt Manager" in Linear
-AI: /distill prompt-manager
-    → Finds Linear issue BAS-123
-    → Links spec to issue
-    → Creates PR with "Fixes BAS-123"
-```
-
-### 3. GitHub
-
-**How AI uses it:**
-
-- Searches for related PRs and discussions
-- Creates PRs with proper formatting
-- Responds to review comments
-
-**Your interactions:**
-
-- Review PRs in GitHub UI
-- Approve or request changes
-- Merge when ready
-
-### 4. Sentry (Production Errors)
-
-**How AI uses it:**
-
-- `/debug` checks Sentry for production errors
-- `/security` looks for security-related error patterns
-- `/code qa` verifies fixes resolve reported issues
-
-**Your interactions:**
-
-- Monitor Sentry dashboard for new issues
-- Tell AI to investigate: `/debug the authentication error in Sentry`
-
-### 5. Figma (Design)
-
-**How AI uses it:**
-
-- `/ui research` extracts design tokens, spacing, colors
-- `/ui build` matches implementation to design specs
-
-**Your interactions:**
-
-- Share Figma file URLs with AI
-- Select frames in Figma for AI to reference
-- Review UI against designs
-
-**Example:**
-
-```text
-You: Build the PromptEditor component matching this Figma frame:
-     https://figma.com/file/xxx/AI-Platform?node-id=123
-```
-
-### 6. shadcn/ui (Component Registry)
-
-**How AI uses it:**
-
-- Searches for existing components before building custom
-- Gets correct component APIs (no hallucination)
-- Finds pre-built blocks (login forms, dashboards)
-
-**Your interactions:**
-
-- Ask AI what shadcn components are available
-- Request specific components: "Use the shadcn DataTable for the prompt list"
-
-**Example:**
-
-```bash
-# AI can search the registry:
-"What shadcn components would work for a workflow designer?"
-# Returns: Card, Dialog, DropdownMenu, Sheet, Tabs, etc.
-
-# Add components:
-"Add the Table and Dialog components from shadcn"
-# AI runs: npx shadcn@latest add table dialog
-```
-
-### 7. Context7 (Library Documentation)
-
-**How AI uses it:**
-
-- Looks up current API documentation before using libraries
-- Prevents hallucinated or deprecated APIs
-
-**Your interactions:**
-
-- Generally invisible to you
-- Ensures AI uses correct Prisma, tRPC, React APIs
-
-### 8. Vitest + Playwright (Testing)
-
-**How AI uses them:**
-
-- Runs tests during `/test`, `/code`, `/verify`
-- Gets structured output optimized for AI consumption
-
-**Your interactions:**
-
-- Review test results in terminal
-- Run tests manually: `pnpm test` or `pnpm test:e2e`
-
-### 9. cclsp (TypeScript LSP)
-
-**How AI uses it:**
-
-- Go-to-definition, find references
-- Real-time type errors as it codes
-- Rename symbols across codebase
-
-**Your interactions:**
-
-- Invisible to you (AI uses it internally)
-- Ensures type-safe code
-
-### 10. Next.js DevTools
-
-**How AI uses it:**
-
-- Gets build errors in real-time
-- Checks dev server status
-
-**Your interactions:**
-
-- Run `pnpm dev` to start dev server
-- AI detects and fixes errors automatically
 
 ---
 
@@ -616,443 +148,247 @@ You: Build the PromptEditor component matching this Figma frame:
        │
        ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  PHASE 1: DISTILL (SDD)                                                      │
-│  Command: /distill prompt-manager                                            │
+│  PHASE 1: START                                                              │
+│  Command: /start prompt-manager                                              │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  distill-researcher                                                          │
-│  ├── Reads ../docs/specs/prompt-manager.md                                   │
-│  ├── Reads ../docs/architecture/data-models.md                               │
-│  ├── Reads ../docs/architecture/api-contracts.md                             │
-│  ├── Reads ../docs/architecture/database-schema.md                           │
-│  ├── Checks Linear for related issues                                        │
-│  └── Outputs: Research brief with entities, APIs, UI, scope                  │
+│  Creates worktree and branch:                                                │
+│  ├── Worktree: ../project-prompt-manager/                                    │
+│  ├── Branch: feature/prompt-manager                                          │
+│  └── Outputs: Restart instructions for new worktree                          │
 │                                                                              │
-│  distill-spec-writer                                                         │
-│  ├── Creates specs/prompt-manager.md                                         │
-│  ├── Registers in spec-workflow dashboard                                    │
-│  └── Status: Draft → Awaiting Approval                                       │
+│  >> Restart Claude Code in the new worktree to continue                      │
 │                                                                              │
-│  distill-qa                                                                  │
-│  └── Validates template compliance, source traceability                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  PHASE 2: PLAN (SDD)                                                         │
+│  Command: /plan                                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Conversational spec creation:                                               │
+│  ├── AI asks clarifying questions                                            │
+│  ├── Gathers requirements                                                    │
+│  ├── Shows preview of spec generation plan                                   │
+│  └── Generates spec files in specs/prompt-manager/                           │
+│                                                                              │
+│  Sub-agents:                                                                 │
+│  ├── plan-researcher (Opus) - Find existing patterns                         │
+│  ├── plan-writer (Sonnet) - Generate spec documents                          │
+│  └── plan-validator (Haiku) - Verify EARS compliance                         │
+│                                                                              │
+│  Output:                                                                     │
+│  ├── specs/prompt-manager/requirements.md                                    │
+│  ├── specs/prompt-manager/design.md                                          │
+│  └── specs/prompt-manager/tasks.md                                           │
 │                                                                              │
 └──────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
 ┌──────────────┐
-│   YOU        │  Review spec in dashboard (localhost:5000)
-│              │  Click [Approve Spec] or [Request Changes]
+│   YOU        │  Review spec files
+│              │  Approve or request changes
 └──────┬───────┘
        │ (after approval)
        ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  PHASE 2: TEST (TDD Red)                                                     │
-│  Command: /test prompt-manager                                               │
+│  PHASE 3: IMPLEMENT (TDD)                                                    │
+│  Command: /implement                                                         │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  test-researcher                                                             │
-│  ├── Reads specs/prompt-manager.md                                           │
-│  ├── Identifies test scenarios from acceptance criteria                      │
-│  ├── Checks existing test patterns                                           │
-│  └── Outputs: Test plan with coverage strategy                               │
+│  Routes to appropriate agent(s) based on spec content:                       │
+│  ├── Backend (tRPC, Prisma, API) → code-agent                                │
+│  ├── Frontend (React, components) → ui-agent                                 │
+│  ├── Documentation → docs-agent                                              │
+│  ├── LLM evaluations → eval-agent                                            │
+│  └── Mixed (backend + frontend) → code-agent → ui-agent                      │
 │                                                                              │
-│  test-writer                                                                 │
-│  ├── Creates src/server/routers/prompt.test.ts                               │
-│  ├── Creates src/components/prompt/__tests__/*.test.tsx                      │
-│  ├── Creates e2e/prompt-manager.spec.ts                                      │
-│  └── Verifies tests FAIL (TDD red phase)                                     │
+│  TDD Workflow (per task):                                                    │
+│  ├── RED: Write failing tests                                                │
+│  ├── GREEN: Implement until tests pass                                       │
+│  └── REFACTOR: Clean up while keeping tests green                            │
 │                                                                              │
-│  test-qa                                                                     │
-│  └── Validates test structure, coverage plan                                 │
+│  Final Verification (parallel):                                              │
+│  ├── build-checker (Haiku) - pnpm build                                      │
+│  ├── type-checker (Haiku) - pnpm typecheck                                   │
+│  ├── lint-checker (Haiku) - pnpm lint                                        │
+│  ├── test-runner (Haiku) - pnpm test:run                                     │
+│  └── security-scanner (Haiku) - vulnerability scan                           │
 │                                                                              │
 └──────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
 ┌──────────────┐
-│   YOU        │  Review test plan
-│              │  "Looks good" or "Add tests for X edge case"
+│   YOU        │  Review implementation
+│              │  Test in browser (pnpm dev → localhost:3000)
 └──────┬───────┘
        │
        ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  PHASE 2b: EVAL (EDD) - Only for LLM features                                │
-│  Command: /eval agent-builder                                                │
+│  PHASE 4: SHIP                                                               │
+│  Command: /ship                                                              │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  Skip for: prompt-manager, work-item-manager, task-queue (deterministic)     │
-│  Use for: agent-builder, execution-engine, workflow-designer (LLM features)  │
+│  Stage 1: COMMIT                                                             │
+│  ├── change-analyzer (Sonnet) - Analyze changes, draft message               │
+│  └── git-executor (Haiku) - Create commit                                    │
 │                                                                              │
-│  eval-researcher                                                             │
-│  ├── Identifies LLM touchpoints                                              │
-│  ├── Defines evaluation dimensions                                           │
-│  └── Recommends grading strategy                                             │
+│  Stage 2: CREATE PR                                                          │
+│  ├── pr-analyzer (Sonnet) - Draft PR title and summary                       │
+│  └── git-executor (Haiku) - Push and create PR via gh CLI                    │
 │                                                                              │
-│  eval-writer                                                                 │
-│  ├── Creates evals/agent-builder/config.ts                                   │
-│  ├── Creates evals/agent-builder/cases/*.ts                                  │
-│  └── Creates evals/agent-builder/graders/*.ts                                │
+│  Stage 3: WAIT FOR CI                                                        │
+│  └── Poll GitHub Actions until complete                                      │
 │                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-       │
-       ▼
-┌──────────────┐
-│   YOU        │  Define eval thresholds
-│              │  "pass@1 should be 80% for tool selection"
-└──────┬───────┘
-       │
-       ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  PHASE 3: CODE (TDD Green)                                                   │
-│  Command: /code prompt-manager                                               │
-├──────────────────────────────────────────────────────────────────────────────┤
+│  Stage 4: WAIT FOR CODERABBIT                                                │
+│  └── Poll for CodeRabbit review comments                                     │
 │                                                                              │
-│  code-researcher                                                             │
-│  ├── Checks for existing implementations                                     │
-│  ├── Identifies patterns to follow                                           │
-│  ├── Checks Linear/GitHub for context                                        │
-│  └── Outputs: PROCEED, STOP, or CLARIFY                                      │
-│                                                                              │
-│  code-writer                                                                 │
-│  ├── Extends prisma/schema.prisma                                            │
-│  ├── Creates src/server/routers/prompt.ts                                    │
-│  ├── Creates src/lib/services/prompt-service.ts                              │
-│  ├── Uses cclsp for real-time diagnostics                                    │
-│  ├── Uses context7 to verify APIs                                            │
-│  └── Runs tests until GREEN                                                  │
-│                                                                              │
-│  code-qa                                                                     │
-│  ├── Runs pnpm typecheck                                                     │
-│  ├── Runs pnpm test:run                                                      │
-│  ├── Verifies 70%+ coverage                                                  │
-│  └── Reports: PASS or FAIL                                                   │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-       │
-       ▼ (if FAIL, loop back to code-writer)
-       │
-       ▼ (if PASS)
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  PHASE 4: UI                                                                 │
-│  Commands: /ui PromptList, /ui PromptEditor, /ui VariableEditor              │
-├──────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ui-researcher                                                               │
-│  ├── Searches shadcn for existing components                                 │
-│  ├── Gets design specs from Figma (if available)                             │
-│  ├── Identifies patterns in existing UI                                      │
-│  └── Recommends composition strategy                                         │
-│                                                                              │
-│  ui-builder                                                                  │
-│  ├── Adds required shadcn components                                         │
-│  ├── Creates src/components/prompt/*.tsx                                     │
-│  ├── Creates src/app/prompts/page.tsx                                        │
-│  ├── Uses playwright to verify rendering                                     │
-│  └── Implements all states (hover, focus, disabled, loading)                 │
-│                                                                              │
-│  ui-qa                                                                       │
-│  ├── Accessibility check                                                     │
-│  ├── Visual verification via playwright                                      │
-│  └── Component test execution                                                │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-       │
-       ▼
-┌──────────────┐
-│   YOU        │  Review UI in browser (pnpm dev → localhost:3000)
-│              │  "Looks good" or "Adjust spacing on X"
-└──────┬───────┘
-       │
-       ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  PHASE 5: VERIFY                                                             │
-│  Command: /verify                                                            │
-├──────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  Runs all quality gates:                                                     │
-│  ├── Build: pnpm build                                                       │
-│  ├── Types: pnpm typecheck (0 errors required)                               │
-│  ├── Lint: pnpm lint (0 errors required)                                     │
-│  ├── Tests: pnpm test:run --coverage (70%+ required)                         │
-│  ├── Security: No secrets, no console.log                                    │
-│  └── Diff: Review all changed files                                          │
-│                                                                              │
-│  Output: READY or NOT READY with issues list                                 │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-       │
-       ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  PHASE 6: SECURITY                                                           │
-│  Command: /security                                                          │
-├──────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  security-auditor                                                            │
-│  ├── Scans for OWASP Top 10                                                  │
-│  ├── Checks for hardcoded secrets                                            │
-│  ├── Reviews auth/authz patterns                                             │
-│  ├── Checks Sentry for security-related errors                               │
-│  └── Reports: CRITICAL, HIGH, MEDIUM, LOW issues                             │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-       │
-       ▼
-┌──────────────┐
-│   YOU        │  Review security findings
-│              │  CRITICAL/HIGH must be fixed
-│              │  MEDIUM/LOW - your judgment
-└──────┬───────┘
-       │
-       ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  PHASE 7: REVIEW                                                             │
-│  Command: /review                                                            │
-├──────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  pr-reviewer                                                                 │
-│  ├── Analyzes full commit history                                            │
-│  ├── Reviews all changed files                                               │
-│  ├── Checks spec compliance                                                  │
-│  ├── Verifies test coverage                                                  │
-│  ├── Creates PR with summary and test plan                                   │
-│  └── Links to Linear issue                                                   │
-│                                                                              │
-│  Output: GitHub PR URL                                                       │
+│  Outcomes:                                                                   │
+│  ├── Clean: Offer to merge PR                                                │
+│  └── Comments: Recommend /plan to reconcile                                  │
 │                                                                              │
 └──────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
 ┌──────────────┐
 │   YOU        │  Review PR in GitHub
-│              │  Approve and merge
-│              │  Update spec status to "Implemented" in dashboard
+│              │  If CodeRabbit comments: /plan to reconcile
+│              │  If clean: approve and merge
 └──────────────┘
 ```
 
 ---
 
-## Phase-by-Phase Guide
+## MCP Server Interactions
 
-### Phase 1: Distill (Design Docs → Spec)
+### Essential MCP Servers
 
-**When to use:** You have design documentation and want to create an implementation spec.
+| Server         | Purpose                                            |
+| -------------- | -------------------------------------------------- |
+| **cclsp**      | TypeScript LSP - code intelligence, symbols, types |
+| **playwright** | Browser automation - E2E tests, screenshots        |
 
-**Your input:**
+### Conditional MCP Servers
 
-```bash
-/distill prompt-manager
-```
+| Server            | Purpose                       | Keep When                 |
+| ----------------- | ----------------------------- | ------------------------- |
+| **next-devtools** | Next.js dev tools, errors     | Using Next.js 16+         |
+| **context7**      | Live docs lookup              | Frequent library usage    |
+| **shadcn**        | Component registry            | Using shadcn/ui           |
+| **figma**         | Design system, frames, tokens | Design system integration |
+| **sentry**        | Production errors, Seer AI    | Production error tracking |
+| **linear**        | Issue tracking, link PRs      | Using Linear for issues   |
 
-**What happens:**
+### CLI Tools (No MCP Required)
 
-1. AI reads design docs from `../docs/`
-2. Extracts entities, APIs, UI requirements
-3. Creates `specs/prompt-manager.md`
-4. Registers in spec-workflow dashboard
+| Tool        | Usage             | Replaces      |
+| ----------- | ----------------- | ------------- |
+| `gh` CLI    | GitHub operations | github MCP    |
+| `pnpm test` | Run tests         | vitest MCP    |
+| File-based  | Specs in `specs/` | spec-workflow |
 
-**Your action:**
+### 1. cclsp (TypeScript LSP)
 
-1. Open [localhost:5000](http://localhost:5000)
-2. Review the generated spec
-3. Click **Approve** or **Request Changes**
+**How AI uses it:**
 
-**If requesting changes:**
+- Go-to-definition, find references
+- Real-time type errors as it codes
+- Rename symbols across codebase
 
-```text
-/distill write prompt-manager
-# with feedback: "Add error handling for duplicate names"
-```
+**Your interactions:**
 
-### Phase 2: Test (TDD Red)
+- Invisible to you (AI uses it internally)
+- Ensures type-safe code
 
-**When to use:** After spec is approved, before any implementation.
+### 2. Playwright (Browser Automation)
 
-**Your input:**
+**How AI uses it:**
 
-```bash
-/test prompt-manager
-```
+- E2E testing during `/implement`
+- Visual verification of UI components
+- Screenshot comparison
 
-**What happens:**
+**Your interactions:**
 
-1. AI reads the spec
-2. Writes failing tests based on acceptance criteria
-3. Verifies tests fail (red phase)
+- Run E2E tests manually: `pnpm test:e2e`
+- View test UI: `pnpm test:e2e --ui`
 
-**Your action:**
+### 3. context7 (Library Documentation)
 
-- Review test coverage strategy
-- Suggest additional test cases if needed
+**How AI uses it:**
 
-**Manual verification:**
+- Looks up current API documentation before using libraries
+- Prevents hallucinated or deprecated APIs
 
-```bash
-pnpm test:run
-# Should see failures (expected - TDD red)
-```
+**Your interactions:**
 
-### Phase 2b: Eval (EDD - LLM Features Only)
+- Generally invisible to you
+- Ensures AI uses correct Prisma, tRPC, React APIs
 
-**When to use:** For features with LLM integration.
+### 4. shadcn/ui (Component Registry)
 
-**Features requiring evals:**
+**How AI uses it:**
 
-- agent-builder (model selection, tool configuration)
-- execution-engine (agent orchestration, response handling)
-- workflow-designer (condition evaluation if using LLM)
+- Searches for existing components before building custom
+- Gets correct component APIs (no hallucination)
+- Finds pre-built blocks (login forms, dashboards)
 
-**Features NOT requiring evals:**
+**Your interactions:**
 
-- prompt-manager (CRUD)
-- work-item-manager (CRUD)
-- task-queue (deterministic)
-- home-dashboard (aggregation)
+- Ask AI what shadcn components are available
+- Request specific components: "Use the shadcn DataTable for the prompt list"
 
-**Your input:**
+### 5. Figma (Design)
 
-```bash
-/eval agent-builder
-```
+**How AI uses it:**
 
-**Your action:**
+- Extracts design tokens, spacing, colors
+- Matches implementation to design specs
 
-- Define pass thresholds (e.g., "pass@1 > 80%")
-- Review evaluation dimensions
+**Your interactions:**
 
-**Running evals:**
+- Share Figma file URLs with AI
+- Select frames in Figma for AI to reference
+- Review UI against designs
 
-```bash
-pnpm eval agent-builder           # Full suite
-pnpm eval agent-builder --smoke   # Quick check
-```
+### 6. Next.js DevTools
 
-### Phase 3: Code (TDD Green)
+**How AI uses it:**
 
-**When to use:** After tests are written and failing.
+- Gets build errors in real-time
+- Checks dev server status
 
-**Your input:**
+**Your interactions:**
 
-```bash
-/code prompt-manager
-```
+- Run `pnpm dev` to start dev server
+- AI detects and fixes errors automatically
 
-**What happens:**
+### 7. Linear (Issue Tracking)
 
-1. AI researches existing code patterns
-2. Implements until tests pass
-3. Runs quality checks
+**How AI uses it:**
 
-**Your action:**
+- Checks for existing related issues before creating specs
+- Links PRs to issues with `Fixes BAS-XXX`
+- Updates issue status as work progresses
 
-- Answer clarifying questions
-- Resolve blockers
+**Your interactions:**
 
-**If code-qa fails:**
+- Create issues for features you want built
+- Review AI-created issues
+- Prioritize backlog
 
-```bash
-/code write prompt-manager  # Fix specific issues
-/code qa prompt-manager     # Re-validate
-```
+### 8. Sentry (Production Errors)
 
-### Phase 4: UI
+**How AI uses it:**
 
-**When to use:** After backend is implemented.
+- Checks Sentry for production errors during investigation
+- Looks for security-related error patterns
 
-**Your input:**
+**Your interactions:**
 
-```bash
-/ui PromptList
-/ui PromptEditor
-/ui VariableEditor
-```
-
-**What happens:**
-
-1. AI searches shadcn for components
-2. Gets design specs from Figma (if provided)
-3. Builds components following patterns
-4. Verifies with playwright
-
-**Providing design context:**
-
-```bash
-/ui PromptEditor
-# "Use the design from Figma: https://figma.com/file/xxx?node-id=123"
-# "Follow the same pattern as WorkItemEditor"
-```
-
-**Your action:**
-
-- Review in browser at [localhost:3000](http://localhost:3000)
-- Provide feedback on visual/UX issues
-
-### Phase 5: Verify
-
-**When to use:** Before security and review.
-
-**Your input:**
-
-```bash
-/verify
-```
-
-**Or run specific checks:**
-
-```bash
-/verify build    # Build only
-/verify types    # Type check only
-/verify tests    # Tests only
-/verify security # Security scan only
-```
-
-**Your action:**
-
-- Review verification report
-- Ensure all gates pass
-
-### Phase 6: Security
-
-**When to use:** Before creating PR.
-
-**Your input:**
-
-```bash
-/security
-```
-
-**Your action:**
-
-- Review findings by severity
-- CRITICAL/HIGH must be fixed
-- MEDIUM/LOW at your discretion
-
-**If issues found:**
-
-```bash
-/code prompt-manager  # Fix security issues
-/security             # Re-scan
-```
-
-### Phase 7: Review
-
-**When to use:** All checks pass, ready for PR.
-
-**Your input:**
-
-```bash
-/review
-```
-
-**What happens:**
-
-1. AI creates PR with summary
-2. Links to Linear issue
-3. Includes test plan
-
-**Your action:**
-
-1. Review PR in GitHub
-2. Approve and merge
-3. Update spec status in dashboard
+- Monitor Sentry dashboard for new issues
+- Tell AI to investigate specific errors
 
 ---
 
@@ -1061,187 +397,111 @@ pnpm eval agent-builder --smoke   # Quick check
 ### Example 1: Prompt Manager (CRUD - No LLM)
 
 ```bash
-# 0. CREATE BRANCH FIRST (always!)
-/branch start prompt-manager
+# 1. Start the feature
+/start prompt-manager
+# → Restart in new worktree
 
-# 1. Create implementation spec from design docs
-/distill prompt-manager
-# → Review and approve in dashboard (localhost:5000)
+# 2. Plan the spec
+/plan
+# → Answer questions, review spec, approve
 
-# 2. Write failing tests
-/test prompt-manager
-# → Verify tests fail (pnpm test:run)
+# 3. Implement with TDD
+/implement
+# → Watch TDD workflow, review at localhost:3000
 
-# 3. Implement until tests pass
-/code prompt-manager
-# → Verify tests pass
+# 4. Ship to PR
+/ship
+# → Review PR, handle CodeRabbit if needed
 
-# 4. Build UI components
-/ui PromptList
-/ui PromptEditor
-/ui VariableEditor
-/ui FolderTree
-# → Review at localhost:3000/prompts
-
-# 5. Pre-PR verification
-/verify
-
-# 6. Security scan
-/security
-
-# 7. Sync with main and create PR
-/branch sync
-/pr
-# → Review and approve in GitHub
-# → Squash merge
-
-# 8. Cleanup
-/branch cleanup
+# 5. Merge in GitHub
 ```
 
 ### Example 2: Agent Builder (With LLM - Needs Evals)
 
 ```bash
-# 0. CREATE BRANCH FIRST
-/branch start agent-builder
+# 1. Start
+/start agent-builder
 
-# 1. Create implementation spec
-/distill agent-builder
+# 2. Plan (mention LLM features)
+/plan
+# → "This needs evaluations for tool selection accuracy"
 
-# 2. Write failing tests (deterministic behavior)
-/test agent-builder
+# 3. Implement (will include evals for LLM features)
+/implement
+# → Runs eval-agent for LLM touchpoints
+# → Runs code-agent for backend
+# → Runs ui-agent for frontend
 
-# 3. Write evaluations (LLM behavior)
-/eval agent-builder
-# Define: tool selection accuracy, model config validation
-
-# 4. Implement
-/code agent-builder
-
-# 5. Run evals
+# 4. Run evals separately if needed
 pnpm eval agent-builder
-# Iterate until pass@1 > 80%
 
-# 6. Build UI
-/ui AgentConfigForm
-/ui ToolSelector
-/ui ModelSettings
-
-# 7. Verify, Security
-/verify
-/security
-
-# 8. Sync and create PR
-/branch sync
-/pr
-# → Review and approve in GitHub
-
-# 9. Cleanup after merge
-/branch cleanup
+# 5. Ship
+/ship
 ```
 
 ### Example 3: Bug Fix
 
 ```bash
-# 0. CREATE BRANCH (use fix/ prefix for bugs)
-/branch start fix/prompt-variable-persistence
+# 1. Start with fix/ prefix
+/start fix/prompt-variable-persistence
 
-# 1. Investigate the bug
-/debug "Prompt variables not saving correctly"
-# AI checks Sentry, reproduces, finds root cause
+# 2. Plan (reconcile mode if from PR feedback)
+/plan
+# → Investigates issue, creates fix plan
 
-# 2. Add regression test
-/test prompt-manager
-# "Add test for variable persistence edge case"
+# 3. Implement fix
+/implement
 
-# 3. Fix the bug
-/code prompt-manager
-
-# 4. Verify
-/verify
-
-# 5. Create PR
-/branch sync
-/pr
-# → Review and approve in GitHub
-
-# 6. Cleanup
-/branch cleanup
+# 4. Ship
+/ship
 ```
 
 ### Example 4: Parallel Development with Worktrees
 
 ```bash
-# Working on multiple features simultaneously
+# Terminal 1: Feature A
+/start prompt-manager
+cd ../project-prompt-manager
+/plan
+/implement
 
-# Create worktrees for each feature
-/worktree add prompt-manager
-/worktree add agent-builder
+# Terminal 2: Feature B (truly parallel!)
+/start agent-builder
+cd ../project-agent-builder
+/plan
+/implement
 
-# Terminal 1: Work on prompt-manager
-cd ../react-basecamp--prompt-manager
-/distill prompt-manager
-/test prompt-manager
-/code prompt-manager
-
-# Terminal 2: Work on agent-builder (truly parallel!)
-cd ../react-basecamp--agent-builder
-/distill agent-builder
-/eval agent-builder
-/code agent-builder
-
-# Check status of all worktrees
-/worktree status
-
-# When prompt-manager is ready
-cd ../react-basecamp--prompt-manager
-/verify
-/pr
-
-# Cleanup after merge
-/worktree remove prompt-manager
-/branch cleanup
+# When ready, ship each independently
+/ship
 ```
 
 ---
 
 ## Dashboard and Tool URLs
 
-| Tool              | URL                                     | Purpose                    |
+| Tool              | URL/Command                             | Purpose                    |
 | ----------------- | --------------------------------------- | -------------------------- |
-| **Spec Workflow** | [localhost:5000](http://localhost:5000) | Spec management, approvals |
 | **Next.js Dev**   | [localhost:3000](http://localhost:3000) | Your application           |
 | **Vitest UI**     | `pnpm test:ui`                          | Interactive test runner    |
 | **Playwright UI** | `pnpm test:e2e --ui`                    | E2E test runner            |
 | **Prisma Studio** | `pnpm prisma studio`                    | Database browser           |
+| **Specs**         | `specs/`                                | File-based spec management |
 
 ---
 
 ## Troubleshooting
 
-### Spec Workflow Dashboard Not Loading
-
-```bash
-# Check if MCP server is running
-claude mcp list
-
-# Restart if needed
-claude mcp remove spec-workflow
-claude mcp add spec-workflow -- npx -y @pimzino/spec-workflow-mcp@latest
-```
-
 ### Tests Not Running
 
 ```bash
-# Check vitest is installed
+# Run tests directly
 pnpm test:run
 
-# If MCP issues
-claude mcp remove vitest
-claude mcp add vitest -- npx -y @djankies/vitest-mcp
+# Check for issues
+pnpm typecheck
 ```
 
-### Context7 Not Finding Docs
+### context7 Not Finding Docs
 
 ```bash
 # Verify it's running
@@ -1249,6 +509,17 @@ claude mcp list | grep context7
 
 # Test manually
 # Ask AI: "Look up the Prisma findMany API using context7"
+```
+
+### Build Failures
+
+```bash
+# Check build output
+pnpm build
+
+# Common fixes
+pnpm typecheck   # Fix type errors first
+pnpm lint        # Then lint errors
 ```
 
 ### Linear Not Linking Issues
@@ -1264,29 +535,26 @@ claude mcp list | grep context7
 
 ### Commands
 
-| Command              | Phase | Purpose                 |
-| -------------------- | ----- | ----------------------- |
-| `/distill [feature]` | SDD   | Design docs → Spec      |
-| `/spec [feature]`    | SDD   | Write spec from scratch |
-| `/test [feature]`    | TDD   | Write failing tests     |
-| `/eval [feature]`    | EDD   | Write LLM evaluations   |
-| `/code [feature]`    | TDD   | Implement until green   |
-| `/ui [component]`    | —     | Build UI components     |
-| `/verify`            | —     | Pre-PR quality gates    |
-| `/security`          | —     | Vulnerability scan      |
-| `/review`            | —     | Create PR               |
-| `/debug [issue]`     | —     | Investigate bugs        |
+| Command      | Purpose                        |
+| ------------ | ------------------------------ |
+| `/start`     | Begin work (worktree + branch) |
+| `/plan`      | Design spec or reconcile PR    |
+| `/implement` | Build approved spec with TDD   |
+| `/ship`      | Commit → PR → CI → CodeRabbit  |
+| `/guide`     | Status and help                |
+| `/mode`      | Switch dev/basic mode          |
 
-### Subcommands
+### Agents (Internal)
 
-Each writing command supports phases:
-
-```bash
-/code prompt-manager           # Full flow
-/code research prompt-manager  # Research only
-/code write prompt-manager     # Write only
-/code qa prompt-manager        # QA only
-```
+| Agent       | Domain                | Routes From   |
+| ----------- | --------------------- | ------------- |
+| plan-agent  | Specifications        | /plan         |
+| code-agent  | Backend (TDD)         | /implement    |
+| ui-agent    | Frontend              | /implement    |
+| docs-agent  | Documentation         | /implement    |
+| eval-agent  | LLM evaluations       | /implement    |
+| check-agent | Quality verification  | /implement    |
+| git-agent   | Version control + PRs | /start, /ship |
 
 ### Build Order (from design docs)
 
@@ -1305,4 +573,3 @@ Each writing command supports phases:
 - [CLAUDE.md](../CLAUDE.md) - Project configuration and agent routing
 - [MCP_SETUP.md](./MCP_SETUP.md) - MCP server installation
 - [Design Docs](../../docs/) - Source design documentation
-- [Spec Template](../specs/spec-template.md) - Spec format

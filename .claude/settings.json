@@ -8,11 +8,6 @@
           {
             "type": "command",
             "command": "node .claude/scripts/hooks/session-start.cjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/start-spec-dashboard.cjs",
-            "timeout": 10
           }
         ]
       }
@@ -23,7 +18,34 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/scripts/hooks/user-prompt-submit.cjs"
+            "command": "node .claude/scripts/hooks/user-prompt-start.cjs"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/user-prompt-review.cjs"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/command-mode-detect.cjs"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/user-prompt-ship.cjs"
           }
         ]
       }
@@ -44,10 +66,6 @@
           {
             "type": "command",
             "command": "node .claude/scripts/hooks/pre-tool-use-file.cjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/suggest-compact.cjs"
           }
         ]
       },
@@ -57,24 +75,6 @@
           {
             "type": "command",
             "command": "node .claude/scripts/hooks/pre-tool-use-git-push.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/pre-tool-use-dev-tip.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/pre-tool-use-doc-warning.cjs"
           }
         ]
       }
@@ -88,71 +88,6 @@
             "command": "node .claude/scripts/hooks/post-tool-use.cjs"
           }
         ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-typecheck.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-eslint.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-prettier.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-vitest.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-console-check.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-pr-created.cjs"
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/pre-compact.cjs"
-          }
-        ]
       }
     ],
     "Stop": [
@@ -162,19 +97,6 @@
           {
             "type": "command",
             "command": "node .claude/scripts/hooks/session-end.cjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/evaluate-session.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/stop-console-check.cjs"
           }
         ]
       }

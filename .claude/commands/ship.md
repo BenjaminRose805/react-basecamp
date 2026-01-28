@@ -1,93 +1,151 @@
-# /ship - Ship Feature
+# /ship
 
-Complete shipping workflow from verification to PR.
+Commit, create PR, wait for CI and CodeRabbit.
 
-## Usage
+## MANDATORY: Preview and Agent Delegation
 
-```
-/ship
-```
+> **Before executing /ship:**
+>
+> 1. **Show preview** - Display execution plan
+> 2. **Get confirmation** - Wait for [Enter] or [Esc]
+> 3. **Read** `.claude/agents/git-agent.md`
+> 4. **Use Task tool** - Spawn sub-agents, NEVER execute directly
 
-## Examples
+## Ship Gate Validation
 
-```bash
-/ship                   # Verify, commit, and create PR
-```
+The `user-prompt-ship.cjs` hook validates review state BEFORE this command executes.
 
-## Workflow
+**Check the context for gate status:**
 
-Routes to: `ship` workflow
+### If Blocked (`blocked: true` in context)
 
-```
-check-agent (BUILD → TYPES → LINT → TESTS → SECURITY)
-    ↓
-git-agent (commit if needed)
-    ↓
-pr-agent (create PR)
-```
+- Display: "🚫 Ship gate: BLOCKED"
+- Show the reason from context (no state, stale, failed review)
+- Show blockers list if available
+- Suggest running `/review` to resolve
+- **DO NOT proceed with git operations**
 
-## What Happens
+### If Approved (`Ship Gate: APPROVED` in context)
 
-1. **Quality Verification** (check-agent)
-   - Build check
-   - Type check
-   - Lint check
-   - Tests with coverage
-   - Security scan
+- Display: "✅ Ship gate: APPROVED"
+- Proceed with preview and agent delegation
 
-2. **Git Operations** (git-agent)
-   - Check for uncommitted changes
-   - Create commit with conventional format
-   - Push to remote
+### If No Gate Info
 
-3. **PR Creation** (pr-agent)
-   - Create PR with summary
-   - Link to Linear if available
-   - Return PR URL
+- Warn user that review state wasn't checked
+- Proceed with caution
 
-## Prerequisites
+## Preview
 
-- Implementation complete (`/build` or `/code`)
-- On feature branch (not main)
-
-## Output
-
-```
-SHIPPED!
-========
-
-Quality:
-  Build:    PASS
-  Types:    PASS
-  Tests:    PASS (85% coverage)
-  Security: PASS
-
-Commit:
-  abc1234 feat: add prompt manager
-
-PR:
-  https://github.com/owner/repo/pull/123
-  Status: Open, CI running
-
-Next:
-  1. Wait for CI
-  2. Request review
-  3. Merge when approved
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  /ship                                                      │
+├─────────────────────────────────────────────────────────────┤
+│  Branch: feature/[name]                                     │
+│  Gate: ✅ APPROVED (or 🚫 BLOCKED)                          │
+│                                                             │
+│  STAGES                                                     │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │ 0. VALIDATE GATE                                        ││
+│  │    └─ Check review state from user-prompt-ship.cjs      ││
+│  ├─────────────────────────────────────────────────────────┤│
+│  │ 1. ANALYZE & COMMIT                                     ││
+│  │    └─ git-writer (Sonnet) - Diff → commit → push        ││
+│  ├─────────────────────────────────────────────────────────┤│
+│  │ 2. CREATE PR & MONITOR                                  ││
+│  │    └─ git-executor (Haiku) - PR → CI → CodeRabbit       ││
+│  └─────────────────────────────────────────────────────────┘│
+│                                                             │
+│  [Enter] Run  [Esc] Cancel                                  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## If Checks Fail
+## Sub-Agents (2 total)
 
-- Fix issues reported
-- Run `/ship` again
+| Phase | Agent        | Model  | Purpose                       |
+| ----- | ------------ | ------ | ----------------------------- |
+| 1     | git-writer   | Sonnet | Analyze diff, commit, push    |
+| 2     | git-executor | Haiku  | Create PR, poll CI/CodeRabbit |
 
-## Individual Steps
+## Progress
 
-If you need more control:
-
-```bash
-/check        # Verify only
-/git commit   # Commit only
-/pr create    # Create PR only
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  STAGE 1: ANALYZE & COMMIT                     [COMPLETE]   │
+│  └─ ✓ git-writer (Sonnet)                      [3.2s]       │
+│      Commit: abc1234 - feat: add feature                    │
+│                                                             │
+│  STAGE 2: CREATE PR & MONITOR                  [RUNNING]    │
+│  └─ ● git-executor (Haiku)                                  │
+│      PR: #42 created                                        │
+│      CI: ██████████░░░░░░░░░░ Build PASS | Tests RUNNING    │
+│      CodeRabbit: Waiting...                                 │
+│                                                             │
+│  Progress: ██████████████░░░░░░ 70%                         │
+└─────────────────────────────────────────────────────────────┘
 ```
+
+## Outcomes
+
+### Clean (CI + CodeRabbit pass)
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  SHIPPED!                                                   │
+├─────────────────────────────────────────────────────────────┤
+│  Commit: abc1234                                            │
+│  PR: https://github.com/owner/repo/pull/42                  │
+│                                                             │
+│  CI: ✓ PASS                                                 │
+│  CodeRabbit: ✓ APPROVED                                     │
+│                                                             │
+│  Merge now? (yes/no)                                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Has Comments
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  SHIPPED (with feedback)                                    │
+├─────────────────────────────────────────────────────────────┤
+│  PR: #42                                                    │
+│  CI: ✓ PASS                                                 │
+│  CodeRabbit: ⚠ 3 comments                                   │
+│                                                             │
+│  Run /plan to reconcile feedback.                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### CI Failed
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  SHIP FAILED                                                │
+├─────────────────────────────────────────────────────────────┤
+│  PR: #42                                                    │
+│  CI: ✗ FAILED (test job)                                    │
+│                                                             │
+│  Run /plan to investigate and fix.                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Troubleshooting
+
+### Ship Blocked: No Review State
+
+Run `/review` before shipping.
+
+### Ship Blocked: Stale Review
+
+Your review is for a different commit. Run `/review` again.
+
+### Ship Blocked: Failed Loops
+
+Fix the issues shown in blockers, then run `/review` again.
+
+### Bypass Gate (Emergency)
+
+Use `/ship --force` to bypass the gate. Not recommended.
 
 $ARGUMENTS

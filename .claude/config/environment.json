@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "requiredTools": [
+    {
+      "name": "coderabbit",
+      "check": "coderabbit --version",
+      "install": "curl -fsSL https://cli.coderabbit.ai/install.sh | sh",
+      "_comment": "This uses the official CodeRabbit install method. Users can inspect the script at https://cli.coderabbit.ai/install.sh before running, or manually install from https://docs.coderabbit.ai/cli/installation",
+      "installPrompt": "Install CodeRabbit CLI for local code review?",
+      "authCheck": "coderabbit auth status",
+      "platforms": ["linux", "darwin"]
+    },
+    {
+      "name": "gh",
+      "check": "gh --version",
+      "install": null,
+      "installPrompt": "GitHub CLI required. Install: https://cli.github.com",
+      "authCheck": "gh auth status",
+      "platforms": ["linux", "darwin", "win32"]
+    }
+  ],
+  "verification": {
+    "lint": {
+      "command": "pnpm lint --quiet",
+      "autoFix": "pnpm lint --fix",
+      "required": true
+    },
+    "typecheck": {
+      "command": "pnpm typecheck",
+      "autoFix": null,
+      "required": true
+    },
+    "tests": {
+      "command": "pnpm test --run",
+      "autoFix": null,
+      "required": false
+    },
+    "build": {
+      "command": "pnpm build",
+      "autoFix": null,
+      "required": false,
+      "fullOnly": true
+    }
+  },
+  "autoFix": {
+    "dependencies": true,
+    "lint": true,
+    "tools": "prompt"
+  }
+}

@@ -1,30 +1,39 @@
 #!/usr/bin/env node
 /**
- * SessionStart Hook - Load previous context on new session
+ * SessionStart Hook - ZERO INJECTION APPROACH
+ *
+ * Purpose: Session initialization and user-facing status messages via stderr only.
+ *
+ * IMPORTANT: This hook performs ZERO context injection (0 tokens to stdout).
+ * All context loading is now handled by role-specific hooks:
+ * - inject-rules.cjs: Loads relevant .claude/docs/rules/*.md based on agent role
+ * - load-orchestrator-rules.cjs: Loads agents.md for /plan, /implement, /ship
+ *
+ * Why zero injection?
+ * - Eliminates massive upfront context load (sessions, skills, git status, CONTEXT.md, TODO.md)
+ * - Reduces initial token waste significantly
+ * - Role-specific hooks load only what's needed when needed
+ * - Session metadata (previous sessions, skills) rarely affects immediate behavior
+ *
+ * What this hook DOES do:
+ * - Ensures necessary directories exist (.claude/sessions, .claude/learned)
+ * - Detects and reports package manager to user (stderr only)
+ *
+ * Output:
+ * - stdout: NONE (0 tokens)
+ * - stderr: Package manager detection, user notifications
  *
  * Cross-platform (Windows, macOS, Linux)
  *
- * Runs when a new Claude session starts.
- * - Checks for recent session files
- * - Injects context from .claude/CONTEXT.md and TODO.md
- * - Reports git status
- * - Detects package manager
- *
- * Output:
- * - stdout: Context injection (adds to Claude's context)
- * - stderr: Status messages (visible to user)
+ * Exit codes:
+ * - 0: Always (no blocking behavior)
  */
 
-const path = require('path');
 const {
   getSessionsDir,
   getLearnedSkillsDir,
-  findFiles,
   ensureDir,
   logError,
-  logContext,
-  getGitStatus,
-  readContextFile,
 } = require('../lib/utils.cjs');
 const { getPackageManager, getSelectionPrompt } = require('../lib/package-manager.cjs');
 
@@ -32,54 +41,14 @@ async function main() {
   const sessionsDir = getSessionsDir();
   const learnedDir = getLearnedSkillsDir();
 
-  // Ensure directories exist
+  // Ensure directories exist (infrastructure setup)
   ensureDir(sessionsDir);
   ensureDir(learnedDir);
 
-  // Build context for injection
-  const contextParts = [];
+  // ZERO INJECTION: No stdout output
+  // All context loading is delegated to role-specific hooks
 
-  // Check for recent session files (last 7 days)
-  const recentSessions = findFiles(sessionsDir, '*.tmp', { maxAge: 7 });
-  if (recentSessions.length > 0) {
-    const latest = recentSessions[0];
-    contextParts.push(`**Previous Sessions:** ${recentSessions.length} recent session(s) found`);
-    contextParts.push(`**Latest:** ${latest.path}`);
-    logError(`[Hook] Found ${recentSessions.length} recent session(s)`);
-  }
-
-  // Check for learned skills
-  const learnedSkills = findFiles(learnedDir, '*.md');
-  if (learnedSkills.length > 0) {
-    contextParts.push(`**Learned Skills:** ${learnedSkills.length} available in ${learnedDir}`);
-  }
-
-  // Git status
-  const gitStatus = getGitStatus();
-  if (gitStatus) {
-    contextParts.push(`**Git:** ${gitStatus}`);
-  }
-
-  // Load .claude/CONTEXT.md if exists
-  const contextMdPath = path.join(process.cwd(), '.claude', 'CONTEXT.md');
-  const contextMd = readContextFile(contextMdPath, 1000);
-  if (contextMd) {
-    contextParts.push(`**Project Context:**\n${contextMd}`);
-  }
-
-  // Load TODO.md if exists
-  const todoPath = path.join(process.cwd(), 'TODO.md');
-  const todoContent = readContextFile(todoPath, 500);
-  if (todoContent) {
-    contextParts.push(`**TODO:**\n${todoContent}`);
-  }
-
-  // Inject context via stdout
-  if (contextParts.length > 0) {
-    logContext('\n---\n**Session Context**\n' + contextParts.join('\n\n') + '\n---\n');
-  }
-
-  // Detect and report package manager (stderr for visibility)
+  // Detect and report package manager (stderr for user visibility)
   const pm = getPackageManager();
   logError(`[Hook] Package manager: ${pm.name} (${pm.source})`);
 

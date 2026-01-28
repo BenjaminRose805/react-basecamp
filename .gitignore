@@ -36,8 +36,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Claude Code audit logs
+# Claude Code audit logs and runtime state
 .claude/logs/
+.claude/state/
+start-status.json
 
 # TypeScript
 *.tsbuildinfo

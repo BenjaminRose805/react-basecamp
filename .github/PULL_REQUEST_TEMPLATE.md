@@ -20,9 +20,9 @@
 - [ ] Code follows project conventions
 - [ ] No console.log statements
 - [ ] No hardcoded secrets
-- [ ] CoderabbitAI feedback addressed
-- [ ] `/verify` passes
-- [ ] `/security` passes (if auth/API changes)
+- [ ] CodeRabbit feedback addressed
+- [ ] Quality checks pass (`pnpm lint && pnpm typecheck && pnpm test:run`)
+- [ ] Security review completed (if auth/API changes)
 
 ## Related
 

@@ -1,0 +1,117 @@
+# 4-Loop Review System Configuration
+# Version: 1.0
+#
+# This configuration controls the behavior of the 4-loop code review system.
+# The system runs progressively deeper checks across 4 loops:
+#
+# Loop 1 Tier 1: Fast free checks (lint, typecheck) - <30s
+# Loop 1 Tier 2: Comprehensive free checks (build, tests, security) - <120s
+# Loop 2: Claude reviewer (spawned sub-agent with fresh context)
+# Loop 3: CodeRabbit CLI (rate-limited external service)
+#
+# Each loop acts as a gate - failures block subsequent loops unless configured otherwise.
+
+# ============================================================================
+# Loop 1: Free Automated Checks (No Rate Limits)
+# ============================================================================
+loop1:
+  # Tier 1: Fast checks that complete in under 30 seconds
+  tier1_timeout: 30 # seconds
+
+  # Tier 2: Slower but thorough checks (build, tests, security scans)
+  tier2_timeout: 120 # seconds
+
+  # Run Tier 1 checks in parallel for speed
+  parallel_tier1: true
+
+  # Stop Tier 2 execution on first failure (fail-fast mode)
+  fail_fast_tier2: true
+
+# ============================================================================
+# Loop 2: Claude Reviewer (Sub-Agent)
+# ============================================================================
+loop2:
+  # Enable or disable Loop 2 entirely
+  enabled: true
+
+  # Model to use for review sub-agent
+  # Options: "opus" (thorough), "sonnet" (balanced), "haiku" (fast)
+  model: opus
+
+  # Spawn sub-agent with fresh context (recommended for unbiased review)
+  spawn_fresh_context: true
+
+  # Include spec files in review context
+  include_specs: true
+
+  # Number of recent commits to include for context
+  include_commits: 5
+
+# ============================================================================
+# Loop 3: CodeRabbit CLI (Rate-Limited)
+# ============================================================================
+loop3:
+  # Enable or disable Loop 3 entirely
+  enabled: true
+
+  # Rate limit (executions per hour)
+  # Free tier: 2/hour, Pro tier: 8/hour
+  # Current configuration: Pro tier (8/hour)
+  rate_limit_per_hour: 8
+
+  # Skip if rate limit exceeded (vs blocking/erroring)
+  skip_on_rate_limit: true
+
+  # Block ship if new issues found (false = warn only)
+  block_on_new_issues: false
+
+# ============================================================================
+# Blocking Rules (Ship Decision Logic)
+# ============================================================================
+blocking:
+  # Critical findings always block ship (security, data loss, crashes)
+  critical_blocks_ship: true
+
+  # Major findings block ship (performance, maintainability, bugs)
+  major_blocks_ship: false
+
+  # Minor findings block ship (style, small improvements)
+  minor_blocks_ship: false
+
+  # Secrets detected in code always block ship
+  secrets_block_ship: true
+
+  # Build failures always block ship
+  build_failure_blocks_ship: true
+
+  # Test failures always block ship
+  test_failure_blocks_ship: true
+
+# ============================================================================
+# Output & UX Configuration
+# ============================================================================
+output:
+  # Show animated spinner during long-running operations
+  show_progress_spinners: true
+
+  # Display elapsed time for each loop
+  show_elapsed_time: true
+
+  # Display unified report at end (vs per-loop output)
+  unified_report: true
+
+  # Save detailed logs to disk
+  save_logs: true
+
+# ============================================================================
+# File Paths
+# ============================================================================
+paths:
+  # Directory for persistent state (rate limits, cached results)
+  state_dir: .claude/state
+
+  # Directory for detailed logs
+  log_dir: .claude/logs
+
+  # Directory for configuration files
+  config_dir: .claude/config

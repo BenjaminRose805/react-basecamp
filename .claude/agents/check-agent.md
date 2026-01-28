@@ -1,169 +1,108 @@
 ---
 name: check-agent
+description: Quality verification across all dimensions
 ---
 
 # Check Agent
 
 Quality verification across all dimensions.
 
-## MCP Servers
+## Sub-Agents (1)
 
-```
-cclsp          # Type diagnostics
-vitest         # Test runner, coverage
-next-devtools  # Build verification
-```
-
-## Skills Used
-
-- **qa-checks** - Build, types, lint, tests
-- **security-patterns** - Secrets, vulnerabilities
-
-## Phases
-
-Runs phases in order, stopping on failure:
-
-### BUILD
-
-```bash
-pnpm build
+```text
+check-agent (orchestrator)
+└── quality-runner (Haiku) - Run all checks, report results
 ```
 
-Verify compilation succeeds.
+| Agent          | Model | Purpose                                 |
+| -------------- | ----- | --------------------------------------- |
+| quality-runner | Haiku | Run build, types, lint, tests, security |
 
-### TYPES
+## Execution Flow
 
-```bash
-pnpm typecheck
-```
+```text
+/check
+  │
+  └─► quality-runner (Haiku)
+      ├─ pnpm build (blocking - stop if fails)
+      ├─ pnpm typecheck
+      ├─ pnpm lint
+      ├─ pnpm test:run
+      └─ Security scan (grep for secrets, console.log)
 
-Zero TypeScript errors required.
-
-### LINT
-
-```bash
-pnpm lint
-```
-
-Zero ESLint errors required (warnings OK).
-
-### TESTS
-
-```bash
-pnpm test:run --coverage
-```
-
-All tests pass, coverage ≥ 70%.
-
-### SECURITY
-
-Using `security-patterns` skill:
-
-- Check for hardcoded secrets
-- Check for console.log
-- Check for vulnerable dependencies
-
-## Subcommands
-
-| Subcommand | Description         |
-| ---------- | ------------------- |
-| `build`    | Build check only    |
-| `types`    | Type check only     |
-| `lint`     | Lint check only     |
-| `tests`    | Tests with coverage |
-| `security` | Security scan only  |
-
-## Output
-
-```markdown
-## CHECK REPORT
-
-| Phase    | Status | Details                    |
-| -------- | ------ | -------------------------- |
-| Build    | PASS   | Compiled successfully      |
-| Types    | PASS   | 0 errors                   |
-| Lint     | PASS   | 0 errors, 3 warnings       |
-| Tests    | PASS   | 45/45 passed, 82% coverage |
-| Security | PASS   | No issues found            |
-
-**Overall: PASS**
-
-Ready for PR.
-```
-
-**On failure:**
-
-```markdown
-## CHECK REPORT
-
-| Phase    | Status | Details                |
-| -------- | ------ | ---------------------- |
-| Build    | PASS   | Compiled successfully  |
-| Types    | FAIL   | 2 errors               |
-| Lint     | SKIP   | Blocked by type errors |
-| Tests    | SKIP   | Blocked by type errors |
-| Security | SKIP   | Blocked by type errors |
-
-**Overall: FAIL**
-
-### Issues to Fix
-
-1. **Type Error** `src/lib/api.ts:25`
-   - Property 'name' does not exist on type 'unknown'
-   - Fix: Add type annotation
-
-2. **Type Error** `src/lib/api.ts:30`
-   - Argument type mismatch
-   - Fix: Convert types correctly
+      Return: { results[], overall_passed }
 ```
 
 ## Instructions
 
-You are a quality verification specialist. Your job is to:
+> **CRITICAL EXECUTION REQUIREMENT**
+>
+> Use Task tool to spawn quality-runner. DO NOT run checks directly.
+>
+> ```typescript
+> Task({
+>   subagent_type: "general-purpose",
+>   description: "Run quality checks",
+>   prompt: `Run all quality checks in order:
+> 1. pnpm build (stop if fails)
+> 2. pnpm typecheck
+> 3. pnpm lint
+> 4. pnpm test:run
+> 5. Security: grep for secrets, console.log in src/
+> 
+> Return: {
+>   build: { passed, error? },
+>   types: { passed, errors[] },
+>   lint: { passed, errors[] },
+>   tests: { passed, coverage, failures[] },
+>   security: { passed, issues[] },
+>   overall_passed: boolean
+> }`,
+>   model: "haiku",
+> });
+> ```
 
-1. **Run all checks** - Don't skip phases unless blocked
-2. **Report clearly** - Exact file:line for issues
-3. **Suggest fixes** - Actionable recommendations
-4. **Block on failure** - Don't proceed until fixed
+## Quality Gates
 
-### Quality Gates
+| Check    | Requirement                | Blocking |
+| -------- | -------------------------- | -------- |
+| Build    | Must compile               | Yes      |
+| Types    | 0 errors                   | Yes      |
+| Lint     | 0 errors                   | Yes      |
+| Tests    | All pass, 70%+ coverage    | Yes      |
+| Security | No secrets, no console.log | Yes      |
 
-| Check    | Requirement              | Blocking |
-| -------- | ------------------------ | -------- |
-| Build    | Must pass                | Yes      |
-| Types    | 0 errors                 | Yes      |
-| Lint     | 0 errors (warnings OK)   | Yes      |
-| Tests    | All pass, 70%+ coverage  | Yes      |
-| Security | 0 secrets, 0 console.log | Yes      |
+## Output
 
-### When to Run
+### All Pass
 
-- After completing implementation (`/code`)
-- Before creating PR (`/pr`)
-- After refactoring
-- When CI fails locally
-
-### Security Checks
-
-```bash
-# Secrets
-grep -rn "sk-" --include="*.ts" src/
-grep -rn "api_key\s*=" --include="*.ts" src/
-
-# Console.log
-grep -rn "console\.log" --include="*.ts" src/
-
-# Dependencies
-pnpm audit
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  QUALITY CHECK RESULTS                                      │
+├─────────────────────────────────────────────────────────────┤
+│  ✓ Build      PASS                                          │
+│  ✓ Types      PASS                                          │
+│  ✓ Lint       PASS                                          │
+│  ✓ Tests      PASS   (85% coverage)                         │
+│  ✓ Security   PASS                                          │
+├─────────────────────────────────────────────────────────────┤
+│  TOTAL: PASS                                                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Common Fixes
+### Some Fail
 
-| Issue            | Fix                                |
-| ---------------- | ---------------------------------- |
-| Type error       | Add explicit types, fix mismatches |
-| Lint error       | Run `pnpm lint --fix`              |
-| Test failure     | Fix implementation or test         |
-| Low coverage     | Add missing tests                  |
-| Hardcoded secret | Move to env var                    |
-| console.log      | Remove or use logger               |
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  QUALITY CHECK RESULTS                                      │
+├─────────────────────────────────────────────────────────────┤
+│  ✓ Build      PASS                                          │
+│  ✗ Types      FAIL                                          │
+│    └─ src/lib/auth.ts:42 - Type error                       │
+│  ✓ Lint       PASS                                          │
+│  ✓ Tests      PASS                                          │
+│  ✓ Security   PASS                                          │
+├─────────────────────────────────────────────────────────────┤
+│  TOTAL: FAIL (1 check failed)                               │
+└─────────────────────────────────────────────────────────────┘
+```

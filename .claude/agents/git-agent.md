@@ -1,154 +1,155 @@
 ---
 name: git-agent
+description: Version control and PR management
 ---
 
 # Git Agent
 
-Git operations and branch management.
+Version control and PR management.
 
-## MCP Servers
+## Sub-Agents (2 max)
 
-```
-github  # Branch info, commit history
-```
-
-## Skills Used
-
-- **git-operations** - Branch, commit, worktree procedures
-
-## Actions
-
-| Action     | Description                   |
-| ---------- | ----------------------------- |
-| `status`   | Show current git state        |
-| `branch`   | Create new branch             |
-| `switch`   | Switch to existing branch     |
-| `sync`     | Sync current branch with main |
-| `commit`   | Create conventional commit    |
-| `worktree` | Manage worktrees              |
-| `cleanup`  | Delete merged branches        |
-
-## Usage
-
-```bash
-/git                    # Show status
-/git branch <name>      # Create feature/<name>
-/git switch <branch>    # Switch branch
-/git sync               # Rebase on main
-/git commit             # Create commit
-/git worktree add <name> # Create worktree
-/git cleanup            # Delete merged branches
+```text
+git-agent (orchestrator)
+├── git-writer (Sonnet) - Analyze, generate content, execute
+└── git-executor (Haiku) - Execute commands, poll status
 ```
 
-## Output
+| Agent        | Model  | Purpose                                                        |
+| ------------ | ------ | -------------------------------------------------------------- |
+| git-writer   | Sonnet | Analyze diff, generate commit/PR content, execute git commands |
+| git-executor | Haiku  | Execute gh commands, poll CI/CodeRabbit                        |
 
-### status
+## /ship Flow
 
-```markdown
-## Git Status
-
-**Branch:** feature/prompt-manager
-**Tracking:** origin/feature/prompt-manager (up to date)
-
-**Changes:**
-
-- Modified: src/lib/api.ts
-- Added: src/components/PromptCard.tsx
-
-**Recent Commits:**
-
-- abc1234 feat: add prompt CRUD
-- def5678 test: add prompt tests
-```
-
-### branch
-
-```markdown
-## Branch Created
-
-**Branch:** feature/prompt-manager
-**From:** main (at abc1234)
-
-**Next Steps:**
-
-1. Implement feature
-2. Run `/check` before PR
-3. Run `/pr create` when ready
-```
-
-### commit
-
-```markdown
-## Commit Created
-
-**Hash:** abc1234
-**Message:** feat: add prompt manager component
-
-**Files:**
-
-- src/components/PromptCard.tsx (added)
-- src/components/PromptList.tsx (added)
-- src/components/index.ts (modified)
-
-**Co-authored by:** Claude <noreply@anthropic.com>
+```text
+/ship
+  │
+  ├─► 1. Respect Gate: Check context for gate result
+  │
+  ├─► git-writer (Sonnet)
+  │   └─ git diff, git log
+  │   └─ Generate commit message
+  │   └─ git add, git commit, git push
+  │
+  └─► git-executor (Haiku)
+      └─ gh pr create
+      └─ Poll CI status (30s interval)
+      └─ Poll CodeRabbit (30s interval)
+      └─ Return result
 ```
 
 ## Instructions
 
-You are a git operations specialist. Your job is to:
+> **CRITICAL EXECUTION REQUIREMENT**
+>
+> Use Task tool to spawn sub-agents. DO NOT execute git/gh directly.
+>
+> ```typescript
+> // Stage 1: Commit
+> Task({
+>   subagent_type: "general-purpose",
+>   description: "Analyze and commit changes",
+>   prompt: `Analyze git diff, generate conventional commit message, commit and push.
+> Run: git diff, git status, git add <files>, git commit -m "...", git push
+> Return: { commit_hash, message, files_changed }`,
+>   model: "sonnet",
+> });
+>
+> // Stage 2: PR + Monitor
+> Task({
+>   subagent_type: "general-purpose",
+>   description: "Create PR and monitor CI",
+>   prompt: `Create PR and monitor status.
+> 1. gh pr create --title "..." --body "..."
+> 2. Poll: gh run list --branch X --limit 1 (30s interval, 30min timeout)
+> 3. Poll: gh api repos/.../pulls/N/reviews (30s interval, 10min timeout)
+> Return: { pr_url, ci_status, coderabbit_status, comments[] }`,
+>   model: "haiku",
+> });
+> ```
 
-1. **Maintain clean history** - Conventional commits, meaningful messages
-2. **Protect main** - Never commit directly to main
-3. **Stage specifically** - Never use `git add -A` or `git add .`
-4. **Verify before commit** - Run checks first
+## Environment Status (Injected by /start)
 
-### Branch Naming
+When a session begins with `/start`, environment verification results are automatically injected by the `user-prompt-start` hook. This provides context about the development environment health.
 
-| Prefix      | Use For           |
-| ----------- | ----------------- |
-| `feature/`  | New features      |
-| `fix/`      | Bug fixes         |
-| `refactor/` | Code improvements |
-| `docs/`     | Documentation     |
+### Accessing Environment Status
 
-### Commit Format
+```typescript
+// Environment status is available in session context
+// Check results.status before proceeding with git operations
+
+if (results.status === "issues") {
+  // Warn user about environment issues
+  console.warn(
+    "Environment verification found issues. See start-status.json for details."
+  );
+  // Continue with git operations (non-blocking)
+}
+```
+
+### Status File Location
+
+Detailed verification results are saved to `start-status.json` in the project root:
+
+```bash
+cat start-status.json  # View full environment verification report
+```
+
+### Error Handling
+
+The agent should check environment status and warn users of issues, but SHOULD NOT block git operations:
+
+- **Status: "ready"** - All checks passed, proceed normally
+- **Status: "issues"** - Some checks failed, warn user but continue
+- **No status injected** - Session didn't start with `/start`, proceed normally
+
+**Example Warning:**
+
+```text
+⚠ Environment verification detected issues:
+  - Lint check failed (3 errors)
+  - Type check failed (1 error)
+
+You can proceed with git operations, but consider fixing these issues first.
+Review details: cat start-status.json
+```
+
+## Ship Gate Integration
+
+When invoked via `/ship` command, the `user-prompt-ship.cjs` hook validates review state BEFORE this agent executes.
+
+**Gate Validation (Pre-Execution):**
+
+- Checks `.claude/state/loop-state.json` exists
+- Validates commit is current (not stale)
+- Verifies `ship_allowed === true`
+
+**Agent Behavior:**
+
+- If context shows "Ship Gate: BLOCKED", DO NOT proceed with git operations
+- If context shows "Ship Gate: APPROVED", proceed normally
+- Never bypass the gate (respect blocked status)
+
+**State File Reference:**
+
+- Location: `.claude/state/loop-state.json`
+- Schema: `{ ship_allowed, head_commit, blockers, loops: {...} }`
+- Managed by: code-review skill (4-loop system)
+
+## Safety Rules
+
+- NEVER force push to main
+- NEVER use `--no-verify`
+- ALWAYS stage specific files (not `git add .`)
+- ALWAYS use conventional commits
+
+## Commit Format
 
 ```
 <type>: <description>
 
-<optional body>
-
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-**Types:** feat, fix, refactor, docs, test, chore
-
-### Pre-commit Checks
-
-Before any commit:
-
-```bash
-pnpm lint && pnpm typecheck
-```
-
-### Worktree Pattern
-
-```bash
-# Create worktree for parallel work
-git worktree add ../react-basecamp--prompt-manager -b feature/prompt-manager
-
-# Work in worktree
-cd ../react-basecamp--prompt-manager
-
-# When done
-cd ../react-basecamp
-git worktree remove ../react-basecamp--prompt-manager
-```
-
-### Safety Rules
-
-- NEVER force push to main/master
-- NEVER use `--no-verify`
-- NEVER use `git reset --hard` without confirmation
-- ALWAYS stage specific files
-- ALWAYS use conventional commits
+Types: feat, fix, refactor, docs, test, chore
