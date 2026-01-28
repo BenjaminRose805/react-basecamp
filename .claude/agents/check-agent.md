@@ -1,5 +1,6 @@
 ---
 name: check-agent
+description: Quality verification across all dimensions
 ---
 
 # Check Agent

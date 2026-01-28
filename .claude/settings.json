@@ -3,46 +3,102 @@
   "hooks": {
     "SessionStart": [
       {
-        "scriptPath": "hooks/session-start.cjs"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/session-start.cjs"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
       {
-        "scriptPath": "hooks/user-prompt-start.cjs"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/user-prompt-start.cjs"
+          }
+        ]
       },
       {
-        "scriptPath": "hooks/user-prompt-review.cjs"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/user-prompt-review.cjs"
+          }
+        ]
       },
       {
-        "scriptPath": "hooks/command-mode-detect.cjs"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/command-mode-detect.cjs"
+          }
+        ]
       },
       {
-        "scriptPath": "hooks/user-prompt-ship.cjs"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/user-prompt-ship.cjs"
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
-        "scriptPath": "hooks/pre-tool-use-bash.cjs",
-        "matcher": "Bash"
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/pre-tool-use-bash.cjs"
+          }
+        ]
       },
       {
-        "scriptPath": "hooks/pre-tool-use-file.cjs",
-        "matcher": "Edit|Write"
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/pre-tool-use-file.cjs"
+          }
+        ]
       },
       {
-        "scriptPath": "hooks/pre-tool-use-git-push.cjs",
-        "matcher": "Bash"
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/pre-tool-use-git-push.cjs"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "scriptPath": "hooks/post-tool-use.cjs",
-        "matcher": ""
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/post-tool-use.cjs"
+          }
+        ]
       }
     ],
     "Stop": [
       {
-        "scriptPath": "hooks/session-end.cjs"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/session-end.cjs"
+          }
+        ]
       }
     ]
   }

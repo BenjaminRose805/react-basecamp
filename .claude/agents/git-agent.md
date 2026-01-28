@@ -1,5 +1,6 @@
 ---
 name: git-agent
+description: Version control and PR management
 ---
 
 # Git Agent

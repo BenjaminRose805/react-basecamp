@@ -1,5 +1,6 @@
 ---
 name: eval-agent
+description: Creates LLM evaluation suites for non-deterministic features
 ---
 
 # Eval Agent (Orchestrator)

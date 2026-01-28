@@ -1,5 +1,6 @@
 ---
 name: docs-agent
+description: Documentation writer
 ---
 
 # Docs Agent (Orchestrator)

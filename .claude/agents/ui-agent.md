@@ -1,5 +1,6 @@
 ---
 name: ui-agent
+description: Frontend UI component implementation
 ---
 
 # UI Agent (Orchestrator)

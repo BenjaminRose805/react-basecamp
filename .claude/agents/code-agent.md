@@ -1,5 +1,6 @@
 ---
 name: code-agent
+description: Backend implementation using TDD methodology
 ---
 
 # Code Agent (Orchestrator)

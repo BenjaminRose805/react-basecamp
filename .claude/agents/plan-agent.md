@@ -1,5 +1,6 @@
 ---
 name: plan-agent
+description: Creates implementation specs from requirements using parallel analysis
 ---
 
 # Plan Agent (Orchestrator)
