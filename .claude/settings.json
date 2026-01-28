@@ -27,7 +27,19 @@
           },
           {
             "type": "command",
+            "command": "node .claude/scripts/hooks/user-prompt-start.cjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/user-prompt-review.cjs"
+          },
+          {
+            "type": "command",
             "command": "node .claude/scripts/hooks/command-mode-detect.cjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/user-prompt-ship.cjs"
           }
         ]
       }

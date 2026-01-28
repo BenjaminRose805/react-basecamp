@@ -29,7 +29,7 @@ Deprecated agents are in `archived/`:
 
 All agents use an **Opus orchestrator** with specialized sub-agents:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  ORCHESTRATOR (Opus)                                        │
 │  - Coordinates phases                                       │
@@ -49,28 +49,28 @@ All agents use an **Opus orchestrator** with specialized sub-agents:
 | Role             | Model  | Examples                                     |
 | ---------------- | ------ | -------------------------------------------- |
 | Orchestrators    | Opus   | All 7 agent orchestrators                    |
-| Researchers      | Opus   | plan-researcher, code-researcher, etc.       |
+| Researchers      | Opus   | domain-researcher (all modes)                |
 | Analyzers        | Opus   | investigator, pr-reviewer, refactor-analyzer |
-| Writers/Builders | Sonnet | code-writer, ui-builder, docs-writer         |
-| Validators       | Haiku  | code-validator, ui-validator, all checkers   |
+| Writers/Builders | Sonnet | domain-writer (all modes), ui-builder        |
+| Validators       | Haiku  | quality-validator, all checkers              |
 | Executors        | Haiku  | git-executor, build-checker, test-runner     |
 
 ## Sub-Agent Details
 
 See `.claude/sub-agents/` for complete sub-agent specifications:
 
-```
+```text
 sub-agents/
-├── code/           # code-researcher, code-writer, code-validator
-├── docs/           # docs-researcher, docs-writer, docs-validator
-├── eval/           # eval-researcher, eval-writer, eval-validator
+├── code/           # Code agent sub-agents (uses consolidated templates)
+├── docs/           # Docs agent sub-agents (uses consolidated templates)
+├── eval/           # Eval agent sub-agents (uses consolidated templates)
 ├── git/            # change-analyzer, pr-analyzer, pr-reviewer, git-executor
-├── plan/           # plan-researcher, plan-writer, plan-validator
-├── ui/             # ui-researcher, ui-builder, ui-validator
+├── plan/           # Plan agent sub-agents (uses consolidated templates)
+├── ui/             # UI agent sub-agents (uses consolidated templates)
 ├── workflows/      # investigator, refactor-analyzer, security-triager
+├── templates/      # domain-researcher, domain-writer, quality-validator
 ├── profiles/       # Permission profiles (read-only, research, writer, full-access)
-├── protocols/      # Handoff and orchestration protocols
-└── templates/      # Base templates for each sub-agent type
+└── protocols/      # Handoff and orchestration protocols
 ```
 
 ## Routing

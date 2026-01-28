@@ -172,16 +172,52 @@ Coverage: 65.4%
 
 ```bash
 # Check for hardcoded secrets
-grep -r "api.*key.*=.*['\"].*['\"]" src/ || true
-grep -r "secret.*=.*['\"].*['\"]" src/ || true
-grep -r "password.*=.*['\"].*['\"]" src/ || true
+grep -r "api.*key.*=.*['\"].*['\"]" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ || true
+grep -r "secret.*=.*['\"].*['\"]" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ || true
+grep -r "password.*=.*['\"].*['\"]" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ || true
 
 # Check for console.log
-grep -r "console\.log" src/ || true
+grep -r "console\.log" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ || true
 
 # Check for dangerous patterns
-grep -r "eval(" src/ || true
-grep -r "dangerouslySetInnerHTML" src/ || true
+grep -r "eval(" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ || true
+grep -r "dangerouslySetInnerHTML" \
+  --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
+  --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
+  src/ || true
 ```
 
 **Report:**

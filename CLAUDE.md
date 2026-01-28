@@ -8,7 +8,7 @@ Next.js 15 + TypeScript + Vitest + Playwright + pnpm
 
 ## CRITICAL: Command Execution Pattern
 
-> **When executing `/plan`, `/implement`, `/ship`:**
+> **When executing `/design`, `/implement`, `/ship`:**
 >
 > 1. **Read the agent file** - `.claude/agents/{agent}-agent.md`
 > 2. **Use Task tool to spawn sub-agents** - NEVER execute directly
@@ -34,7 +34,9 @@ Next.js 15 + TypeScript + Vitest + Playwright + pnpm
 | Command      | Agent                      |
 | ------------ | -------------------------- |
 | `/start`     | git-agent                  |
-| `/plan`      | plan-agent                 |
+| `/design`    | plan-agent                 |
+| `/reconcile` | plan-agent                 |
+| `/research`  | plan-agent                 |
 | `/implement` | code/ui/docs/eval (routes) |
 | `/ship`      | git-agent + check-agent    |
 | `/guide`     | (informational)            |

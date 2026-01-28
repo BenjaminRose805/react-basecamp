@@ -82,15 +82,15 @@ interface SubAgentProgress {
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  PHASE 1: RESEARCH                                  [COMPLETE]  │
-│  ├─ ✓ plan-researcher (Opus)                        [3.2s]      │
+│  ├─ ✓ domain-researcher (Opus)                      [3.2s]      │
 │  │   Found: session.ts, email.ts - no conflicts                 │
 │                                                                 │
 │  PHASE 2: WRITE                                     [RUNNING]   │
-│  ├─ ● plan-writer (Sonnet)                          [RUNNING]   │
+│  ├─ ● domain-writer (Sonnet)                        [RUNNING]   │
 │  │   Writing: specs/user-authentication/design.md               │
 │                                                                 │
 │  PHASE 3: VALIDATE                                  [PENDING]   │
-│  └─ ○ plan-validator (Haiku)                                    │
+│  └─ ○ quality-validator (Haiku)                                 │
 │                                                                 │
 │  Progress: ██████████░░░░░░░░░░ 50%                              │
 │                                                                 │
@@ -233,12 +233,22 @@ interface SubAgentProgress {
 
 ```typescript
 function calculateProgress(stages: StageProgress[]): number {
+  // Bounds check: ensure stages array is non-empty
+  if (!stages || stages.length === 0) {
+    return 0;
+  }
+
   const weights = stages.map((stage) => {
     // Weight by sub-agent count
     return stage.subAgents.length;
   });
 
   const totalWeight = weights.reduce((a, b) => a + b, 0);
+
+  // Division by zero guard: if no sub-agents across all stages
+  if (totalWeight === 0) {
+    return 0;
+  }
 
   let completedWeight = 0;
   stages.forEach((stage, i) => {
@@ -250,12 +260,15 @@ function calculateProgress(stages: StageProgress[]): number {
       (sa) => sa.status === "running"
     ).length;
 
-    // Completed sub-agents count fully
-    completedWeight +=
-      (completedSubAgents / stage.subAgents.length) * stageWeight;
-    // Running sub-agents count as 50%
-    completedWeight +=
-      (runningSubAgents / stage.subAgents.length) * stageWeight * 0.5;
+    // Division by zero guard: only calculate if stage has sub-agents
+    if (stage.subAgents.length > 0) {
+      // Completed sub-agents count fully
+      completedWeight +=
+        (completedSubAgents / stage.subAgents.length) * stageWeight;
+      // Running sub-agents count as 50%
+      completedWeight +=
+        (runningSubAgents / stage.subAgents.length) * stageWeight * 0.5;
+    }
   });
 
   return Math.round((completedWeight / totalWeight) * 100);
@@ -302,6 +315,13 @@ function applyUpdate(
   update: ProgressUpdate
 ): ExecutionProgress {
   const newProgress = { ...progress };
+
+  // Bounds check: validate stageIndex is within valid range
+  if (update.stageIndex < 0 || update.stageIndex >= newProgress.stages.length) {
+    // Invalid stage index, return progress unchanged
+    return newProgress;
+  }
+
   const stage = newProgress.stages[update.stageIndex];
 
   switch (update.type) {
@@ -336,7 +356,10 @@ function applyUpdate(
     case "stage_complete":
       stage.status = "completed";
       stage.endTime = new Date();
-      newProgress.currentStage++;
+      // Bounds check: ensure currentStage doesn't exceed total stages
+      if (newProgress.currentStage < newProgress.stages.length - 1) {
+        newProgress.currentStage++;
+      }
       break;
 
     case "error":

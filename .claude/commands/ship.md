@@ -11,6 +11,30 @@ Commit, create PR, wait for CI and CodeRabbit.
 > 3. **Read** `.claude/agents/git-agent.md`
 > 4. **Use Task tool** - Spawn sub-agents, NEVER execute directly
 
+## Ship Gate Validation
+
+The `user-prompt-ship.cjs` hook validates review state BEFORE this command executes.
+
+**Check the context for gate status:**
+
+### If Blocked (`blocked: true` in context)
+
+- Display: "🚫 Ship gate: BLOCKED"
+- Show the reason from context (no state, stale, failed review)
+- Show blockers list if available
+- Suggest running `/review` to resolve
+- **DO NOT proceed with git operations**
+
+### If Approved (`Ship Gate: APPROVED` in context)
+
+- Display: "✅ Ship gate: APPROVED"
+- Proceed with preview and agent delegation
+
+### If No Gate Info
+
+- Warn user that review state wasn't checked
+- Proceed with caution
+
 ## Preview
 
 ```text
@@ -18,9 +42,13 @@ Commit, create PR, wait for CI and CodeRabbit.
 │  /ship                                                      │
 ├─────────────────────────────────────────────────────────────┤
 │  Branch: feature/[name]                                     │
+│  Gate: ✅ APPROVED (or 🚫 BLOCKED)                          │
 │                                                             │
 │  STAGES                                                     │
 │  ┌─────────────────────────────────────────────────────────┐│
+│  │ 0. VALIDATE GATE                                        ││
+│  │    └─ Check review state from user-prompt-ship.cjs      ││
+│  ├─────────────────────────────────────────────────────────┤│
 │  │ 1. ANALYZE & COMMIT                                     ││
 │  │    └─ git-writer (Sonnet) - Diff → commit → push        ││
 │  ├─────────────────────────────────────────────────────────┤│
@@ -101,5 +129,23 @@ Commit, create PR, wait for CI and CodeRabbit.
 │  Run /plan to investigate and fix.                          │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## Troubleshooting
+
+### Ship Blocked: No Review State
+
+Run `/review` before shipping.
+
+### Ship Blocked: Stale Review
+
+Your review is for a different commit. Run `/review` again.
+
+### Ship Blocked: Failed Loops
+
+Fix the issues shown in blockers, then run `/review` again.
+
+### Bypass Gate (Emergency)
+
+Use `/ship --force` to bypass the gate. Not recommended.
 
 $ARGUMENTS

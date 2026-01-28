@@ -18,8 +18,8 @@ Conversational spec creation or PR feedback reconciliation.
 ```typescript
 Task({
   subagent_type: "general-purpose",
-  description: "Analyze requirements for [feature]",
-  prompt: `You are a requirement-analyzer sub-agent.
+  description: "Research requirements for [feature]",
+  prompt: `You are domain-researcher (mode=plan).
 TASK: Analyze requirements for [feature]
 OUTPUT: { "decision": "PROCEED|STOP|CLARIFY", "context_summary": "...", "requirements": [...] }
 Use Read, Grep, Glob, mcp__cclsp__* tools.`,
@@ -34,7 +34,8 @@ Use Read, Grep, Glob, mcp__cclsp__* tools.`,
 Task({
   subagent_type: "general-purpose",
   description: "Write spec for [feature]",
-  prompt: `Create spec files:
+  prompt: `You are domain-writer (mode=plan).
+Create spec files:
 - specs/[feature]/requirements.md (EARS format)
 - specs/[feature]/design.md
 - specs/[feature]/tasks.md
@@ -48,8 +49,9 @@ INPUT SUMMARY: ${analysis_summary}`,
 ```typescript
 Task({
   subagent_type: "general-purpose",
-  description: "Validate spec",
-  prompt: `Validate specs/[feature]/: EARS compliance, acceptance criteria, _Prompt fields.
+  description: "Validate spec for [feature]",
+  prompt: `You are quality-validator.
+Validate specs/[feature]/: EARS compliance, acceptance criteria, _Prompt fields.
 Return: { "passed": true/false, "issues": [...] }`,
   model: "haiku",
 });
@@ -70,9 +72,9 @@ Return: { "passed": true/false, "issues": [...] }`,
 │                                                             │
 │  PHASES                                                     │
 │  ┌─────────────────────────────────────────────────────────┐│
-│  │ 1. RESEARCH         plan-researcher        Opus         ││
-│  │ 2. WRITE            plan-writer            Sonnet       ││
-│  │ 3. VALIDATE         plan-validator         Haiku        ││
+│  │ 1. RESEARCH         domain-researcher      Opus         ││
+│  │ 2. WRITE            domain-writer          Sonnet       ││
+│  │ 3. VALIDATE         quality-validator      Haiku        ││
 │  └─────────────────────────────────────────────────────────┘│
 │                                                             │
 │  [Enter] Run  [Esc] Cancel                                  │
@@ -90,8 +92,8 @@ Return: { "passed": true/false, "issues": [...] }`,
 │                                                             │
 │  PHASES                                                     │
 │  ┌─────────────────────────────────────────────────────────┐│
-│  │ 1. ANALYZE          plan-researcher        Opus         ││
-│  │ 2. PLAN             plan-writer            Sonnet       ││
+│  │ 1. ANALYZE          domain-researcher      Opus         ││
+│  │ 2. PLAN             domain-writer          Sonnet       ││
 │  └─────────────────────────────────────────────────────────┘│
 │                                                             │
 │  [Enter] Run  [Esc] Cancel                                  │

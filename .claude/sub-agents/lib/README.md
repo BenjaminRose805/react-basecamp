@@ -56,8 +56,8 @@ ${contextSummary}
 | `code-writer`       | patterns.md, coding-style.md | Implements backend code               |
 | `ui-researcher`     | patterns.md, coding-style.md | Needs to identify UI patterns         |
 | `ui-builder`        | patterns.md, coding-style.md | Implements frontend code              |
-| `plan-researcher`   | methodology.md               | Understands SDD/TDD/EDD               |
-| `plan-writer`       | methodology.md               | Writes specs following methodology    |
+| `domain-researcher` | methodology.md               | Understands SDD/TDD/EDD (plan mode)   |
+| `domain-writer`     | methodology.md               | Writes specs following methodology    |
 | `quality-validator` | testing.md                   | Validates test coverage and quality   |
 | `quality-checker`   | testing.md                   | Runs test suites and checks           |
 | `git-executor`      | git-workflow.md              | Executes git operations               |

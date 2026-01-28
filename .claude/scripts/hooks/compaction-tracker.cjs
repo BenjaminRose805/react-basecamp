@@ -59,6 +59,13 @@ function getToolCallCount(sessionId) {
 async function main() {
   try {
     const input = await readStdinJson();
+
+    // Null check - return early if stdin is null
+    if (!input) {
+      logError('[Hook] Compaction tracker: no input data received');
+      process.exit(0);
+    }
+
     const rawSessionId = input.session_id || process.env.CLAUDE_SESSION_ID || 'default';
     const sessionId = sanitizeSessionId(rawSessionId);
 

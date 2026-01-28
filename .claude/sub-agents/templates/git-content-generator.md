@@ -106,7 +106,7 @@ git diff --cached --name-only
 
 **Conventional Commit Format:**
 
-```
+```text
 <type>: <description>
 
 <optional body>
@@ -306,7 +306,7 @@ const determineCommitType = (files: string[]): string => {
 
 ### Template for Content Generation Summary
 
-```
+```text
 "context_summary": "[mode]: Generated [content_type].
 Title: [title].
 [N] files changed ([+X -Y lines])."
@@ -314,7 +314,7 @@ Title: [title].
 
 ### Example (commit mode)
 
-```
+```text
 "context_summary": "commit: Generated feat commit message.
 Title: feat: add JWT authentication with login/logout endpoints.
 4 files changed (+156 -12 lines)."
@@ -322,7 +322,7 @@ Title: feat: add JWT authentication with login/logout endpoints.
 
 ### Example (pr mode)
 
-```
+```text
 "context_summary": "pr: Generated PR title and description.
 Title: feat: JWT authentication with login/logout.
 Summary covers implementation, testing, and test plan. 4 files changed."

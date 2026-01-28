@@ -16,9 +16,9 @@ Complete end-to-end feature development orchestrating plan → implement → shi
 
 ```text
 plan-agent orchestrator (Opus)
-├── plan-researcher (Opus) - analyze requirements
-├── plan-writer (Sonnet) - write spec
-└── plan-validator (Haiku) - verify completeness
+├── domain-researcher (mode=plan, Opus) - analyze requirements
+├── domain-writer (mode=plan, Sonnet) - write spec
+└── quality-validator (Haiku) - verify completeness
     ↓
 (APPROVAL GATE - user approves spec)
     ↓
@@ -43,11 +43,11 @@ ship workflow
 
 **Orchestrator:** plan-agent (Opus)
 
-| Sub-agent       | Model  | Task                                     |
-| --------------- | ------ | ---------------------------------------- |
-| plan-researcher | Opus   | Analyze requirements, find existing code |
-| plan-writer     | Sonnet | Write spec with tasks                    |
-| plan-validator  | Haiku  | Verify spec completeness                 |
+| Sub-agent                     | Model  | Task                                     |
+| ----------------------------- | ------ | ---------------------------------------- |
+| domain-researcher (mode=plan) | Opus   | Analyze requirements, find existing code |
+| domain-writer (mode=plan)     | Sonnet | Write spec with tasks                    |
+| quality-validator             | Haiku  | Verify spec completeness                 |
 
 **Output:**
 

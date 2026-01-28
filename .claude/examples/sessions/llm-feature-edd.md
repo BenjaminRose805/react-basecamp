@@ -88,7 +88,7 @@ Spec Validation: PASS
 
 ## Phase 2: Write Evaluations (EDD)
 
-### Agent: eval-researcher
+### Agent: domain-researcher (mode=eval)
 
 ```
 Research Results:
@@ -120,7 +120,7 @@ Test Cases Needed:
 Recommendation: PROCEED
 ```
 
-### Agent: eval-writer
+### Agent: domain-writer (mode=eval)
 
 Created: `evals/task-suggester/config.ts`
 

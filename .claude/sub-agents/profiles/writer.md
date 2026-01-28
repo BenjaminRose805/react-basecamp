@@ -85,31 +85,6 @@ sudo                                  # No root access
 chmod 777                             # No permission changes
 ```
 
-## Task Tool Usage
-
-```typescript
-await Task({
-  subagent_type: "general-purpose",
-  description: "Implement feature with TDD",
-  prompt: handoffRequest,
-  allowed_tools: [
-    "Read",
-    "Write",
-    "Edit",
-    "Bash",
-    "Grep",
-    "Glob",
-    "mcp__cclsp__find_definition",
-    "mcp__cclsp__find_references",
-    "mcp__cclsp__get_hover",
-    "mcp__cclsp__find_workspace_symbols",
-    "mcp__cclsp__get_diagnostics",
-    "mcp__cclsp__rename_symbol",
-  ],
-  model: "sonnet",
-});
-```
-
 ## Security Rationale
 
 - **No spawning**: Cannot escalate to full-access

@@ -56,14 +56,73 @@ pnpm dev
 
 ## Development Workflow
 
-### 1. Feature Development
+### 1. Starting New Features
+
+Use the `/start` command to verify your environment and create an isolated worktree:
+
+```bash
+/start my-feature          # Create worktree with basic checks
+/start my-feature --full   # Create worktree with full verification
+/start --security          # Include security audit
+```
+
+**What it does:**
+
+1. Verifies development dependencies (pnpm, node, git)
+2. Checks tooling configuration
+3. Optionally runs quality checks (lint, typecheck, tests)
+4. Creates git worktree and feature branch
+5. Generates status report
+
+**Flags:**
+
+- `--full`: Run complete verification (lint, typecheck, tests) before setup
+- `--security`: Include security audit with trufflehog and gitleaks
+
+**Output:**
+
+Results are saved to `start-status.json` and include:
+
+- Dependency versions
+- Tooling check results
+- Quality check results (if --full flag used)
+- Overall status: "ready" or "issues"
+
+**Troubleshooting:**
+
+If `/start` reports issues:
+
+1. Review detailed results:
+
+   ```bash
+   cat start-status.json
+   ```
+
+2. Fix reported issues:
+
+   ```bash
+   pnpm lint           # Fix linting errors
+   pnpm typecheck      # Fix type errors
+   pnpm test           # Fix failing tests
+   ```
+
+3. The worktree is still created even with issues - you can proceed and fix problems in the new workspace
+
+**After /start:**
+
+```bash
+cd ../project-my-feature   # Navigate to new worktree
+/plan                      # Begin designing your feature
+```
+
+### 2. Feature Development
 
 1. Create a spec in `specs/` using the template
 2. Get spec approved
 3. Implement with tests
 4. Open PR for review
 
-### 2. Testing
+### 3. Testing
 
 ```bash
 # Unit tests
@@ -76,7 +135,7 @@ pnpm test:e2e          # Run all
 pnpm test:e2e:ui       # Interactive mode
 ```
 
-### 3. Quality Checks
+### 4. Quality Checks
 
 ```bash
 # Run all quality checks

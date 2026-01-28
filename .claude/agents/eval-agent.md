@@ -235,9 +235,9 @@ pnpm eval agent-builder --smoke   # Quick check
 >
 > **Anti-patterns (DO NOT DO):**
 >
-> - Using Read, Grep, Glob directly (spawn eval-researcher)
-> - Using Edit, Write directly (spawn eval-writer)
-> - Using Bash directly for pnpm commands (spawn eval-validator)
+> - Using Read, Grep, Glob directly (spawn domain-researcher)
+> - Using Edit, Write directly (spawn domain-writer)
+> - Using Bash directly for pnpm commands (spawn quality-validator)
 > - Using MCP tools directly (spawn appropriate sub-agent)
 >
 > **Required pattern:**

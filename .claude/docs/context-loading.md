@@ -76,7 +76,7 @@ Defined in `.claude/scripts/inject-rules.cjs`:
 
 ## File Structure
 
-```
+```text
 .claude/
 ├── CLAUDE.md                      # Mini version (~2,400 tokens)
 ├── rules/                         # Granular rule files
@@ -142,7 +142,14 @@ node .claude/scripts/measure-tokens.cjs
 **Solution**:
 
 1. Direct user to root CLAUDE.md
-2. Or use MCP resource: `ReadMcpResourceTool({ server: "claude-docs", uri: "claude-docs://full-context" })`
+2. Or use MCP resource:
+
+```typescript
+ReadMcpResourceTool({
+  server: "claude-docs",
+  uri: "claude-docs://full-context",
+});
+```
 
 ## Design Decisions
 

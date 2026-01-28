@@ -158,6 +158,11 @@ Reading agent/spec files is OK, but for actual research:
 
       // Only warn if no Task has been called yet
       if (commandMode.taskCallCount === 0) {
+        // Validate agents array exists and has elements
+        const agentFile = commandMode.agents && commandMode.agents.length > 0
+          ? `\`.claude/agents/${commandMode.agents[0]}.md\``
+          : '(agent file not specified)';
+
         logContext(`
 ---
 **⚠️ WARNING: Direct tool use in /${commandMode.command} command mode**
@@ -176,7 +181,7 @@ Task({
 })
 \`\`\`
 
-Read the agent file: \`.claude/agents/${commandMode.agents[0]}.md\`
+Read the agent file: ${agentFile}
 ---
 `);
       }

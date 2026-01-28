@@ -247,7 +247,7 @@ Your `context_summary` is the **only** information passed to the writer phase. M
 
 ### Template for Research Summary
 
-```
+```text
 "context_summary": "[Mode]: [Main finding] at [file path] ([brief description]).
 Follow [pattern file] pattern for [what].
 [Conflicts: none | list critical ones].
@@ -256,7 +256,7 @@ Recommend: [actionable next steps]."
 
 ### Example (code mode)
 
-```
+```text
 "context_summary": "code: Auth utilities at src/lib/auth.ts (session-based, JWT-ready).
 Follow src/server/routers/user.ts pattern for new router.
 No naming conflicts.
@@ -265,7 +265,7 @@ Recommend: extend auth.ts with JWT helpers, create auth router."
 
 ### Example (ui mode)
 
-```
+```text
 "context_summary": "ui: Similar card component at src/components/ui/card.tsx.
 Follow shadcn/ui pattern with compound components.
 No naming conflicts.
