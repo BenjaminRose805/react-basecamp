@@ -11,32 +11,33 @@ Creates implementation specifications from requirements using parallel analysis.
 ```text
 plan-agent (orchestrator, Opus)
 │
-│ (dynamic sizing based on context)
-│
-├── agentCount == 1:
-│   └─► domain-writer (mode=plan, Sonnet)
-│
-├── agentCount == 2:
+├── /design:
 │   ├─► domain-researcher (mode=plan, Opus)
-│   └─► domain-writer (mode=plan, Sonnet)
+│   ├─► domain-writer (mode=plan, Sonnet)
+│   └─► quality-validator (Haiku)
 │
-└── agentCount >= 3:
-    ├─► domain-researcher (mode=plan, Opus)
-    ├─► domain-writer (mode=plan, Sonnet)
-    └─► quality-validator (Haiku)
+├── /reconcile:
+│   ├─► domain-researcher (mode=reconcile, Opus)
+│   └─► domain-writer (mode=reconcile, Sonnet)
+│
+└── /research:
+    └─► domain-researcher (mode=research, Opus)
 ```
 
 ## Sub-Agents
 
 Uses consolidated templates from `.claude/sub-agents/templates/`:
 
-| Template          | Mode   | Model  | Purpose                                       |
-| ----------------- | ------ | ------ | --------------------------------------------- |
-| domain-researcher | plan   | Opus   | Analyze requirements, dependencies, and tasks |
-| domain-writer     | plan   | Sonnet | Write requirements.md, design.md, tasks.md    |
-| quality-validator | (none) | Haiku  | Verify completeness, template compliance      |
+| Template          | Mode      | Model  | Purpose                                       |
+| ----------------- | --------- | ------ | --------------------------------------------- |
+| domain-researcher | plan      | Opus   | Analyze requirements, dependencies, and tasks |
+| domain-researcher | reconcile | Opus   | Analyze PR feedback and categorize issues     |
+| domain-researcher | research  | Opus   | Investigate topics and gather findings        |
+| domain-writer     | plan      | Sonnet | Write requirements.md, design.md, tasks.md    |
+| domain-writer     | reconcile | Sonnet | Write reconciliation tasks.md                 |
+| quality-validator | (none)    | Haiku  | Verify completeness, template compliance      |
 
-**Note:** The parallel analyzers (requirement-analyzer, dependency-analyzer, task-decomposer) are replaced by domain-researcher (mode=plan) which handles all analysis tasks.
+**Note:** The parallel analyzers (requirement-analyzer, dependency-analyzer, task-decomposer) are replaced by domain-researcher which handles all analysis tasks in different modes.
 
 ## MCP Servers
 
@@ -54,51 +55,40 @@ File-based specs in specs/ directory
 
 - **research** - Find existing implementations, check conflicts
 
-## Dynamic Sizing
-
-Uses sizing heuristics from `.claude/sub-agents/lib/sizing-heuristics.md` to determine appropriate sub-agent count.
-
-### Gather Context
-
-```typescript
-const context = {
-  fileCount: await countFilesToModify(),
-  taskCount: await estimateTaskCount(),
-  moduleCount: await countModules(),
-  effort: "small" | "medium" | "large",
-};
-```
-
-### Determine Agent Count
-
-```typescript
-const agentCount = determineSubAgentCount(context);
-```
-
-### Routing
-
-```typescript
-if (agentCount === 1) {
-  // Simple: Just write the spec
-  spawn domain-writer(mode=plan)
-} else if (agentCount === 2) {
-  // Medium: Research + write
-  spawn domain-researcher(mode=plan)
-  spawn domain-writer(mode=plan)
-} else {
-  // Complex: Research + write + validate
-  spawn domain-researcher(mode=plan)
-  spawn domain-writer(mode=plan)
-  spawn quality-validator
-}
-```
-
 ## Orchestration Workflow
 
-### Full Flow (/plan [feature])
+### Command Routing
+
+The plan-agent handles three commands with different workflows:
+
+| Command      | Phases                      | Output                               |
+| ------------ | --------------------------- | ------------------------------------ |
+| `/design`    | RESEARCH → WRITE → VALIDATE | specs/{feature}/\*.md                |
+| `/reconcile` | ANALYZE → PLAN              | specs/pr-{N}-reconciliation/tasks.md |
+| `/research`  | INVESTIGATE                 | research-notes.md                    |
+
+#### Routing Logic
 
 ```text
-User: /plan [feature]
+Command received
+    │
+    ├── /design → Full spec creation workflow
+    │   ├── domain-researcher (mode=plan)
+    │   ├── domain-writer (mode=plan)
+    │   └── quality-validator
+    │
+    ├── /reconcile → PR feedback workflow
+    │   ├── domain-researcher (mode=reconcile)
+    │   └── domain-writer (mode=reconcile)
+    │
+    └── /research → Investigation workflow
+        └─► domain-researcher (mode=research)
+```
+
+### Full Flow (/design [feature])
+
+```text
+User: /design [feature]
     │
     ▼
 Orchestrator: Parse command, identify source docs
@@ -106,13 +96,13 @@ Orchestrator: Parse command, identify source docs
     ▼
 PHASE 1: PARALLEL ANALYSIS
     │
-    ├── Task(requirement-analyzer, run_in_background: true)
+    ├── Task(domain-researcher mode=plan:requirements, run_in_background: true)
     │     └── Returns: requirements[], context_summary (~500 tokens)
     │
-    ├── Task(dependency-analyzer, run_in_background: true)
+    ├── Task(domain-researcher mode=plan:dependencies, run_in_background: true)
     │     └── Returns: dependencies[], conflicts[], context_summary
     │
-    └── Task(task-decomposer, run_in_background: true)
+    └── Task(domain-researcher mode=plan:tasks, run_in_background: true)
           └── Returns: phases[], dependencies{}, context_summary
     │
     ▼
@@ -120,7 +110,7 @@ Wait for all analyzers (max ~5 min)
     │
     ▼
 Check for blockers:
-    ├── requirement-analyzer found critical ambiguities? → CLARIFY
+    ├── domain-researcher found critical ambiguities? → CLARIFY
     ├── dependency-analyzer found conflicts? → STOP
     └── All clear? → Continue
     │
@@ -133,7 +123,7 @@ PHASE 2: AGGREGATE SUMMARIES
     ▼
 PHASE 3: SPEC CREATION
     │
-    └── Task(plan-writer, analysis_summary, model: sonnet)
+    └── Task(domain-writer mode=plan, analysis_summary, model: sonnet)
           └── Creates: specs/{feature}/requirements.md
           └── Creates: specs/{feature}/design.md
           └── Creates: specs/{feature}/tasks.md
@@ -141,69 +131,87 @@ PHASE 3: SPEC CREATION
     ▼
 PHASE 4: VALIDATION
     │
-    └── Task(plan-validator, spec_files, model: haiku)
+    └── Task(quality-validator, spec_files, model: haiku)
           └── Returns: { passed: true/false, issues[] }
     │
     ▼
 IF validation FAIL (attempt 1):
-    └── Re-run plan-writer with issues list
+    └── Re-run domain-writer with issues list
     └── Max 1 retry attempt
     │
     ▼
 Report final status to user
 ```
 
-### Research Only (/plan research [feature])
+### Reconcile Flow (/reconcile [PR#])
 
-1. Spawn all three analyzers in parallel
-2. Wait for completion
-3. Aggregate and report findings
-4. Decision: PROCEED, STOP, or CLARIFY
+```text
+User: /reconcile [PR#]  (or /reconcile for local changes)
+    │
+    ▼
+Orchestrator: Detect source (local git diff or GitHub PR)
+    │
+    ▼
+PHASE 1: ANALYZE FEEDBACK
+    │
+    └── Task(domain-researcher mode=reconcile, model: opus)
+          └── Returns: categorized_issues[], context_summary
+    │
+    ▼
+PHASE 2: PLAN FIXES
+    │
+    └── Task(domain-writer mode=reconcile, analysis_summary, model: sonnet)
+          └── Creates: specs/pr-{N}-reconciliation/tasks.md
+    │
+    ▼
+Report tasks to user (NO implementation)
+```
 
-### Write Only (/plan write [feature])
+### Research Flow (/research [topic])
 
-1. Read existing analysis or request manual input
-2. Spawn plan-writer sub-agent
-3. Report files created
-
-### Validate Only (/plan validate [feature])
-
-1. Spawn plan-validator sub-agent
-2. Report PASS or FAIL with specific issues
-
-## Subcommands
-
-| Subcommand | Description                              |
-| ---------- | ---------------------------------------- |
-| (none)     | Full flow: analyze → write → validate    |
-| `research` | Analysis phase only (parallel analyzers) |
-| `write`    | Write phase only (after research)        |
-| `validate` | Validate phase only (after write)        |
+```text
+User: /research [topic]
+    │
+    ▼
+Orchestrator: Parse topic, prepare investigation context
+    │
+    ▼
+PHASE 1: INVESTIGATE
+    │
+    └── Task(domain-researcher mode=research, model: opus)
+          └── Returns: findings, code_refs, recommendations, open_questions
+    │
+    ▼
+Create research-notes.md with findings
+    │
+    ▼
+Report findings to user (NO spec files)
+```
 
 ## Error Handling
 
 ### Analysis Returns STOP
 
-When dependency-analyzer finds a critical conflict:
+When domain-researcher (mode=plan:dependencies) finds a critical conflict:
 
-1. Do NOT spawn plan-writer
+1. Do NOT spawn domain-writer
 2. Report conflict to user with details
 3. Present options: extend existing, rename, or override
 4. Wait for user decision before proceeding
 
 ### Analysis Returns CLARIFY
 
-When requirement-analyzer finds ambiguities:
+When domain-researcher (mode=plan:requirements) finds ambiguities:
 
 1. Present questions to user
 2. Collect answers
-3. Re-run requirement-analyzer with additional context
+3. Re-run domain-researcher with additional context
 
 ### Validation Returns FAIL
 
-When plan-validator finds issues:
+When quality-validator finds issues:
 
-1. **Attempt 1**: Re-run plan-writer with failure details
+1. **Attempt 1**: Re-run domain-writer with failure details
 2. **Attempt 2**: If still failing, report to user
 3. Suggest manual fixes with specific issues
 
@@ -231,7 +239,7 @@ When plan-validator finds issues:
 - 4 phases, 12 tasks identified
 - Critical path: T001 → T003 → T006 → T010
 
-Ready for `/plan write` or continue with full flow.
+Ready to proceed with spec creation.
 ```
 
 ### After WRITE
@@ -386,11 +394,13 @@ Maintain minimal state between phases:
 
 ```typescript
 {
-  phase: "research" | "write" | "validate",
+  command: "design" | "reconcile" | "research",
+  phase: "analyze" | "write" | "validate" | "investigate" | "plan",
   analysis: {
     requirements_summary: string | null,  // ≤500 tokens
     dependencies_summary: string | null,  // ≤500 tokens
     tasks_summary: string | null,         // ≤500 tokens
+    issues_summary: string | null,        // ≤500 tokens (reconcile mode)
   },
   blockers: {
     ambiguities: string[],

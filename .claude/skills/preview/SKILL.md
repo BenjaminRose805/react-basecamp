@@ -109,17 +109,17 @@ interface SubAgentPlan {
 │                                                                 │
 │  PHASES                                                         │
 │  ┌─────────────────────────────────────────────────────────────┐│
-│  │ 1. RESEARCH         plan-researcher        Opus             ││
+│  │ 1. RESEARCH         domain-researcher      Opus             ││
 │  │    □ Search existing auth patterns                          ││
 │  │    □ Check for conflicts                                    ││
 │  │    □ Identify integration points                            ││
 │  ├─────────────────────────────────────────────────────────────┤│
-│  │ 2. WRITE            plan-writer            Sonnet           ││
+│  │ 2. WRITE            domain-writer          Sonnet           ││
 │  │    □ Create requirements.md (EARS format)                   ││
 │  │    □ Create design.md (architecture)                        ││
 │  │    □ Create tasks.md (phased work items)                    ││
 │  ├─────────────────────────────────────────────────────────────┤│
-│  │ 3. VALIDATE         plan-validator         Haiku            ││
+│  │ 3. VALIDATE         quality-validator      Haiku            ││
 │  │    □ Verify EARS compliance                                 ││
 │  │    □ Check acceptance criteria                              ││
 │  └─────────────────────────────────────────────────────────────┘│
@@ -149,12 +149,12 @@ interface SubAgentPlan {
 │                                                                 │
 │  PHASES                                                         │
 │  ┌─────────────────────────────────────────────────────────────┐│
-│  │ 1. ANALYZE          plan-researcher        Opus             ││
+│  │ 1. ANALYZE          domain-researcher      Opus             ││
 │  │    □ Review each CodeRabbit comment                         ││
 │  │    □ Identify affected files                                ││
 │  │    □ Assess fix complexity                                  ││
 │  ├─────────────────────────────────────────────────────────────┤│
-│  │ 2. PLAN             plan-writer            Sonnet           ││
+│  │ 2. PLAN             domain-writer          Sonnet           ││
 │  │    □ Create fix plan with tasks                             ││
 │  │    □ Prioritize by severity                                 ││
 │  └─────────────────────────────────────────────────────────────┘│

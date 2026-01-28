@@ -25,9 +25,13 @@ const ROLE_RULE_MAP = {
   'ui-researcher': ['patterns.md', 'coding-style.md'],
   'ui-builder': ['patterns.md', 'coding-style.md'],
 
-  // Planning domain
-  'plan-researcher': ['methodology.md'],
-  'plan-writer': ['methodology.md'],
+  // Planning domain (using consolidated templates)
+  'domain-researcher': ['methodology.md'], // plan mode
+  'domain-writer': ['methodology.md'], // plan mode
+
+  // Backward compatibility aliases for renamed planning roles
+  'plan-researcher': ['methodology.md'], // alias for domain-researcher
+  'plan-writer': ['methodology.md'], // alias for domain-writer
 
   // Quality domain
   'quality-validator': ['testing.md'],

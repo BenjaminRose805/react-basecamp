@@ -4,7 +4,7 @@ Execute an approved spec with TDD methodology and automatic agent routing.
 
 ## Usage
 
-```
+```bash
 /implement                # Build the approved spec
 ```
 

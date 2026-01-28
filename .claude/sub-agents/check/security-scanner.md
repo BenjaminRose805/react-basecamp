@@ -45,6 +45,9 @@ Run security scans:
 ```bash
 grep -rn "console\.log" --include="*.ts" --include="*.tsx" \
   --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
   --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
   src/ 2>/dev/null | head -20
 ```
@@ -55,22 +58,34 @@ grep -rn "console\.log" --include="*.ts" --include="*.tsx" \
 # API keys
 grep -rn "sk-" --include="*.ts" --include="*.tsx" \
   --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
   --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
   src/ 2>/dev/null | head -10
 grep -rn "api[_-]?key\s*=" --include="*.ts" \
   --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
   --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
   src/ 2>/dev/null | head -10
 
 # Passwords
 grep -rn "password\s*=" --include="*.ts" \
   --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
   --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
   src/ 2>/dev/null | grep -v "password:" | head -10
 
 # Credentials in URLs
 grep -rn "://.*:.*@" --include="*.ts" \
   --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
   --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
   src/ 2>/dev/null | head -10
 ```
@@ -80,6 +95,9 @@ grep -rn "://.*:.*@" --include="*.ts" \
 ```bash
 grep -rn "TODO\|FIXME" --include="*.ts" --include="*.tsx" \
   --exclude="*.test.ts" --exclude="*.spec.ts" \
+  --exclude="*.config.js" --exclude="*.config.ts" --exclude="*.config.cjs" --exclude="*.config.mjs" \
+  --exclude="package.json" --exclude="package-lock.json" \
+  --exclude="tsconfig.json" --exclude="tsconfig.*.json" \
   --exclude-dir="test" --exclude-dir="tests" --exclude-dir="docs" --exclude-dir="node_modules" \
   src/ 2>/dev/null | head -20
 ```
@@ -200,7 +218,9 @@ The security scanner excludes these paths to reduce noise:
 **File patterns:**
 
 - `*.test.ts`, `*.spec.ts` - Test files with mock/fixture data
-- `*.config.js`, `*.config.ts` - Configuration files with expected patterns
+- `*.config.{js,ts,cjs,mjs}` - Configuration files with expected patterns
+- `package*.json` - Package manifests with dependency metadata
+- `tsconfig*.json` - TypeScript config with compiler options
 
 **Directories:**
 

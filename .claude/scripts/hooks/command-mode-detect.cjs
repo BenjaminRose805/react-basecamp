@@ -25,14 +25,20 @@ const {
 
 // Commands that should trigger command mode (require sub-agent spawning)
 const COMMAND_PATTERNS = [
+  // DEPRECATED: /plan is being replaced by /design, /reconcile, /research
+  // Kept for backward compatibility - routes to plan-agent which will prompt user to use new commands
   { pattern: /^\/plan\b/i, command: 'plan', agents: ['plan-agent'] },
+  { pattern: /^\/design\b/i, command: 'design', agents: ['plan-agent'] },
+  { pattern: /^\/reconcile\b/i, command: 'reconcile', agents: ['plan-agent'] },
+  { pattern: /^\/research\b/i, command: 'research', agents: ['plan-agent'] },
   { pattern: /^\/implement\b/i, command: 'implement', agents: ['code-agent', 'ui-agent'] },
+  { pattern: /^\/review\b/i, command: 'review', agents: ['plan-agent'] },
   { pattern: /^\/ship\b/i, command: 'ship', agents: ['git-agent', 'check-agent'] },
 ];
 
 // Commands that do NOT require sub-agent spawning
 const EXEMPT_PATTERNS = [
-  /^\/start\b/i,   // Direct git operation
+  /^\/start\b/i,   // Direct git operation (hook handles it)
   /^\/guide\b/i,   // Informational only
   /^\/mode\b/i,    // Mode switch only
   /^\/help\b/i,    // Help only
@@ -47,6 +53,21 @@ function getStateDir() {
 
 function getStatePath() {
   return path.join(getStateDir(), 'command-mode.json');
+}
+
+function readCommandMode() {
+  try {
+    const statePath = getStatePath();
+    const fs = require('fs');
+    if (!fs.existsSync(statePath)) {
+      return null;
+    }
+    const { readFile } = require('../lib/utils.cjs');
+    const content = readFile(statePath);
+    return JSON.parse(content);
+  } catch (err) {
+    return null;
+  }
 }
 
 async function main() {
@@ -96,9 +117,23 @@ Quick reference: \`.claude/sub-agents/QUICK-REFERENCE.md\`
       }
     }
 
-    // Not a command - clear any existing command mode
-    // (User is asking a question or doing something else)
-    // Don't clear immediately - they might be in the middle of command execution
+    // Not a command - conditionally clear command mode
+    // If user sends a regular message (not a command), they may have
+    // completed the command execution, so clear the state
+    const commandMode = readCommandMode();
+    if (commandMode) {
+      // Clear state if it's been more than 5 minutes since command started
+      // or if the message doesn't look like it's part of command execution
+      const startTime = commandMode.startedAt ? new Date(commandMode.startedAt) : null;
+      const elapsed = startTime ? (Date.now() - startTime.getTime()) / 1000 : Infinity;
+
+      // Clear if: elapsed > 5 minutes OR message is clearly unrelated
+      const isUnrelated = !/task|sub-agent|stage|phase|implement|research|write/i.test(trimmedMessage);
+
+      if (elapsed > 300 || isUnrelated) {
+        clearCommandMode();
+      }
+    }
 
     process.exit(0);
   } catch (err) {

@@ -366,7 +366,6 @@ If you encounter errors during implementation:
 - **Don't skip mode validation**: Always check mode parameter first
 - **Don't skip tests**: Always write test first (code/ui modes)
 - **Don't over-implement**: Only what's in the spec
-- **Don't ignore research**: Read the context_summary
+- **Don't ignore research**: Read the context_summary (research phase handles API verification)
 - **Don't leave TODOs**: Complete the work
-- **Don't use unverified APIs**: Check via context7
 - **Don't include implementation details**: Summarize outcomes only

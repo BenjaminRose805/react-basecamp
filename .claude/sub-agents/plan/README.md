@@ -7,57 +7,60 @@ Sub-agents for the plan-agent orchestrator with parallel analysis support.
 ```text
 plan-agent (orchestrator, Opus)
 │
-├─────────────────┬─────────────────┐
-│                 │                 │
-▼                 ▼                 ▼
-┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-│ requirement  │ │ dependency   │ │ task         │
-│ analyzer     │ │ analyzer     │ │ decomposer   │
-│ (Opus)       │ │ (Opus)       │ │ (Opus)       │
-└──────────────┘ └──────────────┘ └──────────────┘
-       │                 │                 │
-       └─────────────────┴─────────────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ Aggregate        │
-                │ Summaries        │
-                └──────────────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ plan-writer      │
-                │ (Sonnet)         │
-                └──────────────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ plan-validator   │
-                │ (Haiku)          │
-                └──────────────────┘
+├─────────────────────┬─────────────────────┬─────────────────────┐
+│                     │                     │                     │
+▼                     ▼                     ▼                     ▼
+┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
+│ domain-researcher│ │ domain-researcher│ │ domain-researcher│
+│ mode=plan:reqs   │ │ mode=plan:deps   │ │ mode=plan:tasks  │
+│ (Opus)           │ │ (Opus)           │ │ (Opus)           │
+└──────────────────┘ └──────────────────┘ └──────────────────┘
+       │                     │                     │
+       └─────────────────────┴─────────────────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │ Aggregate        │
+                    │ Summaries        │
+                    └──────────────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │ domain-writer    │
+                    │ mode=plan        │
+                    │ (Sonnet)         │
+                    └──────────────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │ quality-validator│
+                    │ (Haiku)          │
+                    └──────────────────┘
 ```
 
 ## Sub-Agents
 
+Uses consolidated templates from `.claude/sub-agents/templates/`:
+
 ### Parallel Analyzers (Phase 1)
 
-| Sub-Agent                                       | Model | Purpose                                    |
-| ----------------------------------------------- | ----- | ------------------------------------------ |
-| [requirement-analyzer](requirement-analyzer.md) | Opus  | Parse requirements, convert to EARS format |
-| [dependency-analyzer](dependency-analyzer.md)   | Opus  | Find related code, identify conflicts      |
-| [task-decomposer](task-decomposer.md)           | Opus  | Break requirements into phased tasks       |
+| Template          | Mode       | Model | Purpose                                    |
+| ----------------- | ---------- | ----- | ------------------------------------------ |
+| domain-researcher | plan:reqs  | Opus  | Parse requirements, convert to EARS format |
+| domain-researcher | plan:deps  | Opus  | Find related code, identify conflicts      |
+| domain-researcher | plan:tasks | Opus  | Break requirements into phased tasks       |
 
 ### Sequential Writers (Phase 2)
 
-| Sub-Agent                     | Model  | Purpose              |
-| ----------------------------- | ------ | -------------------- |
-| [plan-writer](plan-writer.md) | Sonnet | Write spec documents |
+| Template      | Mode | Model  | Purpose              |
+| ------------- | ---- | ------ | -------------------- |
+| domain-writer | plan | Sonnet | Write spec documents |
 
 ### Validators (Phase 3)
 
-| Sub-Agent                           | Model | Purpose             |
-| ----------------------------------- | ----- | ------------------- |
-| [plan-validator](plan-validator.md) | Haiku | Verify completeness |
+| Template          | Mode   | Model | Purpose             |
+| ----------------- | ------ | ----- | ------------------- |
+| quality-validator | (none) | Haiku | Verify completeness |
 
 ## Execution Flow
 
@@ -69,7 +72,7 @@ User: /plan user-authentication
     ▼
 Orchestrator: Spawn parallel analyzers
     │
-    ├── Task(requirement-analyzer, run_in_background: true)
+    ├── Task(domain-researcher mode=plan:reqs, run_in_background: true)
     ├── Task(dependency-analyzer, run_in_background: true)
     └── Task(task-decomposer, run_in_background: true)
     │
@@ -85,14 +88,14 @@ Aggregate summaries:
 }
     │
     ▼
-Task(plan-writer, analysis_summary)
+Task(domain-writer mode=plan, analysis_summary)
     │
     └── Creates: specs/user-auth/requirements.md
     └── Creates: specs/user-auth/design.md
     └── Creates: specs/user-auth/tasks.md
     │
     ▼
-Task(plan-validator, spec_files, model: haiku)
+Task(quality-validator, spec_files, model: haiku)
     │
     └── Returns: { passed: true/false, checks: {...} }
     │
@@ -104,9 +107,9 @@ User: "Spec created at specs/user-auth/. Ready for review."
 
 ```text
 Orchestrator: Spawn parallel analyzers
-    ├── Task(requirement-analyzer)
-    ├── Task(dependency-analyzer)
-    └── Task(task-decomposer)
+    ├── Task(domain-researcher mode=plan:reqs)
+    ├── Task(domain-researcher mode=plan:deps)
+    └── Task(domain-researcher mode=plan:tasks)
     │
     ▼
 Report: Combined analysis summary
@@ -118,7 +121,7 @@ Report: Combined analysis summary
 Orchestrator: (assumes analysis done)
     │
     ▼
-Task(plan-writer)
+Task(domain-writer mode=plan)
     │
     └── Creates spec files
     │
@@ -132,7 +135,7 @@ Report: Files created
 Orchestrator: (assumes spec exists)
     │
     ▼
-Task(plan-validator)
+Task(quality-validator)
     │
     ▼
 Report: PASS/FAIL with issues
@@ -154,42 +157,42 @@ Report: PASS/FAIL with issues
 const [reqResult, depResult, taskResult] = await Promise.all([
   Task({
     subagent_type: "general-purpose",
-    description: "Analyze requirements",
-    prompt: JSON.stringify({
+    description: "Research requirements for [feature]",
+    prompt: `You are domain-researcher (mode=plan:reqs). ${JSON.stringify({
       task_id: "plan-req-001",
       phase: "analyze-requirements",
       context: { feature, source_docs },
       instructions: "Parse and convert to EARS format",
       expected_output: "structured_requirements",
-    }),
+    })}`,
     allowed_tools: RESEARCH_PROFILE,
     model: "opus",
     run_in_background: true,
   }),
   Task({
     subagent_type: "general-purpose",
-    description: "Analyze dependencies",
-    prompt: JSON.stringify({
+    description: "Research dependencies for [feature]",
+    prompt: `You are domain-researcher (mode=plan:deps). ${JSON.stringify({
       task_id: "plan-dep-001",
       phase: "analyze-dependencies",
       context: { feature, relevant_dirs },
       instructions: "Find related code and dependencies",
       expected_output: "dependency_analysis",
-    }),
+    })}`,
     allowed_tools: RESEARCH_PROFILE,
     model: "opus",
     run_in_background: true,
   }),
   Task({
     subagent_type: "general-purpose",
-    description: "Decompose tasks",
-    prompt: JSON.stringify({
+    description: "Research task decomposition for [feature]",
+    prompt: `You are domain-researcher (mode=plan:tasks). ${JSON.stringify({
       task_id: "plan-task-001",
       phase: "decompose-tasks",
       context: { feature },
       instructions: "Break into implementation tasks",
       expected_output: "task_decomposition",
-    }),
+    })}`,
     allowed_tools: RESEARCH_PROFILE,
     model: "opus",
     run_in_background: true,
@@ -210,8 +213,8 @@ const analysisSummary = {
 // Pass to writer
 const writeResult = await Task({
   subagent_type: "general-purpose",
-  description: "Write spec documents",
-  prompt: JSON.stringify({
+  description: "Write spec documents for [feature]",
+  prompt: `You are domain-writer (mode=plan). ${JSON.stringify({
     task_id: "plan-write-001",
     phase: "write",
     context: {
@@ -221,7 +224,7 @@ const writeResult = await Task({
     },
     instructions: "Create spec documents",
     expected_output: "files_created",
-  }),
+  })}`,
   allowed_tools: WRITER_PROFILE,
   model: "sonnet",
 });
@@ -229,12 +232,16 @@ const writeResult = await Task({
 
 ## Legacy Compatibility
 
-The `plan-researcher` sub-agent is an alias for running all three analyzers sequentially. For new code, use the parallel analyzers directly.
+The old analyzer names have been replaced with consolidated templates:
 
-| Legacy          | New Equivalent                                               |
-| --------------- | ------------------------------------------------------------ |
-| plan-researcher | requirement-analyzer + dependency-analyzer + task-decomposer |
-| plan-qa         | plan-validator                                               |
+| Legacy               | New Equivalent                      |
+| -------------------- | ----------------------------------- |
+| requirement-analyzer | domain-researcher (mode=plan:reqs)  |
+| dependency-analyzer  | domain-researcher (mode=plan:deps)  |
+| task-decomposer      | domain-researcher (mode=plan:tasks) |
+| plan-researcher      | domain-researcher (mode=plan)       |
+| plan-writer          | domain-writer (mode=plan)           |
+| plan-validator       | quality-validator                   |
 
 ## Related Documentation
 

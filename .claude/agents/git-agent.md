@@ -24,6 +24,8 @@ git-agent (orchestrator)
 ```text
 /ship
   │
+  ├─► 1. Respect Gate: Check context for gate result
+  │
   ├─► git-writer (Sonnet)
   │   └─ git diff, git log
   │   └─ Generate commit message
@@ -65,6 +67,74 @@ git-agent (orchestrator)
 >   model: "haiku",
 > });
 > ```
+
+## Environment Status (Injected by /start)
+
+When a session begins with `/start`, environment verification results are automatically injected by the `user-prompt-start` hook. This provides context about the development environment health.
+
+### Accessing Environment Status
+
+```typescript
+// Environment status is available in session context
+// Check results.status before proceeding with git operations
+
+if (results.status === "issues") {
+  // Warn user about environment issues
+  console.warn(
+    "Environment verification found issues. See start-status.json for details."
+  );
+  // Continue with git operations (non-blocking)
+}
+```
+
+### Status File Location
+
+Detailed verification results are saved to `start-status.json` in the project root:
+
+```bash
+cat start-status.json  # View full environment verification report
+```
+
+### Error Handling
+
+The agent should check environment status and warn users of issues, but SHOULD NOT block git operations:
+
+- **Status: "ready"** - All checks passed, proceed normally
+- **Status: "issues"** - Some checks failed, warn user but continue
+- **No status injected** - Session didn't start with `/start`, proceed normally
+
+**Example Warning:**
+
+```text
+⚠ Environment verification detected issues:
+  - Lint check failed (3 errors)
+  - Type check failed (1 error)
+
+You can proceed with git operations, but consider fixing these issues first.
+Review details: cat start-status.json
+```
+
+## Ship Gate Integration
+
+When invoked via `/ship` command, the `user-prompt-ship.cjs` hook validates review state BEFORE this agent executes.
+
+**Gate Validation (Pre-Execution):**
+
+- Checks `.claude/state/loop-state.json` exists
+- Validates commit is current (not stale)
+- Verifies `ship_allowed === true`
+
+**Agent Behavior:**
+
+- If context shows "Ship Gate: BLOCKED", DO NOT proceed with git operations
+- If context shows "Ship Gate: APPROVED", proceed normally
+- Never bypass the gate (respect blocked status)
+
+**State File Reference:**
+
+- Location: `.claude/state/loop-state.json`
+- Schema: `{ ship_allowed, head_commit, blockers, loops: {...} }`
+- Managed by: code-review skill (4-loop system)
 
 ## Safety Rules
 

@@ -4,7 +4,7 @@ Show current status, progress through the development flow, and available comman
 
 ## Usage
 
-```
+```bash
 /guide    # Show status and help
 ```
 
