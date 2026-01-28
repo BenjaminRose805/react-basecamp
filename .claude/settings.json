@@ -3,201 +3,46 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/session-start.cjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/start-spec-dashboard.cjs",
-            "timeout": 10
-          }
-        ]
+        "scriptPath": "hooks/session-start.cjs"
       }
     ],
     "UserPromptSubmit": [
       {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/user-prompt-start.cjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/user-prompt-review.cjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/command-mode-detect.cjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/user-prompt-ship.cjs"
-          }
-        ]
+        "scriptPath": "hooks/user-prompt-start.cjs"
+      },
+      {
+        "scriptPath": "hooks/user-prompt-review.cjs"
+      },
+      {
+        "scriptPath": "hooks/command-mode-detect.cjs"
+      },
+      {
+        "scriptPath": "hooks/user-prompt-ship.cjs"
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/pre-tool-use-task-enforcement.cjs"
-          }
-        ]
+        "scriptPath": "hooks/pre-tool-use-bash.cjs",
+        "matcher": "Bash"
       },
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/pre-tool-use-bash.cjs"
-          }
-        ]
+        "scriptPath": "hooks/pre-tool-use-file.cjs",
+        "matcher": "Edit|Write"
       },
       {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/pre-tool-use-file.cjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/suggest-compact.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/pre-tool-use-git-push.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/pre-tool-use-dev-tip.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/pre-tool-use-doc-warning.cjs"
-          }
-        ]
+        "scriptPath": "hooks/pre-tool-use-git-push.cjs",
+        "matcher": "Bash"
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-typecheck.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-eslint.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-prettier.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-vitest.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-console-check.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/post-tool-use-pr-created.cjs"
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/pre-compact.cjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/compaction-tracker.cjs"
-          }
-        ]
+        "scriptPath": "hooks/post-tool-use.cjs",
+        "matcher": ""
       }
     ],
     "Stop": [
       {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/session-end.cjs"
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/stop-console-check.cjs"
-          }
-        ]
+        "scriptPath": "hooks/session-end.cjs"
       }
     ]
   }

@@ -39,8 +39,6 @@ Next.js 15 + TypeScript + Vitest + Playwright + pnpm
 | `/research`  | plan-agent                 |
 | `/implement` | code/ui/docs/eval (routes) |
 | `/ship`      | git-agent + check-agent    |
-| `/guide`     | (informational)            |
-| `/mode`      | dev/basic switch           |
 
 ## Key Commands
 
