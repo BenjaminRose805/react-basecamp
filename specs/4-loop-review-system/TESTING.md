@@ -729,7 +729,7 @@ This document provides a comprehensive testing checklist for validating the 4-lo
 
 1. Add multiple secrets:
    ```javascript
-   const apiKey = "sk_live_1234567890abcdefghij";
+   const apiKey = "EXAMPLE_STRIPE_KEY_REPLACE_ME";
    const awsKey = "AKIAIOSFODNN7EXAMPLE";
    const dbUrl = "postgres://user:pass@host/db";
    ```

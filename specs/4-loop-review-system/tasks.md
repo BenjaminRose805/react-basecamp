@@ -57,7 +57,7 @@ Success Criteria:
 
 ```bash
 # Create test file with fake secrets
-echo "const API_KEY = 'sk_live_abc123def456ghi789';" > test-secrets.js
+echo "const API_KEY = 'EXAMPLE_STRIPE_KEY_REPLACE_ME';" > test-secrets.js
 node .claude/scripts/lib/secret-scanner.cjs test-secrets.js
 # Expected: 1 match detected, redacted output
 ```
