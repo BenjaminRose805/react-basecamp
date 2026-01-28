@@ -2,24 +2,32 @@
 
 > **Status:** Implemented
 
-## Overview
+## Goal
 
-Aggressive cleanup of the `.claude/` system to remove unused code and simplify configuration.
+Optimize the Claude agent system for maintainability by aggressively removing unused code and simplifying configuration.
 
-## Requirements
+## User Stories
 
-### Cleanup
+- As a developer, I want a lean `.claude/` directory so that I can understand and maintain the system easily
+- As a developer, I want only essential hooks registered so that session startup is fast
+- As a developer, I want 7 clear commands so that the workflow is simple to follow
 
-- [x] Remove 73 legacy files (archived agents, workflows, examples, tests)
-- [x] Simplify settings.json from 23 hooks to 9 essential hooks
-- [x] Update CLAUDE.md command table to 7 commands
-- [x] Fix settings.json format for new hook structure
-- [x] Add description fields to all agent frontmatters
+## Success Criteria
 
-## Acceptance Criteria
+- [x] Only 7 commands remain: start, research, design, reconcile, implement, review, ship
+- [x] settings.json uses new matcher/hooks format with 9 hooks
+- [x] All agent files have valid frontmatter with name and description
+- [x] No archived/ directory exists
+- [x] All pre-push checks pass (typecheck, tests, lint)
 
-- [x] AC-1: Only 7 commands remain: start, research, design, reconcile, implement, review, ship
-- [x] AC-2: settings.json uses new matcher/hooks format
-- [x] AC-3: All agent files have valid frontmatter with name and description
-- [x] AC-4: No archived/ directory exists
-- [x] AC-5: All pre-push checks pass (typecheck, tests, lint)
+## Technical Constraints
+
+- Must maintain backward compatibility with existing workflows
+- Settings.json must use the new Claude Code hook format
+- Agent frontmatter must include both `name` and `description` fields
+
+## Out of Scope
+
+- Implementation of new automation scripts (separate feature)
+- Changes to the application code
+- Modifications to CI/CD pipelines
