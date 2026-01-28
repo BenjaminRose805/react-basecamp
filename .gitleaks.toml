@@ -1,0 +1,19 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks
+
+title = "Gitleaks Config"
+
+# Allowlist rules for false positives
+[allowlist]
+  description = "Allowlist for example/test secrets in documentation"
+
+  # Spec files contain example code with placeholder secrets for testing documentation
+  paths = [
+    '''specs/.*\.md$''',
+    '''specs/.*\.txt$''',
+  ]
+
+  # Specific commits that contain example secrets in documentation
+  commits = [
+    "fabde6178d95830b2623f1c39548b82b294e0837",
+  ]
