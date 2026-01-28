@@ -40,11 +40,13 @@ Uses consolidated templates from `.claude/sub-agents/templates/`:
 
 ```
 cclsp          # TypeScript for components
-figma          # Extract design specs, tokens
+figma          # Extract design specs, tokens (optional)
 shadcn         # Component registry lookups
 playwright     # Visual testing, screenshots
 context7       # React/Next.js API verification
 ```
+
+**Note:** The Figma MCP integration is optional and not required for core functionality. UI components can be built without Figma design specs using Tailwind defaults and shadcn components.
 
 ## CLI Tools
 

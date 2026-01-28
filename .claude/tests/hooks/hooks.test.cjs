@@ -83,15 +83,7 @@ test('suggest-compact.cjs exists and runs without error', () => {
   });
 });
 
-test('evaluate-session.cjs exists and runs without error', () => {
-  const hookPath = path.join(hooksDir, 'evaluate-session.cjs');
-  assert.ok(fs.existsSync(hookPath), 'Hook file missing');
-
-  execSync(`node "${hookPath}"`, {
-    encoding: 'utf8',
-    stdio: ['pipe', 'pipe', 'pipe']
-  });
-});
+// Test removed - evaluate-session.cjs was deleted (dead code)
 
 test('all hook files use .cjs extension', () => {
   const files = fs.readdirSync(hooksDir);

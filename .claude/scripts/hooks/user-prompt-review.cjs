@@ -168,7 +168,7 @@ The 4-Loop Review System follows the pattern:
 - Loop 2: Claude reviewer (sub-agent with fresh context)
 - Loop 3: CodeRabbit CLI (rate-limited, skippable)
 
-Configuration: .claude/config/review-config.json
+Configuration: .claude/config/review-config.yaml
 State tracking: .claude/state/loop-state.json
 ---
 `);

@@ -246,7 +246,7 @@ function getLogsDir() {
 
 /**
  * Get git status information (branch and uncommitted count)
- * Shared helper used by session-start and user-prompt-submit hooks
+ * Shared helper used by session-start and other hooks
  * @returns {string|null} Git status string or null if not in repo
  */
 function getGitStatus() {
@@ -270,7 +270,7 @@ function getGitStatus() {
 
 /**
  * Read and truncate a context file
- * Shared helper used by session-start and user-prompt-submit hooks
+ * Shared helper used by session-start and other hooks
  * @param {string} filePath - Path to the file
  * @param {number} maxLength - Maximum length before truncation
  * @returns {string|null} File content or null if empty/missing
@@ -500,7 +500,6 @@ module.exports = {
   appendFile,
   replaceInFile,
   countInFile,
-  grepFile,
 
   // Hook I/O
   readStdinJson,

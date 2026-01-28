@@ -23,10 +23,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/scripts/hooks/user-prompt-submit.cjs"
-          },
-          {
-            "type": "command",
             "command": "node .claude/scripts/hooks/user-prompt-start.cjs"
           },
           {
@@ -191,10 +187,6 @@
           {
             "type": "command",
             "command": "node .claude/scripts/hooks/session-end.cjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/scripts/hooks/evaluate-session.cjs"
           }
         ]
       },
