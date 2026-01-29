@@ -7,13 +7,39 @@ const { readFile, writeFile, ensureDir, getStateDir, logError } = require('./uti
 const { validateContextSummary } = require('./token-counter.cjs');
 
 /**
+ * Sanitize a string for safe use in filenames.
+ * Strips path separators, control characters, and ".." sequences.
+ * @param {string} value - Raw input
+ * @returns {string} Safe filename segment
+ */
+function sanitizeFilenameSegment(value) {
+  if (!value) return '';
+  return String(value)
+    .replace(/[/\\]/g, '-')     // Replace path separators
+    .replace(/\.\./g, '')       // Remove ".." sequences
+    .replace(/[<>:"|?*\x00-\x1f]/g, '') // Remove control chars and illegal filename chars
+    .trim();
+}
+
+/**
  * Get checkpoint filename based on command and optional feature
  * @param {string} command - Command name (start|design|implement|ship|review|reconcile|research)
  * @param {string|null} feature - Optional feature name
  * @returns {string} Checkpoint filename
  */
 function getCheckpointFilename(command, feature) {
-  return feature ? `${command}-${feature}.json` : `${command}-checkpoint.json`;
+  const safeCommand = sanitizeFilenameSegment(command);
+  if (!safeCommand) {
+    throw new Error('Command name is required and must contain valid characters');
+  }
+  if (feature) {
+    const safeFeature = sanitizeFilenameSegment(feature);
+    if (!safeFeature) {
+      throw new Error('Feature name must contain valid characters');
+    }
+    return `${safeCommand}-${safeFeature}.json`;
+  }
+  return `${safeCommand}-checkpoint.json`;
 }
 
 /**
@@ -58,6 +84,12 @@ function loadCheckpoint(command, feature = null) {
       return null;
     }
 
+    // Check schema version (strictly require version === 1)
+    if (checkpoint.version !== 1) {
+      logError(`Unsupported checkpoint schema version: ${checkpoint.version} (expected 1)`);
+      return null;
+    }
+
     // Compare head_commit to current HEAD (warn if different, non-blocking)
     const currentHead = getCurrentHead();
     if (currentHead && checkpoint.head_commit && checkpoint.head_commit !== currentHead) {
@@ -80,6 +112,15 @@ function loadCheckpoint(command, feature = null) {
  */
 function saveCheckpoint(command, checkpoint, feature = null) {
   try {
+    // Clone to avoid mutating caller's object
+    checkpoint = JSON.parse(JSON.stringify(checkpoint));
+
+    // Enforce schema version (strictly require version === 1)
+    if (checkpoint.version !== 1) {
+      logError(`Cannot save checkpoint with unsupported schema version: ${checkpoint.version} (expected 1)`);
+      return false;
+    }
+
     // Validate context_summary in all phases
     if (checkpoint.phases) {
       for (const [phaseName, phaseData] of Object.entries(checkpoint.phases)) {
@@ -168,18 +209,21 @@ function updatePhase(command, phaseName, phaseData, feature = null) {
       };
     }
 
+    // Clone phaseData to avoid mutating caller's object
+    const newPhaseData = { ...phaseData };
+
     // Add started_at if new phase and status is in_progress
-    if (!checkpoint.phases[phaseName] && phaseData.status === 'in_progress') {
-      phaseData.started_at = new Date().toISOString();
+    if (!checkpoint.phases[phaseName] && newPhaseData.status === 'in_progress') {
+      newPhaseData.started_at = new Date().toISOString();
     }
 
     // Always set updated_at
-    phaseData.updated_at = new Date().toISOString();
+    newPhaseData.updated_at = new Date().toISOString();
 
     // Update phase data
     checkpoint.phases[phaseName] = {
       ...checkpoint.phases[phaseName],
-      ...phaseData
+      ...newPhaseData
     };
 
     // Update state based on phase status
@@ -195,11 +239,21 @@ function updatePhase(command, phaseName, phaseData, feature = null) {
 
       // Remove from pending_phases if present
       checkpoint.state.pending_phases = checkpoint.state.pending_phases.filter(p => p !== phaseName);
+
+      // Clear current_phase if this phase was current
+      if (checkpoint.state.current_phase === phaseName) {
+        checkpoint.state.current_phase = null;
+      }
     }
 
     if (phaseData.status === 'failed') {
       // Remove from pending_phases if present (do NOT add to completed_phases)
       checkpoint.state.pending_phases = checkpoint.state.pending_phases.filter(p => p !== phaseName);
+
+      // Clear current_phase if this phase was current
+      if (checkpoint.state.current_phase === phaseName) {
+        checkpoint.state.current_phase = null;
+      }
     }
 
     // Save checkpoint

@@ -16,9 +16,9 @@ interface UnifiedCheckpoint {
     | "implement"
     | "ship"
     | "review";
-  feature: string;
+  feature?: string;
   version: 1;
-  head_commit: string; // git rev-parse HEAD at last save
+  head_commit?: string | null; // git rev-parse HEAD at last save (null if unavailable)
   started_at: string; // ISO 8601
   updated_at: string; // ISO 8601
   completed_at?: string; // ISO 8601
@@ -73,8 +73,8 @@ interface UnifiedCheckpoint {
 
 - `context_summary` validated on save (≤500 tokens via `token-counter.cjs`)
 - Timestamps in ISO 8601 format (`new Date().toISOString()`)
-- Schema version must be `1`
-- `head_commit` captured automatically via `git rev-parse HEAD` on every save
+- Schema version must be `1` (enforced at runtime: load returns null, save returns false on mismatch)
+- `head_commit` captured when available via `git rev-parse HEAD` on save (null if git is unavailable)
 - Stale checkpoints detected on load (stored `head_commit` vs current HEAD)
 
 ## Example

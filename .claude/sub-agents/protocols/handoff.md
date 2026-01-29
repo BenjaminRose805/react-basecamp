@@ -333,32 +333,37 @@ Before finalizing context_summary:
 
 ## Enforcement
 
-The 500-token context_summary limit is enforced programmatically by orchestrators:
+The 500-token context_summary limit is enforced at two levels with different strictness:
 
 - **Validator:** `.claude/scripts/lib/token-counter.cjs`
 - **Functions:** `countTokens(text)`, `validateContextSummary(summary)`
-- **Heuristic:** ~4 characters per token (conservative for prose)
-- **Behavior:** Orchestrators must call `validateContextSummary()` before
-  passing context between phases. Summaries exceeding 500 tokens are rejected.
+- **Heuristic:** Whitespace-delimited word count (approximates LLM tokens)
 
-### On Handoff Creation
+### On Handoff Creation (Hard Rejection)
+
+Orchestrators **must** call `validateContextSummary()` before passing context between phases. Summaries exceeding 500 tokens are **rejected** — the handoff is not created.
 
 ```javascript
-const { validateContextSummary } = require("../scripts/lib/token-counter.cjs");
+const {
+  validateContextSummary,
+} = require("../../scripts/lib/token-counter.cjs");
 
 if (handoffData.context.previous_summary) {
   const result = validateContextSummary(handoffData.context.previous_summary);
   if (!result.valid) {
-    logError(result.error);
+    logError(result.error); // "Context summary exceeds 500 token limit (actual: X tokens)"
+    // Do not proceed with handoff
   }
 }
 ```
 
-### On Response Processing
+### On Response Processing (Warning Only)
 
-- Sub-agent responses with `context_summary` field are validated
-- Responses >500 tokens logged as warnings
-- Orchestrator decides whether to truncate or reject
+Sub-agent responses are validated at **warning level** — the orchestrator decides how to handle:
+
+- Sub-agent responses with `context_summary` field are validated via `validateContextSummary()`
+- Responses >500 tokens are **logged as warnings** (not rejected)
+- Orchestrator decides whether to truncate, request a shorter summary, or accept as-is
 
 ## Examples
 
@@ -370,6 +375,7 @@ if (handoffData.context.previous_summary) {
 {
   "task_id": "auth-001",
   "phase": "research",
+  "mode": "research",
   "context": {
     "feature": "jwt-authentication",
     "spec_path": "specs/auth/requirements.md",
@@ -419,6 +425,7 @@ if (handoffData.context.previous_summary) {
 {
   "task_id": "auth-001",
   "phase": "write",
+  "mode": "code",
   "context": {
     "feature": "jwt-authentication",
     "spec_path": "specs/auth/requirements.md",
