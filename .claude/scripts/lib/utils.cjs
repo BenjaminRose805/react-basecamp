@@ -258,6 +258,15 @@ function getLogsDir() {
 }
 
 /**
+ * Get the state directory for persistent hook state
+ * Uses git repository root if available, otherwise falls back to cwd
+ * @returns {string} Path to .claude/state directory
+ */
+function getStateDir() {
+  return path.join(getGitRoot() || process.cwd(), '.claude', 'state');
+}
+
+/**
  * Get git status information (branch and uncommitted count)
  * DEPRECATED: Use getGitStatus() from git-utils.cjs instead
  * This function has been moved to git-utils.cjs with enhanced features
@@ -477,6 +486,7 @@ module.exports = {
   appendToLog,
   appendToTextLog,
   getLogsDir,
+  getStateDir,
 
   // System
   commandExists,

@@ -19,12 +19,13 @@ Orchestrator → Sub-Agent
 {
   "task_id": "string (required)",
   "phase": "research | write | validate | parallel (required)",
+  "mode": "plan | code | ui | docs | eval | reconcile | research (required)",
   "context": {
     "feature": "string (required) - Feature being worked on",
     "spec_path": "string | null - Path to spec if exists",
     "relevant_files": ["string - Files to examine"],
     "constraints": ["string - Requirements to meet"],
-    "previous_findings": "string | null - Summary from previous phase"
+    "previous_summary": "string | null - Summary from previous phase (≤500 tokens)"
   },
   "instructions": "string (required) - What to do",
   "expected_output": "structured_findings | files_changed | validation_result | aggregated_results"
@@ -33,17 +34,18 @@ Orchestrator → Sub-Agent
 
 ### Request Fields
 
-| Field                       | Type   | Required | Description                                      |
-| --------------------------- | ------ | -------- | ------------------------------------------------ |
-| `task_id`                   | string | Yes      | Unique identifier for tracking                   |
-| `phase`                     | enum   | Yes      | Current phase (research/write/validate/parallel) |
-| `context.feature`           | string | Yes      | Feature name being worked on                     |
-| `context.spec_path`         | string | No       | Path to specification if exists                  |
-| `context.relevant_files`    | array  | No       | Files to examine or modify                       |
-| `context.constraints`       | array  | No       | Requirements or restrictions                     |
-| `context.previous_findings` | string | No       | Summary from previous phase                      |
-| `instructions`              | string | Yes      | Specific task for sub-agent                      |
-| `expected_output`           | enum   | Yes      | Output format expected                           |
+| Field                      | Type   | Required | Description                                                          |
+| -------------------------- | ------ | -------- | -------------------------------------------------------------------- |
+| `task_id`                  | string | Yes      | Unique identifier for tracking                                       |
+| `phase`                    | enum   | Yes      | Current phase (research/write/validate/parallel)                     |
+| `mode`                     | enum   | Yes      | Sub-agent specialization (plan/code/ui/docs/eval/reconcile/research) |
+| `context.feature`          | string | Yes      | Feature name being worked on                                         |
+| `context.spec_path`        | string | No       | Path to specification if exists                                      |
+| `context.relevant_files`   | array  | No       | Files to examine or modify                                           |
+| `context.constraints`      | array  | No       | Requirements or restrictions                                         |
+| `context.previous_summary` | string | No       | Summary from previous phase (≤500 tokens, validated)                 |
+| `instructions`             | string | Yes      | Specific task for sub-agent                                          |
+| `expected_output`          | enum   | Yes      | Output format expected                                               |
 
 ## Response Schema
 
@@ -329,6 +331,35 @@ Before finalizing context_summary:
 - [ ] No raw code or full file contents?
 - [ ] No search queries or process details?
 
+## Enforcement
+
+The 500-token context_summary limit is enforced programmatically by orchestrators:
+
+- **Validator:** `.claude/scripts/lib/token-counter.cjs`
+- **Functions:** `countTokens(text)`, `validateContextSummary(summary)`
+- **Heuristic:** ~4 characters per token (conservative for prose)
+- **Behavior:** Orchestrators must call `validateContextSummary()` before
+  passing context between phases. Summaries exceeding 500 tokens are rejected.
+
+### On Handoff Creation
+
+```javascript
+const { validateContextSummary } = require("../scripts/lib/token-counter.cjs");
+
+if (handoffData.context.previous_summary) {
+  const result = validateContextSummary(handoffData.context.previous_summary);
+  if (!result.valid) {
+    logError(result.error);
+  }
+}
+```
+
+### On Response Processing
+
+- Sub-agent responses with `context_summary` field are validated
+- Responses >500 tokens logged as warnings
+- Orchestrator decides whether to truncate or reject
+
 ## Examples
 
 ### Complete Research → Write Handoff
@@ -393,7 +424,7 @@ Before finalizing context_summary:
     "spec_path": "specs/auth/requirements.md",
     "relevant_files": ["src/lib/auth.ts", "src/server/routers/user.ts"],
     "constraints": ["TDD", "30 line functions"],
-    "previous_findings": "Existing auth at src/lib/auth.ts (sessions). Pattern: src/server/routers/user.ts. No conflicts. Extend auth.ts with JWT, create auth router."
+    "previous_summary": "Existing auth at src/lib/auth.ts (sessions). Pattern: src/server/routers/user.ts. No conflicts. Extend auth.ts with JWT, create auth router."
   },
   "instructions": "Implement JWT authentication with login/logout using TDD",
   "expected_output": "files_changed"

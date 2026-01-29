@@ -1,0 +1,14 @@
+{
+  "linear": {
+    "enabled": true,
+    "team": "Basecamp",
+    "branch_prefix": "feature",
+    "use_native_automation": true
+  },
+  "vercel": {
+    "enabled": true,
+    "wait_for_preview": true,
+    "preview_timeout_ms": 300000,
+    "require_preview_success": false
+  }
+}
