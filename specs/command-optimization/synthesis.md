@@ -665,3 +665,227 @@ Independent (can start immediately):
 - `.claude/sub-agents/templates/*.md` (2 files)
 - `.claude/skills/preview/SKILL.md`
 - `.claude/scripts/environment-check.cjs`
+
+---
+
+## 6. External Integrations
+
+### 6.1 Linear Integration
+
+**Purpose:** Auto-manage Linear issues through command lifecycle.
+
+**Issue Lifecycle:**
+
+```
+/design {feature}     → Create issue (Backlog)
+/implement            → Update issue (In Progress)
+/ship                 → Update issue (Done) + link PR
+```
+
+#### 6.1.1 Linear Client Interface
+
+**Location:** `.claude/scripts/lib/linear-client.cjs`
+
+```javascript
+/**
+ * Linear MCP wrapper for command integration
+ */
+module.exports = {
+  /**
+   * Create issue from spec
+   * @param {object} options
+   * @param {string} options.title - Issue title (from spec name)
+   * @param {string} options.description - Issue description (from summary.md)
+   * @param {string} options.team - Team name or ID
+   * @param {string[]} options.labels - Labels to apply
+   * @returns {Promise<{id: string, identifier: string, url: string}>}
+   */
+  async createIssue({ title, description, team, labels }) {},
+
+  /**
+   * Update issue status
+   * @param {string} issueId - Issue ID or identifier (e.g., "BASE-123")
+   * @param {string} status - Status name (e.g., "In Progress", "Done")
+   */
+  async updateStatus(issueId, status) {},
+
+  /**
+   * Link PR to issue
+   * @param {string} issueId - Issue ID or identifier
+   * @param {string} prUrl - GitHub PR URL
+   */
+  async linkPullRequest(issueId, prUrl) {},
+
+  /**
+   * Add comment to issue
+   * @param {string} issueId - Issue ID or identifier
+   * @param {string} body - Comment body (markdown)
+   */
+  async addComment(issueId, body) {},
+
+  /**
+   * Find issue by title or identifier
+   * @param {string} query - Search query
+   * @returns {Promise<{id: string, identifier: string, state: string}|null>}
+   */
+  async findIssue(query) {},
+};
+```
+
+#### 6.1.2 Command Integration Points
+
+| Command    | Action                          | Linear API          |
+| ---------- | ------------------------------- | ------------------- |
+| /design    | Create issue when spec approved | `createIssue()`     |
+| /design    | Store issue ID in spec.json     | -                   |
+| /implement | Set status → In Progress        | `updateStatus()`    |
+| /implement | Add comment with task progress  | `addComment()`      |
+| /ship      | Set status → Done               | `updateStatus()`    |
+| /ship      | Link PR to issue                | `linkPullRequest()` |
+
+#### 6.1.3 State Schema Extension
+
+Add to `.claude/state/{command}-{feature}.json`:
+
+```typescript
+interface CheckpointLinear {
+  linear?: {
+    issue_id: string; // Linear issue ID
+    identifier: string; // Human-readable (e.g., "BASE-123")
+    url: string; // Direct link to issue
+    status: string; // Current status
+    linked_pr?: string; // PR URL if linked
+  };
+}
+```
+
+#### 6.1.4 Spec.json Extension
+
+Add to `specs/{feature}/spec.json`:
+
+```json
+{
+  "name": "feature-name",
+  "status": "approved",
+  "linear": {
+    "issue_id": "abc123",
+    "identifier": "BASE-123",
+    "url": "https://linear.app/team/issue/BASE-123"
+  }
+}
+```
+
+---
+
+### 6.2 Vercel Integration
+
+**Purpose:** Integrate deployment status into /ship workflow.
+
+**Deployment Flow:**
+
+```
+/ship (push) → PR created → Vercel preview deploys
+            → CI checks pass
+            → Vercel preview ready ✓
+            → Merge → Vercel production deploys
+```
+
+#### 6.2.1 Vercel Status Checks
+
+Since Vercel is already connected, it automatically:
+
+1. Creates preview deployments on PR
+2. Reports status via GitHub checks
+3. Deploys to production on merge to main
+
+**No new Vercel API calls needed** - just read GitHub check status.
+
+#### 6.2.2 /ship Integration
+
+Update `/ship` to wait for Vercel checks:
+
+```javascript
+// In ship workflow, after PR creation
+const checks = await waitForChecks(prNumber, {
+  required: ["Vercel", "CI"],
+  timeout: 300000, // 5 minutes
+});
+
+if (!checks.vercel.success) {
+  console.log("⚠️  Vercel preview deployment failed");
+  console.log(`   Preview: ${checks.vercel.url}`);
+  // Ask user to continue or abort
+}
+```
+
+#### 6.2.3 Preview Template Extension
+
+Add Vercel status to `/ship` preview:
+
+```text
+┌──────────────────────────────────────────────────────────────────────┐
+│ /ship - Ship Changes                                                 │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│ DEPLOYMENT STATUS                                                    │
+│   Vercel Preview: {pending | building | ready | failed}              │
+│   Preview URL: {url}                                                 │
+│   Production: {will deploy on merge}                                 │
+│                                                                      │
+│ CHECKS                                                               │
+│   ✓ CI                                                               │
+│   ● Vercel (building...)                                             │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+#### 6.2.4 State Schema Extension
+
+Add to `.claude/state/ship-checkpoint.json`:
+
+```typescript
+interface ShipCheckpointVercel {
+  vercel?: {
+    preview_url?: string; // Preview deployment URL
+    preview_status: "pending" | "building" | "ready" | "failed";
+    production_url?: string; // Production URL (after merge)
+    deployment_id?: string; // Vercel deployment ID
+  };
+}
+```
+
+---
+
+### 6.3 Integration Priority
+
+| Integration              | Phase   | Effort | Impact                |
+| ------------------------ | ------- | ------ | --------------------- |
+| Linear client setup      | Phase 1 | L      | Foundation for all    |
+| /design → create issue   | Phase 4 | L      | Issue tracking starts |
+| /implement → in progress | Phase 3 | L      | Status automation     |
+| /ship → done + link PR   | Phase 5 | M      | Complete lifecycle    |
+| Vercel check waiting     | Phase 5 | L      | Deployment confidence |
+
+---
+
+### 6.4 Configuration
+
+Add to `.claude/config/integrations.json`:
+
+```json
+{
+  "linear": {
+    "enabled": true,
+    "team": "Basecamp",
+    "default_labels": ["claude-code"],
+    "auto_create_issues": true,
+    "auto_update_status": true
+  },
+  "vercel": {
+    "enabled": true,
+    "wait_for_preview": true,
+    "preview_timeout_ms": 300000,
+    "require_preview_success": false
+  }
+}
+```
