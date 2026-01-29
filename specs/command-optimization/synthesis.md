@@ -670,96 +670,84 @@ Independent (can start immediately):
 
 ## 6. External Integrations
 
-### 6.1 Linear Integration
+### 6.1 Linear Integration (Native GitHub Automation)
 
-**Purpose:** Auto-manage Linear issues through command lifecycle.
+**Purpose:** Auto-manage Linear issues through GitHub's native integration.
 
-**Issue Lifecycle:**
+**Key Insight:** Linear's GitHub integration handles most automation natively. We only need MCP for issue creation.
+
+#### 6.1.1 How Native Automation Works
+
+**Auto-linking:** Include issue ID in branch name or PR title:
 
 ```
-/design {feature}     → Create issue (Backlog)
-/implement            → Update issue (In Progress)
-/ship                 → Update issue (Done) + link PR
+Branch: feature/BAS-6-foundation
+PR Title: feat: checkpoint infrastructure (BAS-6)
 ```
 
-#### 6.1.1 Linear Client Interface
+**Magic Words:** Include in PR description to auto-close:
 
-**Location:** `.claude/scripts/lib/linear-client.cjs`
-
-```javascript
-/**
- * Linear MCP wrapper for command integration
- */
-module.exports = {
-  /**
-   * Create issue from spec
-   * @param {object} options
-   * @param {string} options.title - Issue title (from spec name)
-   * @param {string} options.description - Issue description (from summary.md)
-   * @param {string} options.team - Team name or ID
-   * @param {string[]} options.labels - Labels to apply
-   * @returns {Promise<{id: string, identifier: string, url: string}>}
-   */
-  async createIssue({ title, description, team, labels }) {},
-
-  /**
-   * Update issue status
-   * @param {string} issueId - Issue ID or identifier (e.g., "BASE-123")
-   * @param {string} status - Status name (e.g., "In Progress", "Done")
-   */
-  async updateStatus(issueId, status) {},
-
-  /**
-   * Link PR to issue
-   * @param {string} issueId - Issue ID or identifier
-   * @param {string} prUrl - GitHub PR URL
-   */
-  async linkPullRequest(issueId, prUrl) {},
-
-  /**
-   * Add comment to issue
-   * @param {string} issueId - Issue ID or identifier
-   * @param {string} body - Comment body (markdown)
-   */
-  async addComment(issueId, body) {},
-
-  /**
-   * Find issue by title or identifier
-   * @param {string} query - Search query
-   * @returns {Promise<{id: string, identifier: string, state: string}|null>}
-   */
-  async findIssue(query) {},
-};
+```
+closes BAS-6
+fixes BAS-6
 ```
 
-#### 6.1.2 Command Integration Points
+**Workflow Automation:** Configure in Linear Team Settings → Workflow:
 
-| Command    | Action                          | Linear API          |
-| ---------- | ------------------------------- | ------------------- |
-| /design    | Create issue when spec approved | `createIssue()`     |
-| /design    | Store issue ID in spec.json     | -                   |
-| /implement | Set status → In Progress        | `updateStatus()`    |
-| /implement | Add comment with task progress  | `addComment()`      |
-| /ship      | Set status → Done               | `updateStatus()`    |
-| /ship      | Link PR to issue                | `linkPullRequest()` |
+- PR opened → Issue moves to "In Progress"
+- PR merged → Issue moves to "Done"
+- PR closed (not merged) → Issue moves back to "Backlog"
 
-#### 6.1.3 State Schema Extension
+#### 6.1.2 What Commands Need to Do
 
-Add to `.claude/state/{command}-{feature}.json`:
+| Command    | Action                            | Method                                  |
+| ---------- | --------------------------------- | --------------------------------------- |
+| /start     | Use Linear branch name            | `git checkout -b feature/BAS-X-{name}`  |
+| /design    | Create issue via MCP              | `mcp__linear-server__create_issue`      |
+| /design    | Store identifier in spec.json     | Write to file                           |
+| /implement | Nothing                           | Native automation handles status        |
+| /ship      | Include `closes BAS-X` in PR body | PR template                             |
+| /ship      | Nothing else                      | Native automation handles status + link |
 
-```typescript
-interface CheckpointLinear {
-  linear?: {
-    issue_id: string; // Linear issue ID
-    identifier: string; // Human-readable (e.g., "BASE-123")
-    url: string; // Direct link to issue
-    status: string; // Current status
-    linked_pr?: string; // PR URL if linked
-  };
-}
+#### 6.1.3 Linear MCP Usage (Minimal)
+
+Only use MCP for:
+
+1. **Creating issues** (`mcp__linear-server__create_issue`)
+2. **Finding issues** (`mcp__linear-server__get_issue`)
+
+**No custom linear-client.cjs needed** - use MCP directly.
+
+#### 6.1.4 Branch Naming Convention
+
+```
+feature/{ISSUE-ID}-{feature-name}
 ```
 
-#### 6.1.4 Spec.json Extension
+Examples:
+
+- `feature/BAS-6-foundation`
+- `feature/BAS-7-templates`
+
+This auto-links PRs to Linear issues.
+
+#### 6.1.5 PR Template for /ship
+
+```markdown
+## Summary
+
+{description}
+
+## Linear
+
+closes {ISSUE-ID}
+
+## Test plan
+
+- [ ] ...
+```
+
+#### 6.1.6 Spec.json Extension
 
 Add to `specs/{feature}/spec.json`:
 
@@ -768,12 +756,21 @@ Add to `specs/{feature}/spec.json`:
   "name": "feature-name",
   "status": "approved",
   "linear": {
-    "issue_id": "abc123",
-    "identifier": "BASE-123",
-    "url": "https://linear.app/team/issue/BASE-123"
+    "identifier": "BAS-6",
+    "url": "https://linear.app/react-basecamp/issue/BAS-6"
   }
 }
 ```
+
+#### 6.1.7 Linear Team Workflow Settings
+
+Configure these automations in Linear (Settings → Team → Workflow):
+
+| Trigger   | Action                |
+| --------- | --------------------- |
+| PR opened | Move to "In Progress" |
+| PR merged | Move to "Done"        |
+| PR closed | Move to "Backlog"     |
 
 ---
 
@@ -858,17 +855,31 @@ interface ShipCheckpointVercel {
 
 ### 6.3 Integration Priority
 
-| Integration              | Phase   | Effort | Impact                |
-| ------------------------ | ------- | ------ | --------------------- |
-| Linear client setup      | Phase 1 | L      | Foundation for all    |
-| /design → create issue   | Phase 4 | L      | Issue tracking starts |
-| /implement → in progress | Phase 3 | L      | Status automation     |
-| /ship → done + link PR   | Phase 5 | M      | Complete lifecycle    |
-| Vercel check waiting     | Phase 5 | L      | Deployment confidence |
+| Integration               | Phase   | Effort | Impact                      |
+| ------------------------- | ------- | ------ | --------------------------- |
+| Linear GitHub integration | Setup   | L      | One-time in Linear settings |
+| Branch naming convention  | Phase 1 | L      | Auto-links PRs              |
+| /design → create issue    | Phase 4 | L      | Issue tracking starts       |
+| /ship PR template         | Phase 5 | L      | Auto-closes issues          |
+| Vercel check waiting      | Phase 5 | L      | Deployment confidence       |
+
+**Removed:** No custom linear-client.cjs needed. Native automation handles status updates.
 
 ---
 
 ### 6.4 Configuration
+
+#### 6.4.1 Linear GitHub Integration Setup (One-Time)
+
+1. Go to Linear Settings → Integrations → GitHub
+2. Connect your GitHub repo
+3. Enable "Link pull requests" and "Link commits"
+4. Go to Team Settings → Workflow → Automations
+5. Add automations:
+   - When PR is opened → Move to "In Progress"
+   - When PR is merged → Move to "Done"
+
+#### 6.4.2 Integrations Config File
 
 Add to `.claude/config/integrations.json`:
 
@@ -877,9 +888,8 @@ Add to `.claude/config/integrations.json`:
   "linear": {
     "enabled": true,
     "team": "Basecamp",
-    "default_labels": ["claude-code"],
-    "auto_create_issues": true,
-    "auto_update_status": true
+    "branch_prefix": "feature",
+    "use_native_automation": true
   },
   "vercel": {
     "enabled": true,
