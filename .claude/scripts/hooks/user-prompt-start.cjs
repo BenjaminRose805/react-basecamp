@@ -9,68 +9,78 @@
  *
  * Exit codes:
  * - 0: Always (detection should not block)
+ *
+ * T011: Refactored to use createHook factory for DRY
  */
 
 const path = require('path');
-const {
-  readStdinJson,
-  logContext,
-  logError,
-} = require('../lib/utils.cjs');
+const { logError } = require('../lib/utils.cjs');
+const { createHook } = require('../lib/hook-base.cjs');
+const { checkDirtyState } = require('../lib/git-utils.cjs');
 const { environmentCheck, generateReport } = require('../environment-check.cjs');
 
-// Command pattern for /start
-const START_PATTERN = /^\/start\b/i;
-
-async function main() {
-  try {
-    const input = await readStdinJson();
-    const message = input.message || input.prompt || '';
-
-    // Skip if not a user message or empty
-    if (!message || typeof message !== 'string') {
-      process.exit(0);
+/**
+ * Hook logic for /start command
+ * @param {object} input - Stdin JSON input
+ * @param {object} flags - Parsed flags
+ * @param {string} message - Trimmed message
+ * @returns {string|null} - Context to inject or null
+ */
+async function runStartHook(input, flags, message) {
+  // T001: Check for dirty state before proceeding
+  const dirtyState = checkDirtyState();
+  if (dirtyState.isDirty && !flags.force) {
+    logError('\n⚠ Working directory has uncommitted changes:\n');
+    const maxFilesToShow = 5;
+    dirtyState.files.slice(0, maxFilesToShow).forEach(file => {
+      logError(`  ${file.status.padEnd(2)} ${file.path}`);
+    });
+    if (dirtyState.files.length > maxFilesToShow) {
+      logError(`  ... and ${dirtyState.files.length - maxFilesToShow} more file(s)`);
     }
+    logError('\nCommit or stash changes before running /start.');
+    logError('Or use /start --force to bypass this check.\n');
 
-    const trimmedMessage = message.trim();
+    // Inject warning context to Claude
+    return `
+---
+**⚠ /start Blocked: Uncommitted Changes**
 
-    // Check if this is a /start command
-    if (!START_PATTERN.test(trimmedMessage)) {
-      process.exit(0);
-    }
+Working directory has ${dirtyState.files.length} uncommitted file(s).
+Please commit or stash changes before starting work.
 
-    // Parse flags
-    const flags = {
-      full: /--full\b/.test(trimmedMessage),
-      security: /--security\b/.test(trimmedMessage)
-    };
+Use \`/start --force\` to bypass this check if needed.
+---
+`;
+  }
 
-    // Detect CI mode
-    const skipPrompts = process.env.CI === 'true';
+  // Detect CI mode
+  const skipPrompts = process.env.CI === 'true' || flags.yes;
 
-    // Build options
-    const options = {
-      fullMode: flags.full,
-      securityMode: flags.security,
-      ciMode: skipPrompts,
-      skipPrompts
-    };
+  // Build options
+  const options = {
+    fullMode: flags.full,
+    securityMode: flags.security,
+    force: flags.force,
+    ciMode: skipPrompts,
+    skipPrompts
+  };
 
-    // Show what we're doing
-    logError('Running environment check...');
+  // Show what we're doing
+  logError('Running environment check...');
 
-    // Run environment check
-    const results = await environmentCheck(options);
+  // Run environment check
+  const results = await environmentCheck(options);
 
-    // Generate report
-    const report = generateReport(results);
+  // Generate report
+  const report = generateReport(results);
 
-    // Show report to user
-    logError('\n' + report);
+  // Show report to user
+  logError('\n' + report);
 
-    // Inject summary context to Claude
-    const summary = generateSummary(results);
-    logContext(`
+  // Inject summary context to Claude
+  const summary = generateSummary(results);
+  return `
 ---
 **Environment Check Results**
 
@@ -78,14 +88,7 @@ ${summary}
 
 Full details written to: start-status.json
 ---
-`);
-
-    process.exit(0);
-  } catch (err) {
-    // Fail silently - don't block on detection errors
-    logError(`[Hook] Error in user-prompt-start: ${err.message}`);
-    process.exit(0);
-  }
+`;
 }
 
 /**
@@ -137,6 +140,27 @@ function generateSummary(results) {
     lines.push(`**Git:** ${gitParts.join(', ')}`);
   }
 
+  // Security Audit
+  if (results.security && results.security.status === 'completed') {
+    const vulns = results.security.vulnerabilities;
+    const totalVulns = vulns.critical + vulns.high + vulns.moderate + vulns.low + vulns.info;
+
+    lines.push('');
+    if (totalVulns === 0) {
+      lines.push('**Security Audit:** ✓ No vulnerabilities found');
+    } else {
+      const parts = [];
+      if (vulns.critical > 0) parts.push(`${vulns.critical} critical`);
+      if (vulns.high > 0) parts.push(`${vulns.high} high`);
+      if (vulns.moderate > 0) parts.push(`${vulns.moderate} moderate`);
+      if (vulns.low > 0) parts.push(`${vulns.low} low`);
+      if (vulns.info > 0) parts.push(`${vulns.info} info`);
+
+      lines.push(`**Security Audit:** ⚠ ${parts.join(', ')} vulnerabilities`);
+      lines.push('  - Run \`pnpm audit\` for details');
+    }
+  }
+
   // Issues
   if (results.issues.length > 0) {
     lines.push('');
@@ -160,5 +184,18 @@ function generateSummary(results) {
 
   return lines.join('\n');
 }
+
+// Create and run hook using factory (T011)
+const main = createHook({
+  name: 'start',
+  command: 'start',
+  flagDefinitions: {
+    full: 'boolean',
+    security: 'boolean',
+    force: 'boolean',  // T001: Add --force flag to bypass dirty state check
+    yes: 'boolean'     // T021: Add --yes flag for CI mode
+  },
+  run: runStartHook
+});
 
 main();
