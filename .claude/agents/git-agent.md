@@ -20,6 +20,218 @@ git-agent (orchestrator)
 | git-writer   | Sonnet | Analyze diff, generate commit/PR content, execute git commands |
 | git-executor | Haiku  | Execute gh commands, poll CI/CodeRabbit                        |
 
+## /start Flow
+
+```text
+/start [feature-name]
+    │
+    ├─► 0. VALIDATE (Hook)
+    │   ├─ Check dirty working directory
+    │   ├─ Check branch existence
+    │   ├─ Check worktree path availability
+    │   └─ Check critical dependencies
+    │
+    ├─► 1. SETUP WORKTREE (Haiku)
+    │   ├─ Compute path: ../<repo>--<feature>
+    │   ├─ git worktree add <path> -b feature/<name>
+    │   └─ Verify worktree created
+    │
+    └─► 2. VERIFY ENVIRONMENT (Haiku)
+        ├─ Run environment-check.cjs in worktree
+        ├─ Parse results
+        └─ Report next steps
+```
+
+### Sub-Agents for /start
+
+The `/start` command uses three specialized sub-agents to ensure safe and reliable worktree creation:
+
+#### 1. git-validator (Stage 0)
+
+**Purpose:** Validate prerequisites before worktree creation to prevent errors and conflicts.
+
+**Input Schema:**
+
+```typescript
+{
+  featureName: string; // Feature name (e.g., "api-auth")
+  worktreePath: string; // Computed worktree path (e.g., "../repo--api-auth")
+}
+```
+
+**Output Schema:**
+
+```typescript
+{
+  clean: boolean;              // Working directory is clean
+  branch_exists: boolean;      // Feature branch already exists
+  path_exists: boolean;        // Worktree path already exists
+  blockers: string[];          // List of issues preventing worktree creation
+}
+```
+
+**Tools Used:**
+
+- Bash (git commands: `git status`, `git branch`, `ls`)
+
+**Validation Checks:**
+
+1. Working directory is clean (no uncommitted changes)
+2. Feature branch doesn't already exist
+3. Target worktree path is available
+4. Critical dependencies present (node, pnpm, git)
+
+---
+
+#### 2. git-worktree-creator (Stage 1)
+
+**Purpose:** Create git worktree and feature branch in a clean, isolated environment.
+
+**Input Schema:**
+
+```typescript
+{
+  featureName: string; // Feature name (e.g., "api-auth")
+  worktreePath: string; // Target worktree path (e.g., "../repo--api-auth")
+}
+```
+
+**Output Schema:**
+
+```typescript
+{
+  worktree_path: string; // Absolute path to created worktree
+  branch_name: string; // Created branch name (e.g., "feature/api-auth")
+  success: boolean; // Operation succeeded
+}
+```
+
+**Tools Used:**
+
+- Bash (git commands: `git worktree add`, `git worktree list`, `git branch`)
+
+**Operations:**
+
+1. Compute worktree path (sibling directory pattern)
+2. Create worktree with new feature branch
+3. Verify worktree creation
+4. Verify branch creation
+
+---
+
+#### 3. git-environment (Stage 2)
+
+**Purpose:** Run environment verification in new worktree and report results to user.
+
+**Input Schema:**
+
+```typescript
+{
+  worktreePath: string; // Path to created worktree
+  flags: {
+    full: boolean; // Run comprehensive checks
+    security: boolean; // Include security scans
+  }
+}
+```
+
+**Output Schema:**
+
+```typescript
+{
+  status: string;         // "ready" | "issues" | "error"
+  report: string;         // Human-readable verification report
+  next_steps: string[];   // Actionable next steps for user
+}
+```
+
+**Tools Used:**
+
+- Bash (`node environment-check.cjs`)
+
+**Verification Steps:**
+
+1. Change to worktree directory
+2. Run environment-check.cjs with flags
+3. Parse JSON results
+4. Generate user-friendly report
+5. Save detailed results to start-status.json
+
+---
+
+| Stage | Agent                | Model | Purpose                             |
+| ----- | -------------------- | ----- | ----------------------------------- |
+| 0     | git-validator        | Haiku | Validate state, check prerequisites |
+| 1     | git-worktree-creator | Haiku | Create worktree and branch          |
+| 2     | git-environment      | Haiku | Verify environment, generate report |
+
+### Task Tool Examples for /start
+
+#### Stage 0: Validate State
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Validate git state before worktree creation",
+  prompt: `Validate prerequisites for /start command:
+1. Check if working directory is clean (git status)
+2. Check if branch feature/${featureName} already exists
+3. Check if worktree path ${worktreePath} already exists
+4. Check critical dependencies (node, pnpm, git)
+
+Commands:
+- git status --porcelain
+- git branch --list feature/${featureName}
+- ls ${worktreePath} 2>/dev/null
+
+Return: { clean, branch_exists, path_exists, blockers[] }`,
+  model: "haiku",
+});
+```
+
+#### Stage 1: Setup Worktree
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Create git worktree and feature branch",
+  prompt: `Create worktree for feature ${featureName}:
+1. Compute worktree path: ${worktreePath}
+2. Run: git worktree add ${worktreePath} -b feature/${featureName}
+3. Verify worktree was created successfully
+4. Verify branch was created
+
+Commands:
+- git worktree add ${worktreePath} -b feature/${featureName}
+- git worktree list
+- git branch --list feature/${featureName}
+
+Return: { worktree_path, branch_name, success }`,
+  model: "haiku",
+});
+```
+
+#### Stage 2: Verify Environment
+
+```typescript
+Task({
+  subagent_type: "general-purpose",
+  description: "Run environment verification in new worktree",
+  prompt: `Run environment checks in ${worktreePath}:
+1. Change to worktree directory
+2. Run environment-check.cjs with appropriate flags
+3. Parse results
+4. Generate user-friendly report with next steps
+
+Commands:
+- cd ${worktreePath}
+- node .claude/scripts/environment-check.cjs ${flags}
+
+Return: { status, report, next_steps }`,
+  model: "haiku",
+});
+```
+
 ## /ship Flow
 
 ```text

@@ -18,9 +18,7 @@ const {
   readFile,
   getGitRoot,
 } = require('../lib/utils.cjs');
-
-// Command pattern for /ship
-const SHIP_PATTERN = /^\/ship\b/i;
+const { detectCommand, parseFlags } = require('../lib/command-utils.cjs');
 
 function getStateDir() {
   const gitRoot = getGitRoot() || process.cwd();
@@ -46,14 +44,17 @@ async function main() {
 
     const trimmedMessage = message.trim();
 
-    // Only handle /ship command
-    if (!SHIP_PATTERN.test(trimmedMessage)) {
+    // Only handle /ship command (T009: Use shared command detection)
+    const detectedCommand = detectCommand(trimmedMessage);
+    if (detectedCommand !== 'ship') {
       process.exit(0);
     }
 
-    // Check for --force flag (bypass gate)
-    const forceFlag = /--force\b/i.test(trimmedMessage);
-    if (forceFlag) {
+    // Check for --force flag (T009: Use shared flag parsing)
+    const flags = parseFlags(trimmedMessage, {
+      force: 'boolean'
+    });
+    if (flags.force) {
       logContext(`
 ---
 **Ship Gate: BYPASSED**

@@ -27,21 +27,27 @@ const {
   logContext,
   logError,
 } = require('../lib/utils.cjs');
-
-// Command pattern for /review
-const REVIEW_PATTERN = /^\/review\b/i;
+const { detectCommand, parseFlags: parseCommandFlags } = require('../lib/command-utils.cjs');
 
 /**
- * Parse flags from command
+ * Parse review-specific flags from command (T009: Use shared utilities)
  * @param {string} command
  * @returns {{free: boolean, claude: boolean, skipCr: boolean, all: boolean}}
  */
 function parseFlags(command) {
+  const rawFlags = parseCommandFlags(command, {
+    free: 'boolean',
+    claude: 'boolean',
+    'skip-cr': 'boolean',
+    all: 'boolean'
+  });
+
+  // Transform to expected format (skip-cr -> skipCr)
   const flags = {
-    free: /--free\b/.test(command),
-    claude: /--claude\b/.test(command),
-    skipCr: /--skip-cr\b/.test(command),
-    all: /--all\b/.test(command),
+    free: rawFlags.free,
+    claude: rawFlags.claude,
+    skipCr: rawFlags['skip-cr'],
+    all: rawFlags.all
   };
 
   // Default to --all if no flags specified
@@ -116,8 +122,9 @@ async function main() {
 
     const trimmedMessage = message.trim();
 
-    // Check if this is a /review command
-    if (!REVIEW_PATTERN.test(trimmedMessage)) {
+    // Check if this is a /review command (T009: Use shared command detection)
+    const detectedCommand = detectCommand(trimmedMessage);
+    if (detectedCommand !== 'review') {
       process.exit(0);
     }
 

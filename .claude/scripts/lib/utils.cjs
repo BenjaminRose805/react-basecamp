@@ -17,6 +17,7 @@ const isLinux = process.platform === 'linux';
 
 /**
  * Get the user's home directory (cross-platform)
+ * @returns {string} - User's home directory path
  */
 function getHomeDir() {
   return os.homedir();
@@ -24,6 +25,7 @@ function getHomeDir() {
 
 /**
  * Get the Claude config directory
+ * @returns {string} - Path to ~/.claude directory
  */
 function getClaudeDir() {
   return path.join(getHomeDir(), '.claude');
@@ -31,6 +33,7 @@ function getClaudeDir() {
 
 /**
  * Get the sessions directory
+ * @returns {string} - Path to ~/.claude/sessions directory
  */
 function getSessionsDir() {
   return path.join(getClaudeDir(), 'sessions');
@@ -38,6 +41,7 @@ function getSessionsDir() {
 
 /**
  * Get the learned skills directory
+ * @returns {string} - Path to ~/.claude/skills/learned directory
  */
 function getLearnedSkillsDir() {
   return path.join(getClaudeDir(), 'skills', 'learned');
@@ -45,6 +49,7 @@ function getLearnedSkillsDir() {
 
 /**
  * Get the temp directory (cross-platform)
+ * @returns {string} - System temporary directory path
  */
 function getTempDir() {
   return os.tmpdir();
@@ -52,6 +57,8 @@ function getTempDir() {
 
 /**
  * Ensure a directory exists (create if not)
+ * @param {string} dirPath - Directory path to ensure exists
+ * @returns {string} - The directory path
  */
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
@@ -62,6 +69,7 @@ function ensureDir(dirPath) {
 
 /**
  * Get current date in YYYY-MM-DD format
+ * @returns {string} - Formatted date string
  */
 function getDateString() {
   const now = new Date();
@@ -73,6 +81,7 @@ function getDateString() {
 
 /**
  * Get current time in HH:MM format
+ * @returns {string} - Formatted time string
  */
 function getTimeString() {
   const now = new Date();
@@ -83,6 +92,7 @@ function getTimeString() {
 
 /**
  * Get current datetime in YYYY-MM-DD HH:MM:SS format
+ * @returns {string} - Formatted datetime string
  */
 function getDateTimeString() {
   const now = new Date();
@@ -152,6 +162,7 @@ function findFiles(dir, pattern, options = {}) {
 
 /**
  * Read JSON from stdin (for hook input)
+ * @returns {Promise<object>} - Parsed JSON object from stdin
  */
 async function readStdinJson() {
   return new Promise((resolve, reject) => {
@@ -181,6 +192,7 @@ async function readStdinJson() {
 /**
  * Log to stderr (visible to user in Claude Code)
  * @deprecated Use logError() for clarity
+ * @param {string} message - The message to log
  */
 function log(message) {
   console.error(message);
@@ -189,6 +201,7 @@ function log(message) {
 /**
  * Output to stdout (returned to Claude)
  * @deprecated Use logContext() for clarity
+ * @param {string|object} data - Data to output
  */
 function output(data) {
   if (typeof data === 'object') {
@@ -246,26 +259,14 @@ function getLogsDir() {
 
 /**
  * Get git status information (branch and uncommitted count)
- * Shared helper used by session-start and other hooks
+ * DEPRECATED: Use getGitStatus() from git-utils.cjs instead
+ * This function has been moved to git-utils.cjs with enhanced features
  * @returns {string|null} Git status string or null if not in repo
  */
 function getGitStatus() {
-  if (!isGitRepo()) {
-    return null;
-  }
-
-  const branchResult = runCommand('git rev-parse --abbrev-ref HEAD');
-  const branch = branchResult.success ? branchResult.output : 'unknown';
-
-  const statusResult = runCommand('git status --porcelain');
-  const uncommittedCount = statusResult.success
-    ? statusResult.output.split('\n').filter(Boolean).length
-    : 0;
-
-  if (uncommittedCount === 0) {
-    return `Branch: ${branch} (clean)`;
-  }
-  return `Branch: ${branch} | ${uncommittedCount} uncommitted file(s)`;
+  // Import from git-utils for compatibility
+  const { getGitStatus: getGitStatusNew } = require('./git-utils.cjs');
+  return getGitStatusNew('short');
 }
 
 /**
@@ -341,7 +342,34 @@ function appendToLog(logName, data, maxEntries = 1000) {
 }
 
 /**
+ * Append a text message to a log file
+ * Used for operation logging (e.g., start-operations.log)
+ * @param {string} logName - Name of the log file (without .log extension)
+ * @param {string} message - Message to log
+ * @returns {boolean} - True if successful, false otherwise
+ */
+function appendToTextLog(logName, message) {
+  try {
+    const logsDir = getLogsDir();
+    ensureDir(logsDir);
+
+    const logPath = path.join(logsDir, `${logName}.log`);
+    const timestamp = getDateTimeString();
+    const logEntry = `[${timestamp}] ${message}\n`;
+
+    fs.appendFileSync(logPath, logEntry, 'utf8');
+    return true;
+  } catch (err) {
+    // Fail silently - don't break operations on logging errors
+    logError(`Warning: Failed to write to log file: ${err.message}`);
+    return false;
+  }
+}
+
+/**
  * Read a text file safely
+ * @param {string} filePath - Path to the file to read
+ * @returns {string|null} - File content or null if not found
  */
 function readFile(filePath) {
   try {
@@ -353,6 +381,8 @@ function readFile(filePath) {
 
 /**
  * Write a text file
+ * @param {string} filePath - Path to the file to write
+ * @param {string} content - Content to write
  */
 function writeFile(filePath, content) {
   ensureDir(path.dirname(filePath));
@@ -369,6 +399,8 @@ function appendFile(filePath, content) {
 
 /**
  * Check if a command exists in PATH
+ * @param {string} cmd - Command name to check
+ * @returns {boolean} - True if command exists in PATH
  */
 function commandExists(cmd) {
   try {
@@ -385,6 +417,9 @@ function commandExists(cmd) {
 
 /**
  * Run a command and return output
+ * @param {string} cmd - Command to execute
+ * @param {object} options - Options to pass to execSync
+ * @returns {object} - Result object with success and output properties
  */
 function runCommand(cmd, options = {}) {
   try {
@@ -401,77 +436,12 @@ function runCommand(cmd, options = {}) {
 
 /**
  * Check if current directory is a git repository
+ * @returns {boolean} - True if inside a git repository
  */
 function isGitRepo() {
   return runCommand('git rev-parse --git-dir').success;
 }
 
-/**
- * Get git modified files
- */
-function getGitModifiedFiles(patterns = []) {
-  if (!isGitRepo()) {return [];}
-
-  const result = runCommand('git diff --name-only HEAD');
-  if (!result.success) {return [];}
-
-  let files = result.output.split('\n').filter(Boolean);
-
-  if (patterns.length > 0) {
-    files = files.filter(file => {
-      return patterns.some(pattern => {
-        const regex = new RegExp(pattern);
-        return regex.test(file);
-      });
-    });
-  }
-
-  return files;
-}
-
-/**
- * Replace text in a file (cross-platform sed alternative)
- */
-function replaceInFile(filePath, search, replace) {
-  const content = readFile(filePath);
-  if (content === null) {return false;}
-
-  const newContent = content.replace(search, replace);
-  writeFile(filePath, newContent);
-  return true;
-}
-
-/**
- * Count occurrences of a pattern in a file
- */
-function countInFile(filePath, pattern) {
-  const content = readFile(filePath);
-  if (content === null) {return 0;}
-
-  const regex = pattern instanceof RegExp ? pattern : new RegExp(pattern, 'g');
-  const matches = content.match(regex);
-  return matches ? matches.length : 0;
-}
-
-/**
- * Search for pattern in file and return matching lines with line numbers
- */
-function grepFile(filePath, pattern) {
-  const content = readFile(filePath);
-  if (content === null) {return [];}
-
-  const regex = pattern instanceof RegExp ? pattern : new RegExp(pattern);
-  const lines = content.split('\n');
-  const results = [];
-
-  lines.forEach((line, index) => {
-    if (regex.test(line)) {
-      results.push({ lineNumber: index + 1, content: line });
-    }
-  });
-
-  return results;
-}
 
 module.exports = {
   // Platform info
@@ -497,9 +467,6 @@ module.exports = {
   findFiles,
   readFile,
   writeFile,
-  appendFile,
-  replaceInFile,
-  countInFile,
 
   // Hook I/O
   readStdinJson,
@@ -508,13 +475,13 @@ module.exports = {
   logError,
   logContext,
   appendToLog,
+  appendToTextLog,
   getLogsDir,
 
   // System
   commandExists,
   runCommand,
   isGitRepo,
-  getGitModifiedFiles,
 
   // Shared hook helpers
   getGitStatus,
