@@ -408,13 +408,12 @@ interface UnifiedCheckpoint {
 - Timestamps in ISO 8601 format
 - Schema version must be 1
 
-````
-
 ### 4. Handoff Protocol Extension (`.claude/sub-agents/protocols/handoff.md`)
 
 Extend existing handoff protocol with `mode` field, `previous_summary` naming, and token enforcement.
 
 **Key Design Decision:**
+
 - EXTEND existing file — no new file created
 - Additive changes only — existing anchors remain valid
 - Three edits to existing content, one new section appended
@@ -425,7 +424,7 @@ Add to JSON block:
 
 ```json
 "mode": "plan | code | ui | docs | eval | reconcile | research (required)"
-````
+```
 
 Add row to Request Fields table:
 
@@ -496,13 +495,12 @@ if (handoffData.context.previous_summary) {
 - Responses >500 tokens logged as warnings
 - Orchestrator decides whether to truncate or reject
 
-````
-
 ### 5. Integration Configuration (`.claude/config/integrations.json`)
 
 Configure Linear and Vercel integrations.
 
 **File Content:**
+
 ```json
 {
   "linear": {
@@ -518,7 +516,7 @@ Configure Linear and Vercel integrations.
     "require_preview_success": false
   }
 }
-````
+```
 
 **Field Descriptions:**
 
