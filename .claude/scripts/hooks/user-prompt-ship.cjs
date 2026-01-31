@@ -17,13 +17,9 @@ const {
   logError,
   readFile,
   getGitRoot,
+  getStateDir,
 } = require('../lib/utils.cjs');
 const { detectCommand, parseFlags } = require('../lib/command-utils.cjs');
-
-function getStateDir() {
-  const gitRoot = getGitRoot() || process.cwd();
-  return path.join(gitRoot, '.claude', 'state');
-}
 
 function getCurrentCommit() {
   try {
