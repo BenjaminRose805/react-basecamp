@@ -186,10 +186,11 @@ function updatePhase(command, phaseName, phaseData, feature = null) {
   // 2. If no checkpoint, create new one with defaults
   // 3. Update phases[phaseName] with phaseData
   // 4. Update state.current_phase if status is in_progress
-  // 5. Add phaseName to completed_phases if status is complete
-  // 6. Remove from pending_phases if status is complete/failed
-  // 7. Add timestamps (started_at if new, updated_at always)
-  // 8. Save checkpoint
+  // 5. Clear state.current_phase (set to null) if status is complete or failed
+  // 6. Add phaseName to completed_phases if status is complete
+  // 7. Remove from pending_phases if status is complete/failed
+  // 8. Add timestamps (started_at if new, updated_at always)
+  // 9. Save checkpoint
 }
 
 /**
@@ -478,7 +479,9 @@ The 500-token context_summary limit is enforced programmatically by orchestrator
 ### On Handoff Creation
 
 ```javascript
-const { validateContextSummary } = require("../scripts/lib/token-counter.cjs");
+const {
+  validateContextSummary,
+} = require("../../scripts/lib/token-counter.cjs");
 
 if (handoffData.context.previous_summary) {
   const result = validateContextSummary(handoffData.context.previous_summary);
