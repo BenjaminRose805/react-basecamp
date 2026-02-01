@@ -126,7 +126,7 @@ Create `specs/templates/spec.json` with fields: name, status, created, files, ph
 
 ## Task Dependencies
 
-```
+```text
 Phase 1: T001, T002, T003 (parallel)
 Phase 2: T004, T005, T006 (parallel, independent of Phase 1)
 Phase 3: T007, T008, T009 (parallel; T009 weakly depends on T008 for field consistency)

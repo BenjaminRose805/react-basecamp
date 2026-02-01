@@ -13,7 +13,7 @@ Variable substitution uses `{{double_brace}}` syntax.
 │ Sub-agent: {{sub_agent}} ({{model}})                                 │
 ├──────────────────────────────────────────────────────────────────────┤
 │ Error: {{message}}                                                   │
-│ File: {{file}}:{{line}}                        (if applicable)       │
+│ File: {{file_line}}                              (if applicable)       │
 ├──────────────────────────────────────────────────────────────────────┤
 │ Recovery Options:                                                    │
 │   1. {{option_1}}                                                    │

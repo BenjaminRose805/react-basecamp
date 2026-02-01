@@ -14,7 +14,7 @@ The unified template system provides 9 template files across 3 locations to stan
 
 ### Template Locations
 
-```
+```text
 .claude/skills/preview/templates/
   ├── command-preview.md    # Command execution previews
   └── error-report.md       # Error reports with recovery
@@ -75,7 +75,7 @@ Layout sections:
 Box-drawing ERROR layout:
 
 - Stage identifier: `{{stage}}`, `{{sub-agent}}`
-- Error details: `{{message}}`, `{{file}}:{{line}}`
+- Error details: `{{message}}`, `{{file_line}}`
 - Recovery options: Numbered list
 - Checkpoint: `{{checkpoint_path}}`
 - Resume command: `{{resume_cmd}}`
@@ -136,13 +136,13 @@ Human-readable quick review. Required sections:
 Shared metadata. Required fields:
 
 ```yaml
-spec_id: { { id } }
-feature: { { name } }
-status: { { status } }
-created: { { date } }
-updated: { { date } }
-author: { { agent } }
-version: { { semver } }
+spec_id: "{{id}}"
+feature: "{{name}}"
+status: "{{status}}"
+created: "{{created}}"
+updated: "{{updated}}"
+author: "{{agent}}"
+version: "{{semver}}"
 ```
 
 ### 9. spec.json (New)
@@ -170,7 +170,7 @@ Machine-readable for /implement. Required fields:
 
 ## Data Flow
 
-```
+```text
 /design → reads specs/templates/*.md
        → writes specs/{feature}/ using templates
        → creates summary.md, meta.yaml, spec.json

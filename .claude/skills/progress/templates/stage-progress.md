@@ -18,11 +18,9 @@ Stage {{n}}/{{total}}: {{stage_name}}
 [============================] {{percent}}% | Stage {{n}}/{{total}} | {{elapsed}} elapsed
 
 Stage Status:
-  ✓ Stage 1: {{completed_stage_name}} ({{duration}})
-  ✓ Stage 2: {{completed_stage_name}} ({{duration}})
-  ● Stage 3: {{running_stage_name}} (in progress)
-  ○ Stage 4: {{pending_stage_name}} (pending)
-  ○ Stage 5: {{pending_stage_name}} (pending)
+{{#stages}}
+  {{indicator}} Stage {{stage_number}}: {{stage_name}} ({{stage_status}})
+{{/stages}}
 ```
 
 **Unicode Indicators:**

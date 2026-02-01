@@ -14,13 +14,13 @@
 
 **Current State:**
 
-```
+```text
 {{current_state_diagram_or_description}}
 ```
 
 **Target State:**
 
-```
+```text
 {{target_state_diagram_or_description}}
 ```
 
@@ -55,7 +55,7 @@ interface {{ModelName}} {
 
 ## Data Flow
 
-```
+```text
 {{step_1}} -> {{step_2}} -> {{step_3}}
 ```
 
@@ -65,7 +65,7 @@ interface {{ModelName}} {
 
 ### {{error_scenario}}
 
-```
+```text
 Error: {{error_message}}
 ```
 

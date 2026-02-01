@@ -149,6 +149,7 @@ knowledge_base:
   code_guidelines:
     enabled: true
     filePatterns:
+      - "**/CLAUDE.md"
       - ".claude/docs/rules/coding-style.md"
       - ".claude/docs/rules/security.md"
       - ".claude/docs/rules/testing.md"

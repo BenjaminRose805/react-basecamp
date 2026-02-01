@@ -22,3 +22,4 @@
 - [Design](./design.md)
 - [Tasks](./tasks.md)
 - [Metadata](./meta.yaml)
+- [Spec JSON](./spec.json)
