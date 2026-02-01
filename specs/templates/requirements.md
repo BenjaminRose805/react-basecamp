@@ -6,7 +6,7 @@
 
 ## Overview
 
-{{1-2 sentences describing what we're building and why}}
+{{overview}}
 
 ---
 
@@ -49,8 +49,8 @@
 
 ## Dependencies
 
-| Dependency          | Type                  | Status            |
-| ------------------- | --------------------- | ----------------- |
-| {{dependency_name}} | {{Internal/External}} | {{Ready/Pending}} |
+| Dependency          | Type                 | Status                |
+| ------------------- | -------------------- | --------------------- |
+| {{dependency_name}} | {{dependency_scope}} | {{dependency_status}} |
 
 ---

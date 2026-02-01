@@ -10,25 +10,25 @@
 
 ---
 
-## Phase 1: {{phase_name}}
+## Phase 1: {{phase1_name}}
 
-### T001: {{task_title}} [{{user_story}}]
+### T001: {{task1_title}} [{{task1_user_story}}]
 
-{{task_description}}
+{{task1_description}}
 
 **\_Prompt:**
-**Role:** {{role}} | **Task:** {{instructions}} | **Restrictions:** {{constraints}} | **Success:** {{criteria}}
+**Role:** {{task1_role}} | **Task:** {{task1_instructions}} | **Restrictions:** {{task1_constraints}} | **Success:** {{task1_criteria}}
 
 ---
 
-## Phase 2: {{phase_name}}
+## Phase 2: {{phase2_name}}
 
-### T002: {{task_title}} [{{user_story}}]
+### T002: {{task2_title}} [{{task2_user_story}}]
 
-{{task_description}}
+{{task2_description}}
 
 **\_Prompt:**
-**Role:** {{role}} | **Task:** {{instructions}} | **Restrictions:** {{constraints}} | **Success:** {{criteria}}
+**Role:** {{task2_role}} | **Task:** {{task2_instructions}} | **Restrictions:** {{task2_constraints}} | **Success:** {{task2_criteria}}
 
 ---
 

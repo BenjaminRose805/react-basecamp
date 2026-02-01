@@ -75,9 +75,9 @@ Error: {{error_message}}
 
 ## Testing Strategy
 
-| Test Type   | Test Case | Verification        |
-| ----------- | --------- | ------------------- |
-| Unit        | {{case}}  | {{expected_result}} |
-| Integration | {{case}}  | {{expected_result}} |
+| Test Type   | Test Case            | Verification                    |
+| ----------- | -------------------- | ------------------------------- |
+| Unit        | {{unit_case}}        | {{unit_expected_result}}        |
+| Integration | {{integration_case}} | {{integration_expected_result}} |
 
 ---
