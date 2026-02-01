@@ -1,0 +1,10 @@
+# Shared metadata for feature specification
+# Source of truth for spec_id, feature name, status, and timestamps
+
+spec_id: "{{id}}"
+feature: "{{name}}"
+status: "{{status}}"
+created: "{{date}}"
+updated: "{{date}}"
+author: "{{agent}}"
+version: "{{semver}}"

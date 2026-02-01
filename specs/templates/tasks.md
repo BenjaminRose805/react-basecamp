@@ -1,100 +1,42 @@
-# Tasks: [Feature Name]
+# Tasks: {{feature_name}}
 
 > **Status:** Draft
-> **Created:** [YYYY-MM-DD]
-> **Spec ID:** [feature-id]
+> **Created:** {{YYYY-MM-DD}}
+> **Spec ID:** {{feature-id}}
 
 ## Progress
 
-- [ ] Phase 1: [Phase Name] (0/N)
-- [ ] Phase 2: [Phase Name] (0/N)
-- [ ] Phase 3: [Phase Name] (0/N)
-
-**Total:** 0/N tasks complete
+**Total:** {{X}}/{{Y}} tasks complete
 
 ---
 
-## Phase 1: [Phase Name]
+## Phase 1: {{phase_name}}
 
-[Brief description of phase goals]
+### T001: {{task_title}} [{{user_story}}]
 
-- [ ] **T001** [US#] Verify prerequisites
-  - [Step 1]
-  - [Step 2]
-  - File: [file path or N/A]
+{{task_description}}
 
-- [ ] **T002** [US#] [Task description]
-  - [Step 1]
-  - Expected: [outcome]
-  - File: [file path]
+**\_Prompt:**
+**Role:** {{role}} | **Task:** {{instructions}} | **Restrictions:** {{constraints}} | **Success:** {{criteria}}
 
 ---
 
-## Phase 2: [Phase Name]
+## Phase 2: {{phase_name}}
 
-[Brief description of phase goals]
+### T002: {{task_title}} [{{user_story}}]
 
-- [ ] **T003** [US#] [Task description]
-  - [Step 1]
-  - [Step 2]
-  - File: [file path]
+{{task_description}}
 
-- [ ] **T004** [US#] [Task description]
-  - [Step 1]
-  - File: [file path]
-
----
-
-## Phase 3: Validation
-
-- [ ] **T005** [US#] Test [component]
-  - Run: [command]
-  - Verify: [expected result]
-  - File: N/A (manual testing)
-
-- [ ] **T006** Document any issues found
-  - If validation fails, document in spec
-  - File: `specs/[feature]/issues.md` (if needed)
+**\_Prompt:**
+**Role:** {{role}} | **Task:** {{instructions}} | **Restrictions:** {{constraints}} | **Success:** {{criteria}}
 
 ---
 
 ## Task Dependencies
 
 ```text
-T001 ---> T002 ---> T003
-              |
-              +---> T004 ---> T005 ---> T006
+T001 ---> T002
 ```
-
-**Legend:**
-
-- [Parallel tasks explanation]
-- [Sequential dependencies explanation]
-
----
-
-## Execution Notes
-
-### Parallel Execution Opportunities
-
-| Phase | Parallel Tasks |
-| ----- | -------------- |
-| 1     | T001, T002     |
-| 2     | T003, T004     |
-
-### Estimated Effort
-
-| Phase     | Tasks | Effort     |
-| --------- | ----- | ---------- |
-| [Phase]   | N     | ~X min     |
-| **Total** | **N** | **~X min** |
-
-### Rollback Checkpoint
-
-After [task], assess:
-
-- IF [condition] fails -> [rollback action]
-- IF [condition] succeeds -> proceed with [next phase]
 
 ---
 
@@ -102,6 +44,8 @@ After [task], assess:
 
 All tasks are complete WHEN:
 
-1. [ ] [Criterion 1]
-2. [ ] [Criterion 2]
-3. [ ] [Criterion 3]
+1. [ ] {{criterion_1}}
+2. [ ] {{criterion_2}}
+3. [ ] {{criterion_3}}
+
+---

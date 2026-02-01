@@ -1,0 +1,30 @@
+{
+  "_note": "Template for machine-readable spec metadata. Fill {{placeholders}} with actual values.",
+  "_note_linear": "Optional: Remove linear block if Linear is not configured",
+  "name": "{{feature}}",
+  "status": "{{status}}",
+  "created": "{{date}}",
+  "updated": "{{date}}",
+  "author": "{{agent}}",
+  "version": "{{semver}}",
+  "files": {
+    "requirements": "requirements.md",
+    "design": "design.md",
+    "tasks": "tasks.md",
+    "summary": "summary.md",
+    "meta": "meta.yaml"
+  },
+  "phases": ["{{phase_1}}", "{{phase_2}}", "{{phase_3}}"],
+  "tasks": [
+    {
+      "id": "{{task_id}}",
+      "title": "{{task_title}}",
+      "status": "{{task_status}}",
+      "assignee": "{{task_assignee}}"
+    }
+  ],
+  "linear": {
+    "identifier": "{{linear_id}}",
+    "url": "{{linear_url}}"
+  }
+}

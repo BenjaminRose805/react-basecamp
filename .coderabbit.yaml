@@ -122,11 +122,16 @@ reviews:
   pre_merge_checks:
     title:
       mode: warning
+      requirements: "Must follow conventional commits (feat:, fix:, docs:, chore:)"
     description:
       mode: warning
     docstrings:
       threshold: 80
       mode: warning
+    custom_checks:
+      - name: "Linear Issue Linked"
+        instructions: "PR body must contain 'closes BAS-' or 'fixes BAS-' followed by a number, OR the branch name must contain 'BAS-' followed by a number. If neither is present, fail with a suggestion to link a Linear issue."
+        mode: warning
 
   # Finishing touches - on-demand generation
   finishing_touches:
@@ -143,6 +148,11 @@ knowledge_base:
     enabled: true
   code_guidelines:
     enabled: true
+    filePatterns:
+      - ".claude/docs/rules/coding-style.md"
+      - ".claude/docs/rules/security.md"
+      - ".claude/docs/rules/testing.md"
+      - ".claude/docs/rules/patterns.md"
 
 chat:
   # Enable chat interactions

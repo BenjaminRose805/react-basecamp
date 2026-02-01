@@ -1,53 +1,53 @@
-# Design: [Feature Name]
+# Design: {{feature_name}}
 
 > **Status:** Draft
-> **Created:** [YYYY-MM-DD]
-> **Spec ID:** [feature-id]
+> **Created:** {{YYYY-MM-DD}}
+> **Spec ID:** {{feature-id}}
 
 ## Overview
 
-[Brief description of the design approach]
+{{brief_description_of_design_approach}}
 
 ---
 
 ## Architecture
 
-### Current State
+**Current State:**
 
 ```
-[Diagram or description of current state]
+{{current_state_diagram_or_description}}
 ```
 
-### Target State
+**Target State:**
 
 ```
-[Diagram or description of target state]
+{{target_state_diagram_or_description}}
 ```
 
 ---
 
 ## Component Design
 
-### 1. [Component Name]
+### 1. {{component_name}}
 
-[Description of component]
+{{description_of_component}}
 
-| Input   | Output   |
-| ------- | -------- |
-| [Input] | [Output] |
+| Input     | Output     |
+| --------- | ---------- |
+| {{input}} | {{output}} |
 
-**Implementation:** [Notes on implementation approach]
+**Implementation:** {{implementation_approach}}
 
 ---
 
 ## Data Models
 
-### [Model Name]
+### {{model_name}}
 
 ```typescript
-interface ModelName {
+interface {{ModelName}} {
   id: string;
-  // ... fields
+  {{field_name}}: {{field_type}};
 }
 ```
 
@@ -56,72 +56,28 @@ interface ModelName {
 ## Data Flow
 
 ```
-[Step 1]
-    |
-    v
-[Step 2]
-    |
-    v
-[Step 3]
+{{step_1}} -> {{step_2}} -> {{step_3}}
 ```
 
 ---
 
 ## Error Handling
 
-### [Error Scenario]
+### {{error_scenario}}
 
 ```
-Error: [error message]
+Error: {{error_message}}
 ```
 
-**Response:** [How to handle]
+**Response:** {{how_to_handle}}
 
 ---
 
 ## Testing Strategy
 
-### Unit Tests
-
-| Test Case | Verification      |
-| --------- | ----------------- |
-| [Case]    | [Expected result] |
-
-### Integration Tests
-
-| Test Case | Verification      |
-| --------- | ----------------- |
-| [Case]    | [Expected result] |
+| Test Type   | Test Case | Verification        |
+| ----------- | --------- | ------------------- |
+| Unit        | {{case}}  | {{expected_result}} |
+| Integration | {{case}}  | {{expected_result}} |
 
 ---
-
-## Implementation Notes
-
-### Why [Decision]?
-
-1. [Reason 1]
-2. [Reason 2]
-
----
-
-## Security Considerations
-
-### [Security Topic]
-
-- [Security consideration]
-
----
-
-## Alternatives Considered
-
-### Alternative 1: [Name]
-
-**Rejected:** [Reason]
-
----
-
-## Dependencies
-
-| Component   | Version   | Purpose   |
-| ----------- | --------- | --------- |
-| [Component] | [Version] | [Purpose] |
