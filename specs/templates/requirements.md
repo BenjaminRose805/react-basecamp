@@ -1,8 +1,8 @@
-# Requirements: {{feature_name}}
+# Requirements: {{name}}
 
 > **Status:** Draft
-> **Created:** {{YYYY-MM-DD}}
-> **Spec ID:** {{feature-id}}
+> **Created:** {{created}}
+> **Spec ID:** {{id}}
 
 ## Overview
 

@@ -1,8 +1,8 @@
-# Design: {{feature_name}}
+# Design: {{name}}
 
 > **Status:** Draft
-> **Created:** {{YYYY-MM-DD}}
-> **Spec ID:** {{feature-id}}
+> **Created:** {{created}}
+> **Spec ID:** {{id}}
 
 ## Overview
 

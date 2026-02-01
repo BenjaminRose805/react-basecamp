@@ -1,8 +1,8 @@
-# Tasks: {{feature_name}}
+# Tasks: {{name}}
 
 > **Status:** Draft
-> **Created:** {{YYYY-MM-DD}}
-> **Spec ID:** {{feature-id}}
+> **Created:** {{created}}
+> **Spec ID:** {{id}}
 
 ## Progress
 

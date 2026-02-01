@@ -41,7 +41,7 @@ Box-drawing layout with variable sections:
 
 - Header: `{{command}}` + `{{description}}`
 - CONTEXT: `{{dir}}`, `{{branch}}`, `{{feature}}` (if applicable), `{{gate}}` (if applicable), `{{checkpoint}}` (if applicable)
-- STAGES: Numbered list with `{{sub-agent}}` + `{{model}}`
+- STAGES: Numbered list with `{{sub_agent}}` + `{{model}}`
 - OUTPUT: File tree structure
 
 User confirmation: After displaying the preview, prompt the user via `AskUserQuestion` with Run/Cancel options before proceeding.
@@ -66,15 +66,15 @@ Vercel extension for /ship:
 Layout sections:
 
 - Command header line
-- Current stage detail: `{{sub-agent}}`, `{{model}}`, `{{action}}`, `{{elapsed}}`
-- ASCII progress bar: `{{percent}}`, `{{stage}}`, `{{elapsed}}`
+- Current stage detail: `{{sub_agent}}`, `{{model}}`, `{{current_action}}`, `{{elapsed}}`
+- ASCII progress bar: `{{percent}}`, `{{stage_name}}`, `{{elapsed}}`
 - Stage status list: ✓●○✗⊘ indicators
 
 ### 3. error-report.md
 
 Box-drawing ERROR layout:
 
-- Stage identifier: `{{stage}}`, `{{sub-agent}}`
+- Stage identifier: `{{stage_name}}`, `{{sub_agent}}`
 - Error details: `{{message}}`, `{{file_line}}`
 - Recovery options: Numbered list
 - Checkpoint: `{{checkpoint_path}}`
@@ -158,7 +158,7 @@ Machine-readable for /implement. Required fields:
   "phases": [],
   "tasks": [],
   "linear": {
-    "identifier": "{{LINEAR_ID}}",
+    "identifier": "{{linear_id}}",
     "url": "{{linear_url}}"
   }
 }
