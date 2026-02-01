@@ -93,8 +93,6 @@ interface SubAgentPlan {
 │  │    → Restart session in new worktree                        ││
 │  │    → Run /plan to begin designing                           ││
 │  └─────────────────────────────────────────────────────────────┘│
-│                                                                 │
-│  [Enter] Run  [e] Edit name  [Esc] Cancel                       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -125,8 +123,6 @@ interface SubAgentPlan {
 │  └─────────────────────────────────────────────────────────────┘│
 │                                                                 │
 │  Output: specs/user-authentication/                             │
-│                                                                 │
-│  [Enter] Run  [e] Edit  [?] Details  [Esc] Cancel               │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -159,7 +155,6 @@ interface SubAgentPlan {
 │  │    □ Prioritize by severity                                 ││
 │  └─────────────────────────────────────────────────────────────┘│
 │                                                                 │
-│  [Enter] Run  [e] Edit  [?] Details  [Esc] Cancel               │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -204,8 +199,6 @@ interface SubAgentPlan {
 │  └─────────────────────────────────────────────────────────────┘│
 │                                                                 │
 │  Tools: cclsp, context7, next-devtools                          │
-│                                                                 │
-│  [Enter] Run  [e] Edit  [?] Details  [Esc] Cancel               │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -240,83 +233,34 @@ interface SubAgentPlan {
 │  │    □ Report comments or approval                            ││
 │  └─────────────────────────────────────────────────────────────┘│
 │                                                                 │
-│  [Enter] Run  [e] Edit  [Esc] Cancel                            │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## User Interactions
+## User Confirmation
 
-### Keyboard Controls
+After rendering the preview box, use AskUserQuestion tool to confirm execution:
 
-| Key     | Action  | Description                            |
-| ------- | ------- | -------------------------------------- |
-| `Enter` | Run     | Execute the plan as shown              |
-| `e`     | Edit    | Modify scope or options                |
-| `?`     | Details | Show expanded details (tools, context) |
-| `Esc`   | Cancel  | Abort without executing                |
+```typescript
+// 1. Call AskUserQuestion tool
+AskUserQuestion({
+  questions: [
+    {
+      question: `Execute /${command}?`,
+      header: "Run",
+      options: [
+        { label: "Run", description: "Execute the plan as shown" },
+        { label: "Cancel", description: "Abort without executing" },
+      ],
+      multiSelect: false,
+    },
+  ],
+});
 
-### Edit Mode
-
-When user presses `e`:
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│  Edit Execution Plan                                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Scope: login form                                              │
-│  ─────────────────                                              │
-│  Current: "Login form UI"                                       │
-│  New scope: _                                                   │
-│                                                                 │
-│  Options:                                                       │
-│  ─────────                                                      │
-│  [ ] Skip research phase                                        │
-│  [ ] Skip validation phase                                      │
-│  [x] Include accessibility audit                                │
-│                                                                 │
-│  [Enter] Apply  [Esc] Cancel                                    │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Details View
-
-When user presses `?`:
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│  Execution Details                                              │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  MCP Servers:                                                   │
-│  ─────────────                                                  │
-│  • cclsp - TypeScript LSP for code navigation                   │
-│  • shadcn - Component registry lookup                           │
-│  • playwright - E2E and accessibility testing                   │
-│  • context7 - Library documentation lookup                      │
-│                                                                 │
-│  CLI Tools:                                                     │
-│  ──────────                                                     │
-│  • pnpm test - Run Vitest tests                                 │
-│  • pnpm typecheck - TypeScript checking                         │
-│  • pnpm lint - ESLint checking                                  │
-│                                                                 │
-│  Spec Reference:                                                │
-│  ───────────────                                                │
-│  • specs/login-form/design.md                                   │
-│                                                                 │
-│  Estimated Context Usage:                                       │
-│  ─────────────────────────                                      │
-│  • Research: ~15% (Opus)                                        │
-│  • Build: ~50% (Sonnet)                                         │
-│  • Validate: ~10% (Haiku)                                       │
-│                                                                 │
-│  [Any key] Back                                                 │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+// 2. Check user's response before proceeding
+// If user selected "Cancel", STOP execution immediately.
+// Only proceed with command execution if user selected "Run".
 ```
 
 ---
