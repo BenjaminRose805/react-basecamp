@@ -25,7 +25,7 @@ Execute an approved spec with TDD methodology and automatic agent routing.
 | --phase=N | Execute specific phase(s) | --phase=2   |
 | --resume  | Resume from checkpoint    | --resume    |
 
-**Flag Precedence:** --task > --phase > --resume (most granular wins)
+**Filter Precedence:** --task > --phase (most specific wins). --resume is orthogonal (controls starting point, combinable with either filter).
 
 ---
 
@@ -136,13 +136,13 @@ Return: { "passed": true/false, "issues": [...] }`,
 ## Examples
 
 ```bash
-/implement    # Build whatever spec was approved via /plan
+/implement    # Build whatever spec was approved via /design
 ```
 
 ## Prerequisites
 
-- Must have an approved spec from `/plan`
-- If no spec exists, you'll be prompted to run `/plan` first
+- Must have an approved spec from `/design`
+- If no spec exists, you'll be prompted to run `/design` first
 
 ## What Happens
 
@@ -584,13 +584,13 @@ All errors during execution should be rendered using the error-report template.
 | `{{option_2}}`        | Alternative recovery option (e.g., "Run without checkpoint: `/implement`")        |
 | `{{option_3}}`        | Fallback option (e.g., "Investigate: check error details above")                  |
 | `{{checkpoint_path}}` | `.claude/state/implement-{{feature}}.json`                                        |
-| `{{resume_cmd}}`      | `/implement {{feature}} --resume`                                                 |
+| `{{resume_cmd}}`      | `/implement --resume`                                                             |
 
 **Error scenarios and recovery:**
 
 | Scenario             | Handling                                      | Recovery                                       |
 | -------------------- | --------------------------------------------- | ---------------------------------------------- |
-| No approved spec     | Error: Run /plan first                        | Run `/design` then `/implement`                |
+| No approved spec     | Error: Run /design first                      | Run `/design` then `/implement`                |
 | Invalid task ID      | Error: List available task IDs                | Re-run with valid `--task` flag                |
 | Invalid phase number | Error: List available phases                  | Re-run with valid `--phase` flag               |
 | Empty filter result  | Error: Explain why no tasks matched           | Adjust filter flags                            |

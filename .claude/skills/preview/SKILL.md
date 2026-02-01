@@ -243,6 +243,7 @@ interface SubAgentPlan {
 After rendering the preview box, use AskUserQuestion tool to confirm execution:
 
 ```typescript
+// 1. Call AskUserQuestion tool
 AskUserQuestion({
   questions: [
     {
@@ -256,6 +257,10 @@ AskUserQuestion({
     },
   ],
 });
+
+// 2. Check user's response before proceeding
+// If user selected "Cancel", STOP execution immediately.
+// Only proceed with command execution if user selected "Run".
 ```
 
 ---
