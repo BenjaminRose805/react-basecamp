@@ -5,8 +5,27 @@ Execute an approved spec with TDD methodology and automatic agent routing.
 ## Usage
 
 ```bash
-/implement                # Build the approved spec
+/implement                       # Build the approved spec
+/implement --task=T001           # Run single task
+/implement --task=T001,T002,T003 # Run specific tasks
+/implement --task=T001-T005      # Run task range
+/implement --phase=1             # Run phase 1 only
+/implement --phase=1,2           # Run phases 1 and 2
+/implement --phase=2+            # Run phase 2 onwards
+/implement --resume              # Continue from checkpoint
 ```
+
+---
+
+## Flags
+
+| Flag      | Description               | Example     |
+| --------- | ------------------------- | ----------- |
+| --task=ID | Execute specific task(s)  | --task=T001 |
+| --phase=N | Execute specific phase(s) | --phase=2   |
+| --resume  | Resume from checkpoint    | --resume    |
+
+**Flag Precedence:** --task > --phase > --resume (most granular wins)
 
 ---
 
@@ -15,7 +34,7 @@ Execute an approved spec with TDD methodology and automatic agent routing.
 > **STOP. Before executing /implement, you MUST:**
 >
 > 1. **Show preview** - Display the execution plan (see Preview section below)
-> 2. **Get confirmation** - Wait for user to press [Enter] to run or [Esc] to cancel
+> 2. **Get confirmation** - Use AskUserQuestion tool to confirm Run/Cancel
 > 3. **Load agent file** - Read the appropriate agent file based on routing:
 >    - Backend → `.claude/agents/code-agent.md`
 >    - Frontend → `.claude/agents/ui-agent.md`
@@ -127,12 +146,20 @@ Return: { "passed": true/false, "issues": [...] }`,
 
 ## What Happens
 
-1. **Check**: Verify approved spec exists
-2. **Route**: Analyze spec to determine agents needed
-3. **Preview**: Show all stages, agents, sub-agents
-4. **Execute**: Run TDD workflow (red → green → refactor)
-5. **Verify**: Run all quality checks
-6. **Report**: Show files created and verification results
+1. **Check spec exists** - Verify specs/{feature}/tasks.md exists
+2. **Parse tasks** - Use task-parser.parseTasks() to get structured tasks
+3. **Load checkpoint** - If --resume, load .claude/state/implement-{feature}.json
+4. **Merge status** - Merge checkpoint status with parsed tasks
+5. **Apply filters** - Filter tasks based on --task or --phase flags
+6. **Route agents** - Analyze tasks to determine which agents needed
+7. **Show preview** - Display unified preview with PROGRESS section
+8. **Save pre-checkpoint** - Save initial checkpoint before first task
+9. **Execute tasks** - For each task:
+   - Route to appropriate agent (code/ui/docs/eval)
+   - Update checkpoint with task completion
+   - Update tasks.md checkbox
+10. **Verify** - Run quality checks (lint, typecheck, tests)
+11. **Complete checkpoint** - Mark checkpoint as complete and report
 
 ## Routing Logic
 
@@ -146,70 +173,350 @@ Based on spec content:
 | Evaluation tasks                   | eval-agent         |
 | Mixed (backend + frontend)         | implement workflow |
 
+## Task Filtering
+
+**--task flag:**
+
+- Single: `--task=T001` executes only T001
+- Multiple: `--task=T001,T002,T003` executes specified tasks
+- Range: `--task=T001-T005` executes T001 through T005
+
+**--phase flag:**
+
+- Single: `--phase=1` executes all tasks in phase 1
+- Multiple: `--phase=1,2` executes all tasks in phases 1 and 2
+- Plus: `--phase=2+` executes phase 2 and all subsequent phases
+
+**Flag combinations:**
+
+- `--task` overrides `--phase` (most granular wins)
+- `--resume --task=T005` resumes but only executes T005+
+- `--resume --phase=2` resumes but only executes phase 2 tasks
+
+## Checkpoint Recovery
+
+When --resume is used:
+
+1. Load checkpoint from .claude/state/implement-{feature}.json
+2. Validate checkpoint schema version (must be 1)
+3. Check head_commit for staleness (warn if different)
+4. Merge checkpoint task status with parsed tasks
+5. Find first task with status !== 'complete'
+6. Resume execution from that task
+7. Skip all previously completed tasks
+
+**Light Pre-Checkpoint:**
+Before executing the first task, a light checkpoint is saved containing all tasks with status from tasks.md. This enables recovery even if the first task fails.
+
+If checkpoint doesn't exist, report error and suggest running without --resume.
+
+## Checkpoint Integration
+
+The orchestrating agent uses checkpoint-manager.cjs to track progress across all tasks.
+
+### Step 3: Load Checkpoint (--resume)
+
+```javascript
+const {
+  loadCheckpoint,
+} = require(".claude/scripts/lib/checkpoint-manager.cjs");
+const checkpoint = loadCheckpoint("implement", feature);
+
+if (!checkpoint) {
+  throw new Error("Checkpoint not found. Run without --resume to start fresh.");
+}
+
+// Validate schema version
+if (checkpoint.version !== 1) {
+  throw new Error(`Unsupported checkpoint version: ${checkpoint.version}`);
+}
+
+// Warn if head_commit differs (stale checkpoint)
+const currentCommit = execSync("git rev-parse HEAD").toString().trim();
+if (checkpoint.head_commit !== currentCommit) {
+  console.warn("Warning: Checkpoint was created at a different commit.");
+  console.warn(`Checkpoint: ${checkpoint.head_commit}`);
+  console.warn(`Current: ${currentCommit}`);
+}
+```
+
+### Step 4: Merge Checkpoint Status with Parsed Tasks
+
+```javascript
+// After parsing tasks with task-parser.parseTasks()
+for (const phase of parsedTasks.phases) {
+  const phaseKey = `phase-${phase.number}`;
+  const checkpointPhase = checkpoint?.phases?.[phaseKey];
+
+  if (checkpointPhase) {
+    for (const task of phase.tasks) {
+      const checkpointTask = checkpointPhase.tasks?.[task.id];
+      if (checkpointTask?.status === "complete") {
+        task.status = "complete";
+      }
+    }
+  }
+}
+
+// Find first incomplete task
+const firstIncomplete = parsedTasks.phases
+  .flatMap((p) => p.tasks)
+  .find((t) => t.status !== "complete");
+```
+
+### Step 8: Save Pre-Checkpoint (Before First Task)
+
+```javascript
+const {
+  saveCheckpoint,
+} = require(".claude/scripts/lib/checkpoint-manager.cjs");
+const { execSync } = require("child_process");
+
+// Build initial checkpoint structure
+const initialCheckpoint = {
+  version: 1,
+  command: "implement",
+  feature,
+  head_commit: execSync("git rev-parse HEAD").toString().trim(),
+  state: {
+    current_phase: null,
+    completed_phases: [],
+    pending_phases: parsedTasks.phases.map((p) => `phase-${p.number}`),
+  },
+  phases: {},
+};
+
+// Populate phases from parsed tasks
+for (const phase of parsedTasks.phases) {
+  const phaseKey = `phase-${phase.number}`;
+  initialCheckpoint.phases[phaseKey] = {
+    status: "pending",
+    tasks: {},
+  };
+
+  for (const task of phase.tasks) {
+    initialCheckpoint.phases[phaseKey].tasks[task.id] = {
+      status: task.status || "pending",
+      description: task.description,
+    };
+  }
+}
+
+// Save checkpoint before execution starts
+saveCheckpoint("implement", initialCheckpoint, feature);
+```
+
+### Step 9: Update Checkpoint Per Task
+
+```javascript
+const { updatePhase } = require(".claude/scripts/lib/checkpoint-manager.cjs");
+const { updateTaskCheckbox } = require(".claude/scripts/lib/task-parser.cjs");
+
+// After a task completes successfully
+const phaseKey = `phase-${phase.number}`;
+const taskId = task.id;
+
+// Update checkpoint
+updatePhase(
+  "implement",
+  phaseKey,
+  {
+    status: "in_progress",
+    tasks: {
+      [taskId]: { status: "complete" },
+    },
+  },
+  feature
+);
+
+// Update tasks.md checkbox
+const tasksPath = `specs/${feature}/tasks.md`;
+updateTaskCheckbox(tasksPath, taskId, true);
+
+// If all tasks in phase complete, mark phase complete
+const allComplete = phase.tasks.every((t) => t.status === "complete");
+if (allComplete) {
+  updatePhase(
+    "implement",
+    phaseKey,
+    {
+      status: "complete",
+    },
+    feature
+  );
+}
+```
+
+### Step 11: Complete Checkpoint
+
+```javascript
+const {
+  completeCheckpoint,
+} = require(".claude/scripts/lib/checkpoint-manager.cjs");
+
+// After all tasks complete successfully
+completeCheckpoint("implement", feature);
+
+// This moves checkpoint to .completed/ archive
+```
+
+### Checkpoint State Schema
+
+```json
+{
+  "version": 1,
+  "command": "implement",
+  "feature": "user-authentication",
+  "head_commit": "abc123def456...",
+  "state": {
+    "current_phase": "phase-2",
+    "completed_phases": ["phase-1"],
+    "pending_phases": ["phase-3", "phase-4"]
+  },
+  "phases": {
+    "phase-1": {
+      "status": "complete",
+      "tasks": {
+        "T001": { "status": "complete", "description": "Create User model" },
+        "T002": { "status": "complete", "description": "Create migration" }
+      }
+    },
+    "phase-2": {
+      "status": "in_progress",
+      "tasks": {
+        "T003": { "status": "complete", "description": "Create router" },
+        "T004": { "status": "pending", "description": "Implement login" }
+      }
+    }
+  }
+}
+```
+
 ## Preview
 
+**Template:** Read `.claude/skills/preview/templates/command-preview.md` for base layout.
+
+**Variables:**
+
+| Variable               | Value                                      |
+| ---------------------- | ------------------------------------------ |
+| `{{command}}`          | `implement`                                |
+| `{{description}}`      | Build Approved Spec                        |
+| `{{dir}}`              | Working directory                          |
+| `{{branch}}`           | Current git branch                         |
+| `{{feature}}`          | Feature name from spec                     |
+| `{{checkpoint}}`       | `.claude/state/implement-{{feature}}.json` |
+| `{{total}}`            | Total task count from parsed tasks         |
+| `{{completed}}`        | Number of tasks with status `complete`     |
+| `{{phase_count}}`      | Number of phases                           |
+| `{{phase_name}}`       | Phase title (per phase)                    |
+| `{{phase_done}}`       | Completed tasks in phase (per phase)       |
+| `{{phase_total}}`      | Total tasks in phase (per phase)           |
+| `{{task_description}}` | Task description from tasks.md (per task)  |
+| `{{stage_name}}`       | Stage name derived from phase grouping     |
+| `{{research_tasks}}`   | Brief description of research steps        |
+| `{{test_tasks}}`       | Brief description of test-writing steps    |
+| `{{impl_tasks}}`       | Brief description of implementation steps  |
+
+**CONTEXT section** (extends template lines 15-20):
+
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│  /implement                                                     │
-├─────────────────────────────────────────────────────────────────┤
-│  Spec: specs/user-authentication/ (approved)                    │
-│  Tasks: 12 across 4 phases                                      │
-│  TDD: Enabled (red → green → refactor)                          │
-│                                                                 │
-│  STAGE 1: DATABASE SCHEMA                                       │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │ Agent: code-agent                                           ││
-│  │                                                             ││
-│  │ 1. RESEARCH         code-researcher        Opus             ││
-│  │    □ Find existing DB patterns                              ││
-│  │    □ Check Prisma schema                                    ││
-│  │                                                             ││
-│  │ 2. TDD-RED          code-writer            Sonnet           ││
-│  │    □ Write failing tests for User model                     ││
-│  │                                                             ││
-│  │ 3. TDD-GREEN        code-writer            Sonnet           ││
-│  │    □ Implement User model + migration                       ││
-│  │                                                             ││
-│  │ 4. VALIDATE         code-validator         Haiku            ││
-│  │    □ Verify tests pass                                      ││
-│  └─────────────────────────────────────────────────────────────┘│
-│                                                                 │
-│  STAGE 2: AUTH MUTATIONS                                        │
-│  └─ [Same pattern]                                              │
-│                                                                 │
-│  STAGE 3: FINAL VERIFICATION                                    │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │ Agent: check-agent (parallel)              Haiku            ││
-│  │    ⊕ build-checker                                          ││
-│  │    ⊕ type-checker                                           ││
-│  │    ⊕ lint-checker                                           ││
-│  │    ⊕ test-runner                                            ││
-│  │    ⊕ security-scanner                                       ││
-│  └─────────────────────────────────────────────────────────────┘│
-│                                                                 │
-│  Tools: cclsp, context7, next-devtools                          │
-│                                                                 │
-│  [Enter] Run  [e] Edit  [?] Details  [Esc] Cancel               │
-└─────────────────────────────────────────────────────────────────┘
+│ CONTEXT                                                              │
+│   Spec: specs/{{feature}}/ (approved)                                │
+│   Tasks: {{total}} across {{phase_count}} phases                     │
+│   TDD: Enabled (red → green → refactor)                             │
+│   Checkpoint: {{checkpoint}}                                         │
 ```
+
+**PROGRESS section** (extends template lines 48-51):
+
+Per-task breakdown grouped by phase, showing completion status per task:
+
+```text
+│ PROGRESS                                                             │
+│   Tasks: {{completed}}/{{total}} complete                            │
+│                                                                      │
+│   Phase 1: {{phase_name}} ({{phase_done}}/{{phase_total}})           │
+│   ✓ T001 {{task_description}}                                       │
+│   ✓ T002 {{task_description}}                                       │
+│                                                                      │
+│   Phase 2: {{phase_name}} ({{phase_done}}/{{phase_total}})           │
+│   ● T003 {{task_description}}                    [CURRENT]          │
+│   ○ T004 {{task_description}}                                       │
+```
+
+**STAGES section** (extends template lines 22-25):
+
+Each stage contains nested TDD phases with sub-agent and model assignments:
+
+```text
+│ STAGES                                                               │
+│   1. {{stage_name}} (code-agent)                                     │
+│      1. RESEARCH      code-researcher / Opus                         │
+│         → {{research_tasks}}                                         │
+│      2. TDD-RED       code-writer / Sonnet                           │
+│         → {{test_tasks}}                                             │
+│      3. TDD-GREEN     code-writer / Sonnet                           │
+│         → {{impl_tasks}}                                             │
+│      4. VALIDATE      code-validator / Haiku                         │
+│         → Verify tests pass                                          │
+│                                                                      │
+│   N. FINAL VERIFICATION (check-agent / parallel)                     │
+│      ⊕ build-checker                                                 │
+│      ⊕ type-checker                                                  │
+│      ⊕ lint-checker                                                  │
+│      ⊕ test-runner                                                   │
+│      ⊕ security-scanner                                              │
+```
+
+**Rendering steps:**
+
+1. Read `command-preview.md` template
+2. Fill variables from parsed spec/tasks/checkpoint
+3. Render CONTEXT, PROGRESS, and STAGES sections
+4. Use AskUserQuestion tool to confirm: Run / Cancel
+
+**Legend:**
+
+- ✓ = Complete
+- ● = Current (next to execute)
+- ○ = Pending
 
 ## Progress Display
 
-During execution:
+**Template:** Read `.claude/skills/progress/templates/stage-progress.md` for base layout and Unicode indicators.
+
+During execution, render progress using the stage-progress template. Each stage maps to a TDD phase within the current implementation task.
+
+**TDD phase labels:**
+
+| Phase | Label         | Sub-agent       | Model  |
+| ----- | ------------- | --------------- | ------ |
+| 1     | `[RESEARCH]`  | code-researcher | Opus   |
+| 2     | `[TDD-RED]`   | code-writer     | Sonnet |
+| 3     | `[TDD-GREEN]` | code-writer     | Sonnet |
+| 4     | `[VALIDATE]`  | code-validator  | Haiku  |
+
+**Example** (multi-stage structure per template format):
 
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│  STAGE 1: DATABASE SCHEMA                          [RUNNING]    │
-│  Agent: code-agent                                              │
-│  ├─ ✓ code-researcher (Opus)                       [2.1s]       │
-│  │   Found: No existing User model, will create fresh          │
-│  ├─ ● code-writer (Sonnet)                         [RUNNING]    │
-│  │   Writing: src/lib/user.ts                                  │
-│  └─ ○ code-validator (Haiku)                       [PENDING]    │
-│                                                                 │
-│  Progress: ██████░░░░░░░░░░░░░░ 30%                              │
-└─────────────────────────────────────────────────────────────────┘
+/implement - Build Approved Spec
+
+Stage 1/3: DATABASE SCHEMA
+  ● Running: code-writer (Sonnet)
+  ├── Writing failing tests for User model...
+  └── Elapsed: 4.2s
+
+[============                    ] 33% | Stage 1/3 | 6.3s elapsed
+
+Stage Status:
+  ✓ Stage 1.1: RESEARCH (complete)
+  ● Stage 1.2: TDD-RED (running)
+  ○ Stage 1.3: TDD-GREEN (pending)
+  ○ Stage 1.4: VALIDATE (pending)
 ```
+
+**Update frequency:** Render progress after each sub-agent completes within a stage. See `stage-progress.md` for Unicode indicators (✓ ● ○ ✗ ⊘).
 
 ## Output
 
@@ -260,13 +567,40 @@ Always includes (parallel execution):
 
 ## Error Handling
 
-| Scenario         | Handling                        |
-| ---------------- | ------------------------------- |
-| No approved spec | Error: Run /plan first          |
-| Test failures    | Report and stop                 |
-| Build failures   | Report with error details       |
-| Type errors      | Report with file/line info      |
-| Security issues  | Report severity and suggestions |
+**Template:** Read `.claude/skills/preview/templates/error-report.md` for error display format.
+
+All errors during execution should be rendered using the error-report template.
+
+**Variable mappings for /implement errors:**
+
+| Variable              | Value                                                                             |
+| --------------------- | --------------------------------------------------------------------------------- |
+| `{{stage_name}}`      | Which stage failed: RESEARCH, TDD-RED, TDD-GREEN, VALIDATE, VERIFICATION          |
+| `{{sub_agent}}`       | Which sub-agent failed: code-researcher, code-writer, code-validator, check-agent |
+| `{{model}}`           | Model of the failed sub-agent: Opus, Sonnet, Haiku                                |
+| `{{message}}`         | Error message from the failed operation                                           |
+| `{{file_line}}`       | File and line number where error occurred (if applicable)                         |
+| `{{option_1}}`        | Primary recovery option (e.g., "Fix and re-run: `/implement --resume`")           |
+| `{{option_2}}`        | Alternative recovery option (e.g., "Run without checkpoint: `/implement`")        |
+| `{{option_3}}`        | Fallback option (e.g., "Investigate: check error details above")                  |
+| `{{checkpoint_path}}` | `.claude/state/implement-{{feature}}.json`                                        |
+| `{{resume_cmd}}`      | `/implement {{feature}} --resume`                                                 |
+
+**Error scenarios and recovery:**
+
+| Scenario             | Handling                                      | Recovery                                       |
+| -------------------- | --------------------------------------------- | ---------------------------------------------- |
+| No approved spec     | Error: Run /plan first                        | Run `/design` then `/implement`                |
+| Invalid task ID      | Error: List available task IDs                | Re-run with valid `--task` flag                |
+| Invalid phase number | Error: List available phases                  | Re-run with valid `--phase` flag               |
+| Empty filter result  | Error: Explain why no tasks matched           | Adjust filter flags                            |
+| Checkpoint missing   | Error: Cannot --resume without checkpoint     | Run without `--resume`                         |
+| Checkpoint stale     | Warning: head_commit differs, continue anyway | Re-run without `--resume` for clean start      |
+| Schema mismatch      | Error: Checkpoint version !== 1               | Delete checkpoint, run without `--resume`      |
+| Test failures        | Report and stop                               | Fix failing tests and `/implement --resume`    |
+| Build failures       | Report with error details                     | Check build errors, fix, `/implement --resume` |
+| Type errors          | Report with file/line info                    | Fix type errors, `/implement --resume`         |
+| Security issues      | Report severity and suggestions               | Address findings, `/implement --resume`        |
 
 ## Skills Used
 
