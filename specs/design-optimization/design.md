@@ -78,7 +78,7 @@ No flags. No checkpoint. No interactive gates. No summary.md/spec.json.
 
 ### 1. Flag Parsing Extension (`command-utils.cjs`)
 
-Extend `parseFlags()` to support string-typed flags in addition to existing boolean flags.
+Extend `parseFlags()` to support string-type flags in addition to existing boolean flags.
 
 **Current interface:**
 
@@ -102,7 +102,7 @@ parseFlags(userPrompt, {
 // With --phase=write: { ..., phase: 'write' }
 ```
 
-**String flag parsing logic:**
+**String-type flag parsing logic:**
 
 | Input                | `flagDefinition`                                              | Result                          |
 | -------------------- | ------------------------------------------------------------- | ------------------------------- |
@@ -114,7 +114,7 @@ parseFlags(userPrompt, {
 
 **Implementation approach:**
 
-- Regex pattern for string flags: `--{flagName}=(\S+)`
+- Regex pattern for string-type flags: `--{flagName}=(\S+)`
 - If `values` array is provided, validate the captured value is in the array
 - If validation fails, log warning and return `null`
 - `'boolean'` string shorthand still works as before
@@ -500,7 +500,7 @@ mcp__linear -
   "tasks": [
     {
       "id": "T001",
-      "title": "Extend parseFlags() for string type",
+      "title": "Extend parseFlags() for string-type flags",
       "status": "pending",
       "assignee": null
     },
@@ -524,7 +524,7 @@ mcp__linear -
 
 | File                                    | Action | Description                                                                                                                                                 |
 | --------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.claude/scripts/lib/command-utils.cjs` | Modify | Add string type support to `parseFlags()`                                                                                                                   |
+| `.claude/scripts/lib/command-utils.cjs` | Modify | Add string-type support to `parseFlags()`                                                                                                                   |
 | `.claude/commands/design.md`            | Modify | Add flags section, preview update, output list, dry-run, checkpoint references                                                                              |
 | `.claude/agents/plan-agent.md`          | Modify | Add checkpoint load/save, interactive checkpoints, --phase/--resume/--no-checkpoint handling, summary.md/spec.json/meta.yaml generation, Linear integration |
 | `.claude/commands/implement.md`         | Modify | Add summary.md reading, spec.json reading for routing/task data                                                                                             |
@@ -584,6 +584,8 @@ Error: Invalid phase "foo". Valid values: research, write, validate
 
 **Response:** Exit with error code. Do not start any phases.
 
+**Note:** `parseFlags()` returns `null` for invalid string values and logs a warning. The orchestrator then checks for null and produces this hard error before execution begins. These are two layers: parseFlags() normalizes, the orchestrator validates.
+
 ### Missing Checkpoint on --resume
 
 ```text
@@ -642,7 +644,7 @@ Design not approved. To revise, run:
 
 | Test Type   | Test Case                                                 | Verification                                                                    |
 | ----------- | --------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Unit        | `parseFlags()` with string type flags                     | Returns correct string value or null for invalid                                |
+| Unit        | `parseFlags()` with string-type flags                     | Returns correct string value or null for invalid                                |
 | Unit        | `parseFlags()` with boolean flags                         | Boolean flags still work correctly                                              |
 | Unit        | `parseFlags()` with no values array (any string accepted) | Returns any string value without validation                                     |
 | Integration | Full `/design` flow without flags                         | Produces requirements.md, design.md, tasks.md, summary.md, spec.json, meta.yaml |

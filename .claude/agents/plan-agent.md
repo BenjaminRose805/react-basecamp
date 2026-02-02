@@ -122,17 +122,19 @@ IF --resume: Load checkpoint
     ▼
 Determine phasesToRun
     │
-    ├── IF flags.phase:
+    ├── IF flags.resume AND flags.phase:
+    │   └── phasesToRun = [flags.phase].filter(p => !completedPhases.includes(p))
+    │         (only run specified phase if not complete)
+    │
+    ├── ELSE IF flags.resume:
+    │   └── phasesToRun = allPhases.filter(p => !completedPhases.includes(p))
+    │
+    ├── ELSE IF flags.phase:
     │   ├── phasesToRun = [flags.phase]
     │   ├── IF flags.phase === 'write' AND no research checkpoint exists:
     │   │     └── ERROR: "Research phase must complete before write."
     │   └── IF flags.phase === 'validate' AND spec files don't exist:
     │         └── ERROR: "Spec files must exist before validation."
-    │
-    ├── ELSE IF flags.resume:
-    │   ├── phasesToRun = allPhases.filter(p => !completedPhases.includes(p))
-    │   └── IF flags.phase is also set:
-    │         └── phasesToRun = phasesToRun.filter(p => p === flags.phase)
     │
     └── ELSE (no --phase, no --resume):
           └── phasesToRun = ['research', 'write', 'validate']

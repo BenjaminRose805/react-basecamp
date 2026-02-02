@@ -14,7 +14,7 @@
 
 **Checklist:**
 
-- [ ] T001: Extend parseFlags() for string type flags
+- [ ] T001: Extend parseFlags() for string-type flags
 - [ ] T002: Add flags section to design.md
 - [ ] T003: Add Flags to design.md parsing logic
 - [ ] T004: Add unified command preview to design.md
@@ -41,9 +41,9 @@
 
 ## Phase 1: Foundation
 
-### T001: Extend parseFlags() to support string type flags [REQ-1.1, REQ-1.4]
+### T001: Extend parseFlags() to support string-type flags [REQ-1.1, REQ-1.4]
 
-Extend `parseFlags()` in `.claude/scripts/lib/command-utils.cjs` to support a `{ type: 'string', values?: string[] }` flag definition alongside the existing `'boolean'` shorthand. String flags are parsed via `--flag=value` syntax. If a `values` array is provided, the parsed value is validated against it; invalid values return `null` with a logged warning.
+Extend `parseFlags()` in `.claude/scripts/lib/command-utils.cjs` to support a `{ type: 'string', values?: string[] }` flag definition alongside the existing `'boolean'` shorthand. String-type flags are parsed via `--flag=value` syntax. If a `values` array is provided, the parsed value is validated against it; invalid values return `null` with a logged warning.
 
 **File:** `.claude/scripts/lib/command-utils.cjs`
 
@@ -57,7 +57,7 @@ Extend `parseFlags()` in `.claude/scripts/lib/command-utils.cjs` to support a `{
 - Add JSDoc documenting the new flag definition shape
 
 **\_Prompt:**
-**Role:** Backend Developer | **Task:** Extend `parseFlags()` in `.claude/scripts/lib/command-utils.cjs` to support string-typed flags. Add an `else if` branch for flag definitions that are objects with `{ type: 'string', values?: string[] }`. Parse `--flag=value` syntax via regex. If `values` array is provided, validate the captured value is in the array; return `null` if invalid. Add JSDoc for the new shape. | **Restrictions:** No new files. No new dependencies. Use the same coding style as the existing `parseFlags()` function. | **Success:** `parseFlags('/design feat --phase=research', { phase: { type: 'string', values: ['research','write','validate'] } })` returns `{ phase: 'research' }`. `parseFlags('/design feat --phase=invalid', ...)` returns `{ phase: null }`. Boolean flags still work.
+**Role:** Backend Developer | **Task:** Extend `parseFlags()` in `.claude/scripts/lib/command-utils.cjs` to support string-type flags. Add an `else if` branch for flag definitions that are objects with `{ type: 'string', values?: string[] }`. Parse `--flag=value` syntax via regex. If `values` array is provided, validate the captured value is in the array; return `null` if invalid. Add JSDoc for the new shape. | **Restrictions:** No new files. No new dependencies. Use the same coding style as the existing `parseFlags()` function. | **Success:** `parseFlags('/design feat --phase=research', { phase: { type: 'string', values: ['research','write','validate'] } })` returns `{ phase: 'research' }`. `parseFlags('/design feat --phase=invalid', ...)` returns `{ phase: null }`. Boolean flags still work.
 
 ---
 
@@ -76,7 +76,7 @@ Add a `## Flags` section to `.claude/commands/design.md` documenting the 4 new f
 - Document flag combinations and precedence
 
 **\_Prompt:**
-**Role:** Documentation Writer | **Task:** Add `## Usage` and `## Flags` sections to `.claude/commands/design.md`. Usage section shows 6 example invocations: bare `/design feature`, `--phase=research`, `--phase=write`, `--resume`, `--no-checkpoint`, `--dry-run`. Flags section is a markdown table with columns Flag, Description, Example. Include a note on flag combinations: `--dry-run` exits after preview; `--no-checkpoint` suppresses interactive prompts but saves checkpoints; `--resume` skips completed phases; `--phase` runs a single phase. Place Usage after the title and before the existing MANDATORY section. Place Flags after Usage. | **Restrictions:** Do not remove or reorder existing sections. Keep the existing preview, output, and Task Examples sections intact. Preserve `$ARGUMENTS` on the last line. | **Success:** The file contains `## Usage`, `## Flags`, and all existing sections in logical order.
+**Role:** Documentation Writer | **Task:** Add `## Usage` and `## Flags` sections to `.claude/commands/design.md`. Usage section shows 6 example invocations: bare `/design feature`, `--phase=research`, `--phase=write`, `--resume`, `--no-checkpoint`, `--dry-run`. Flags section is a Markdown table with columns Flag, Description, Example. Include a note on flag combinations: `--dry-run` exits after preview; `--no-checkpoint` suppresses interactive prompts but saves checkpoints; `--resume` skips completed phases; `--phase` runs a single phase. Place Usage after the title and before the existing MANDATORY section. Place Flags after Usage. | **Restrictions:** Do not remove or reorder existing sections. Keep the existing preview, output, and Task Examples sections intact. Preserve `$ARGUMENTS` on the last line. | **Success:** The file contains `## Usage`, `## Flags`, and all existing sections in logical order.
 
 ---
 
@@ -280,7 +280,7 @@ Document the `--no-checkpoint` flag behavior in `plan-agent.md`. This flag suppr
 
 ### T014: Auto-generate summary.md after write phase [REQ-4.1, REQ-4.2]
 
-Add summary.md auto-generation to `plan-agent.md`. After the domain-writer creates the 3 core spec files, generate `summary.md` from the template.
+Add summary.md to domain-writer's output list in `plan-agent.md`. The plan-agent orchestrates, but the domain-writer sub-agent generates all 6 files (including summary.md) in a single pass using the template as a guide.
 
 **File:** `.claude/agents/plan-agent.md`
 
@@ -297,7 +297,7 @@ Add summary.md auto-generation to `plan-agent.md`. After the domain-writer creat
 
 ### T015: Auto-generate spec.json after write phase [REQ-6.1]
 
-Add spec.json auto-generation to `plan-agent.md`. After the domain-writer creates the spec files, generate `spec.json` from the template.
+Add spec.json to domain-writer's output list in `plan-agent.md`. The plan-agent orchestrates, but the domain-writer sub-agent generates all 6 files (including spec.json) in a single pass using the template as a guide.
 
 **File:** `.claude/agents/plan-agent.md`
 
@@ -315,7 +315,7 @@ Add spec.json auto-generation to `plan-agent.md`. After the domain-writer create
 
 ### T022: Auto-generate meta.yaml after write phase [REQ-4.3]
 
-Add meta.yaml auto-generation to `plan-agent.md`. After the domain-writer creates the spec files, generate `meta.yaml` from the template alongside summary.md and spec.json.
+Add meta.yaml to domain-writer's output list in `plan-agent.md`. The plan-agent orchestrates, but the domain-writer sub-agent generates all 6 files (including meta.yaml) in a single pass using the template as a guide.
 
 **File:** `.claude/agents/plan-agent.md`
 

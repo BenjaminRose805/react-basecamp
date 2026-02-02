@@ -260,7 +260,7 @@ Extend the `/design` command with incremental execution capabilities: per-phase 
 - Issue description includes: the summary paragraph from `summary.md`, a link to the spec directory, and key design decisions
 - Team resolved from `integrations.json` `linear.team` field (`"Basecamp"`)
 - MCP call: `mcp__linear-server__create_issue` with `title`, `description`, and `teamId` parameters
-- On MCP call failure, THE SYSTEM SHALL halt execution with error: `"Linear issue creation failed: {error}. Fix MCP configuration and re-run with --phase=write"`
+- On MCP call failure, THE SYSTEM SHALL halt execution with error: `"Linear issue creation failed: {error}. Fix MCP configuration and re-run with: /design {feature} --resume"`
 
 #### REQ-5.2: Store Linear Identifier in spec.json
 
