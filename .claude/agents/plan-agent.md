@@ -29,14 +29,14 @@ plan-agent (orchestrator, Opus)
 
 Uses consolidated templates from `.claude/sub-agents/templates/`:
 
-| Template          | Mode      | Model  | Purpose                                       |
-| ----------------- | --------- | ------ | --------------------------------------------- |
-| domain-researcher | plan      | Opus   | Analyze requirements, dependencies, and tasks |
-| domain-researcher | reconcile | Opus   | Analyze PR feedback and categorize issues     |
-| domain-researcher | research  | Opus   | Investigate topics and gather findings        |
-| domain-writer     | plan      | Sonnet | Write requirements.md, design.md, tasks.md    |
-| domain-writer     | reconcile | Sonnet | Write reconciliation tasks.md                 |
-| quality-validator | (none)    | Haiku  | Verify completeness, template compliance      |
+| Template          | Mode      | Model  | Purpose                                                                      |
+| ----------------- | --------- | ------ | ---------------------------------------------------------------------------- |
+| domain-researcher | plan      | Opus   | Analyze requirements, dependencies, and tasks                                |
+| domain-researcher | reconcile | Opus   | Analyze PR feedback and categorize issues                                    |
+| domain-researcher | research  | Opus   | Investigate topics and gather findings                                       |
+| domain-writer     | plan      | Sonnet | Write requirements.md, design.md, tasks.md, summary.md, spec.json, meta.yaml |
+| domain-writer     | reconcile | Sonnet | Write reconciliation tasks.md                                                |
+| quality-validator | (none)    | Haiku  | Verify completeness, template compliance                                     |
 
 **Note:** The parallel analyzers (requirement-analyzer, dependency-analyzer, task-decomposer) are replaced by domain-researcher which handles all analysis tasks in different modes.
 
@@ -89,13 +89,66 @@ Command received
 ### Full Flow (/design [feature])
 
 ```text
-User: /design [feature]
+User: /design [feature] [--phase=X] [--resume] [--no-checkpoint] [--dry-run]
     │
     ▼
-Orchestrator: Parse command, identify source docs
+Orchestrator: Parse command and flags
+    │
+    └── parseFlags(userPrompt, {
+          phase: { type: 'string', values: ['research', 'write', 'validate'] },
+          resume: 'boolean',
+          'no-checkpoint': 'boolean',
+          'dry-run': 'boolean'
+        })
     │
     ▼
-PHASE 1: PARALLEL ANALYSIS
+IF --resume: Load checkpoint
+    │
+    ├── checkpoint = loadCheckpoint('design', feature)
+    │
+    ├── IF !checkpoint:
+    │     └── ERROR: "No checkpoint found for {feature}. Run without --resume to start fresh."
+    │
+    ├── IF checkpoint.completed_at is set:
+    │     └── ERROR: "Design already complete. Run without --resume to start fresh."
+    │
+    ├── Extract completedPhases = checkpoint.state.completed_phases
+    │
+    ├── Extract resumeContext from last completed phase's context_summary
+    │
+    └── IF head_commit differs from current HEAD:
+          └── WARN: "Checkpoint is stale (saved at {commit}, current HEAD is {current})"
+    │
+    ▼
+Determine phasesToRun
+    │
+    ├── IF flags.resume AND flags.phase:
+    │   └── phasesToRun = [flags.phase].filter(p => !completedPhases.includes(p))
+    │         (only run specified phase if not complete)
+    │
+    ├── ELSE IF flags.resume:
+    │   └── phasesToRun = allPhases.filter(p => !completedPhases.includes(p))
+    │
+    ├── ELSE IF flags.phase:
+    │   ├── phasesToRun = [flags.phase]
+    │   ├── IF flags.phase === 'write' AND no research checkpoint exists:
+    │   │     └── ERROR: "Research phase must complete before write."
+    │   └── IF flags.phase === 'validate' AND spec files don't exist:
+    │         └── ERROR: "Spec files must exist before validation."
+    │
+    └── ELSE (no --phase, no --resume):
+          └── phasesToRun = ['research', 'write', 'validate']
+    │
+    ▼
+Show unified preview (checkpoint status, stages)
+    │
+    └── Mark skipped phases with ⊘ indicator
+    │
+    ▼
+IF --dry-run: Exit with "Dry run complete."
+    │
+    ▼
+PHASE 1: PARALLEL ANALYSIS (if 'research' in phasesToRun)
     │
     ├── Task(domain-researcher mode=plan:requirements, run_in_background: true)
     │     └── Returns: requirements[], context_summary (~500 tokens)
@@ -116,21 +169,270 @@ Check for blockers:
     └── All clear? → Continue
     │
     ▼
+Save checkpoint (research: complete)
+    │
+    └── updatePhase('design', 'research', {
+          status: 'complete',
+          context_summary: aggregatedSummary
+        }, feature)
+    └── Note: If save fails, execution continues (non-blocking, warning logged)
+    │
+    ▼
+PRE-DESIGN CHECKPOINT (if !flags['no-checkpoint'])
+    │
+    ├── Present 6 structured questions populated from research context_summary:
+    │   │
+    │   ├── 1. UNDERSTANDING:
+    │   │      "Based on the research, here is what the feature needs to do:
+    │   │       {summary extracted from context_summary}.
+    │   │       Is this correct?"
+    │   │      User responses: [yes / correct with changes / no]
+    │   │
+    │   ├── 2. APPROACH:
+    │   │      "I plan to approach the design as follows:
+    │   │       {approach extracted from context_summary}.
+    │   │       Does this align with your expectations?"
+    │   │      User responses: [yes / suggest alternative]
+    │   │
+    │   ├── 3. ASSUMPTIONS:
+    │   │      "I am making these assumptions:
+    │   │       {assumptions extracted from context_summary}.
+    │   │       Are any of these incorrect?"
+    │   │      User responses: [all correct / corrections: ...]
+    │   │
+    │   ├── 4. TRADE-OFFS:
+    │   │      "Key trade-offs identified:
+    │   │       {trade_offs extracted from context_summary}.
+    │   │       Are you comfortable with these?"
+    │   │      User responses: [yes / concerns: ...]
+    │   │
+    │   ├── 5. SCOPE:
+    │   │      "The following is explicitly out of scope:
+    │   │       {out_of_scope extracted from context_summary}.
+    │   │       Is anything missing or incorrectly excluded?"
+    │   │      User responses: [scope is right / adjustments: ...]
+    │   │
+    │   └── 6. UNKNOWNS:
+    │          "Open questions that may need resolution:
+    │           {unknowns extracted from context_summary}.
+    │           Should we resolve any before proceeding?"
+    │          User responses: [proceed / resolve: ...]
+    │
+    ├── Store responses in checkpoint:
+    │   └── updatePhase('design', 'research', {
+    │         checkpoint_responses: {
+    │           understanding: "...",
+    │           approach: "...",
+    │           assumptions: "...",
+    │           trade_offs: "...",
+    │           scope: "...",
+    │           unknowns: "..."
+    │         }
+    │       }, feature)
+    │
+    ├── IF user responds "stop" or "cancel":
+    │   └── Halt execution with message:
+    │       "Design paused. Resume with: /design {feature} --resume"
+    │
+    └── Pass user responses as additional context to WRITE phase
+    │
+    ▼
 PHASE 2: AGGREGATE SUMMARIES
     │
     └── Combine context_summary from each analyzer
         (NOT full findings - only summaries ~1500 tokens total)
     │
     ▼
-PHASE 3: SPEC CREATION
+PHASE 3: SPEC CREATION (if 'write' in phasesToRun)
+    │
+    ├── Get context from resumeContext OR researchResult
     │
     └── Task(domain-writer mode=plan, analysis_summary, model: sonnet)
-          └── Creates: specs/{feature}/requirements.md
-          └── Creates: specs/{feature}/design.md
-          └── Creates: specs/{feature}/tasks.md
+          └── Creates all 6 spec files in a single pass:
+              ├── specs/{feature}/requirements.md
+              ├── specs/{feature}/design.md
+              ├── specs/{feature}/tasks.md
+              ├── specs/{feature}/summary.md (auto-generated from template)
+              ├── specs/{feature}/spec.json (auto-generated from template)
+              └── specs/{feature}/meta.yaml (auto-generated from template)
     │
     ▼
-PHASE 4: VALIDATION
+Auto-Generation Details:
+    │
+    ├── summary.md:
+    │   ├── Read template from specs/templates/summary.md
+    │   ├── Populate:
+    │   │   ├── {{feature_name}} = title-cased feature name
+    │   │   ├── {{status}} = "Draft" (updated to "Approved" at post-design checkpoint)
+    │   │   ├── {{one_paragraph_summary}} = 2-4 sentence summary from write context_summary
+    │   │   └── {{decision_1..N}} = 3-5 key decisions from design.md
+    │   └── Write to specs/{feature}/summary.md
+    │
+    ├── spec.json:
+    │   ├── Read template from specs/templates/spec.json
+    │   ├── Populate:
+    │   │   ├── name = feature name (kebab-case)
+    │   │   ├── status = "draft"
+    │   │   ├── created/updated = ISO 8601 date (YYYY-MM-DD)
+    │   │   ├── author = "plan-agent"
+    │   │   ├── version = "1.0.0"
+    │   │   ├── files = maps all spec file names
+    │   │   ├── phases = extracted from tasks.md section headers
+    │   │   ├── tasks = id, title, status="pending", assignee=null per task
+    │   │   └── linear object: OMITTED initially (added by T018 after approval)
+    │   ├── Write valid JSON with 2-space indentation
+    │   └── Write to specs/{feature}/spec.json
+    │
+    └── meta.yaml:
+        ├── Read template from specs/templates/meta.yaml
+        ├── Populate:
+        │   ├── spec_id = feature name (kebab-case)
+        │   ├── feature = feature name (kebab-case)
+        │   ├── status = "draft"
+        │   ├── created/updated = current date (YYYY-MM-DD, not full ISO 8601)
+        │   ├── author = "plan-agent"
+        │   └── version = "1.0.0"
+        ├── Write valid YAML
+        └── Write to specs/{feature}/meta.yaml
+    │
+    ▼
+Save checkpoint (write: complete)
+    │
+    └── updatePhase('design', 'write', {
+          status: 'complete',
+          context_summary: writeSummary,
+          files_created: ['requirements.md', 'design.md', 'tasks.md', 'summary.md', 'spec.json', 'meta.yaml']
+        }, feature)
+    └── Note: If save fails, execution continues (non-blocking)
+    │
+    ▼
+POST-DESIGN CHECKPOINT (if !flags['no-checkpoint'])
+    │
+    ├── Present 6 structured questions populated from write phase output:
+    │   │
+    │   ├── 1. WHAT BUILT:
+    │   │      "I have created the following spec files:
+    │   │       - specs/{feature}/requirements.md
+    │   │       - specs/{feature}/design.md
+    │   │       - specs/{feature}/tasks.md
+    │   │       - specs/{feature}/summary.md
+    │   │       - specs/{feature}/spec.json
+    │   │       - specs/{feature}/meta.yaml
+    │   │       Would you like to review any specific file?"
+    │   │      User responses: [proceed / review: {filename}]
+    │   │
+    │   ├── 2. DECISIONS:
+    │   │      "Key design decisions made:
+    │   │       {decisions extracted from design.md}.
+    │   │       Do you agree with these choices?"
+    │   │      User responses: [yes / changes: ...]
+    │   │
+    │   ├── 3. RISKS:
+    │   │      "Identified risks:
+    │   │       {risks extracted from design.md}.
+    │   │       Are there additional risks to consider?"
+    │   │      User responses: [no additional / add: ...]
+    │   │
+    │   ├── 4. OMISSIONS:
+    │   │      "Intentionally omitted:
+    │   │       {omissions extracted from requirements.md out-of-scope}.
+    │   │       Is anything missing that should be included?"
+    │   │      User responses: [nothing missing / add: ...]
+    │   │
+    │   ├── 5. CONFIDENCE:
+    │   │      "My confidence level: {high|medium|low}.
+    │   │       Areas of lower confidence: {low_confidence_areas}."
+    │   │      User responses: [no concerns / concerns: ...]
+    │   │
+    │   └── 6. APPROVAL:
+    │          "Do you approve this design for implementation?
+    │           [yes] → Create Linear issue, proceed to validation
+    │           [no]  → Halt, suggest --phase=write to revise
+    │           [revise] → Re-run write phase with your feedback"
+    │          User response determines next action
+    │
+    ├── Store responses in checkpoint:
+    │   └── updatePhase('design', 'write', {
+    │         checkpoint_responses: {
+    │           what_built: "...",
+    │           decisions: "...",
+    │           risks: "...",
+    │           omissions: "...",
+    │           confidence: "...",
+    │           approval: "yes|no|revise"
+    │         }
+    │       }, feature)
+    │
+    ├── Handle Approval response:
+    │   │
+    │   ├── IF approval === "yes":
+    │   │   ├── Linear Integration:
+    │   │   │   │
+    │   │   │   ├── Step 1: Read .claude/config/integrations.json
+    │   │   │   │   ├── Parse JSON and extract linear.enabled and linear.team
+    │   │   │   │   ├── IF file is missing or JSON is invalid:
+    │   │   │   │   │   └── HALT with error: "Linear configuration not found. Create .claude/config/integrations.json with linear.enabled and linear.team"
+    │   │   │   │   │
+    │   │   │   │   ├── IF linear.enabled === false:
+    │   │   │   │   │   └── Skip Linear issue creation silently (explicit opt-out)
+    │   │   │   │   │       Continue to status update
+    │   │   │   │   │
+    │   │   │   │   └── IF linear.enabled === true:
+    │   │   │   │       └── Proceed to Step 2
+    │   │   │   │
+    │   │   │   ├── Step 2: Create Linear issue via MCP (only if enabled)
+    │   │   │   │   ├── Build issue payload:
+    │   │   │   │   │   ├── title: "[Design] {feature_name}" (title-cased)
+    │   │   │   │   │   ├── description: summary paragraph from summary.md
+    │   │   │   │   │   │               + spec directory link (specs/{feature}/)
+    │   │   │   │   │   │               + key decisions from design.md
+    │   │   │   │   │   └── teamId: integrations.linear.team value ("Basecamp")
+    │   │   │   │   │
+    │   │   │   │   ├── Call mcp__linear-server__create_issue with payload:
+    │   │   │   │   │   mcp__linear-server__create_issue({
+    │   │   │   │   │     title: `[Design] ${featureName}`,
+    │   │   │   │   │     description: `## ${featureName}\n\n${summaryParagraph}\n\n**Spec:** specs/${feature}/\n\n### Key Decisions\n${decisions}`,
+    │   │   │   │   │     teamId: integrations.linear.team
+    │   │   │   │   │   })
+    │   │   │   │   │
+    │   │   │   │   ├── On success:
+    │   │   │   │   │   ├── Extract identifier (e.g., "BASE-123") from response
+    │   │   │   │   │   ├── Extract url (e.g., "https://linear.app/...") from response
+    │   │   │   │   │   ├── Display: "Linear: {identifier} - {url}"
+    │   │   │   │   │   └── Proceed to Step 3
+    │   │   │   │   │
+    │   │   │   │   └── On failure:
+    │   │   │   │       └── HALT with error: "Linear issue creation failed: {error}. Fix MCP configuration and re-run with: /design {feature} --resume"
+    │   │   │   │
+    │   │   │   └── Step 3: Store Linear identifier in spec.json (only if issue created)
+    │   │   │       ├── Read specs/{feature}/spec.json
+    │   │   │       ├── Parse as JSON
+    │   │   │       ├── Add linear object: { "identifier": "{id}", "url": "{url}" }
+    │   │   │       ├── Update status from "draft" to "approved"
+    │   │   │       ├── Update updated to current ISO date (YYYY-MM-DD)
+    │   │   │       └── Rewrite specs/{feature}/spec.json with updated JSON (2-space indentation)
+    │   │   │
+    │   │   │       Note: If linear.enabled === false, omit the linear block entirely
+    │   │   │             spec.json will only have status updated to "approved"
+    │   │   │
+    │   │   ├── Update summary.md status to "Approved"
+    │   │   │   └── Replace "Draft" with "Approved" in status line
+    │   │   │
+    │   │   └── Proceed to VALIDATE phase
+    │   │
+    │   ├── IF approval === "no":
+    │   │   └── Halt execution with message:
+    │   │       "Design not approved. Revise with: /design {feature} --phase=write"
+    │   │
+    │   └── IF approval === "revise":
+    │       └── Re-run WRITE phase with user feedback as additional context
+    │           (Domain-writer receives checkpoint_responses as guidance)
+    │
+    └── Note: If --no-checkpoint flag is set, this entire block is skipped
+        (checkpoint FILE saves still execute, Linear creation skipped)
+    │
+    ▼
+PHASE 4: VALIDATION (if 'validate' in phasesToRun)
     │
     └── Task(quality-validator, spec_files, model: haiku)
           └── Returns: { passed: true/false, issues[] }
@@ -139,6 +441,11 @@ PHASE 4: VALIDATION
 IF validation FAIL (attempt 1):
     └── Re-run domain-writer with issues list
     └── Max 1 retry attempt
+    │
+    ▼
+Mark checkpoint as complete
+    │
+    └── completeCheckpoint('design', feature)
     │
     ▼
 Report final status to user
@@ -255,6 +562,9 @@ Ready to proceed with spec creation.
 - requirements.md - X requirements defined (EARS format)
 - design.md - Architecture documented
 - tasks.md - X tasks with \_Prompt fields
+- summary.md - One-paragraph summary with key decisions
+- spec.json - Machine-readable spec metadata
+- meta.yaml - YAML metadata (spec_id, status, dates)
 
 **Next:** Running validation...
 ```
@@ -270,6 +580,18 @@ Ready to proceed with spec creation.
 | Acceptance Criteria | PASS   | All requirements have criteria   |
 | Task Prompts        | PASS   | All tasks have \_Prompt fields   |
 | Requirement Links   | PASS   | All tasks linked to requirements |
+
+**Files:**
+
+- requirements.md - X requirements defined (EARS format)
+- design.md - Architecture documented
+- tasks.md - X tasks with \_Prompt fields
+- summary.md - One-paragraph summary with key decisions
+- spec.json - Machine-readable spec metadata
+- meta.yaml - YAML metadata (spec_id, status, dates)
+
+Linear: {identifier} - {url}
+(Only displayed when Linear issue was successfully created)
 
 **Spec ready for implementation.**
 
