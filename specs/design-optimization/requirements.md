@@ -4,6 +4,36 @@
 > **Created:** 2026-01-31
 > **Spec ID:** design-incremental-execution
 
+## Goal
+
+Extend the `/design` command with incremental execution capabilities including per-phase flag control, checkpoint persistence, interactive review gates, auto-generation of summary/spec.json/meta.yaml artifacts, and Linear issue integration.
+
+## User Stories
+
+- As a designer, I want to run individual phases (research, write, validate) instead of all at once to iterate on specific sections
+- As a designer, I want to pause and resume multi-phase design work using checkpoints so I don't lose progress
+- As a designer, I want to review checkpoints interactively before proceeding to the next phase
+- As a designer, I want auto-generated summary.md and spec.json files for quick reference and handoff to /implement
+- As a designer, I want Linear issues created automatically when designs are approved
+
+## Success Criteria
+
+- [x] All four flag types (--phase, --resume, --no-checkpoint, --dry-run) implemented and working
+- [x] Checkpoint persistence saves state across feature branches with recovery capability
+- [x] Interactive checkpoints present structured questions and preserve responses
+- [x] summary.md and spec.json auto-generated with complete content
+- [x] Linear issue creation on approval with identifier stored in spec.json
+- [x] /implement command reads summary.md and spec.json for richer context
+- [x] Unified command preview shows checkpoint status and phase execution plan
+
+## Technical Constraints
+
+- Checkpoint files must remain under 50KB (context summaries limited to 500 tokens each)
+- Context summaries validated via token-counter.cjs before checkpoint save
+- Linear API requires .claude/config/integrations.json with linear.enabled and linear.team
+- Checkpoint system uses JSON format at .claude/state/design-{feature}.json
+- Symbol validation regex pattern used for spec directory matching in CI workflow
+
 ## Overview
 
 Extend the `/design` command with incremental execution capabilities: per-phase flag control (`--phase`, `--resume`, `--no-checkpoint`, `--dry-run`), checkpoint persistence via `checkpoint-manager.cjs`, interactive review checkpoints between phases, auto-generation of `summary.md` and `spec.json`, Linear issue creation on post-checkpoint approval, and handoff artifacts that `/implement` consumes directly.

@@ -12,6 +12,31 @@
 
 **Files:** 4 modified files + 3 auto-generated files per feature
 
+**Checklist:**
+
+- [ ] T001: Extend parseFlags() for string type flags
+- [ ] T002: Add flags section to design.md
+- [ ] T003: Add Flags to design.md parsing logic
+- [ ] T004: Add unified command preview to design.md
+- [ ] T005: Update implement.md to read summary.md
+- [ ] T006: Implement checkpoint-manager.cjs module
+- [ ] T007: Implement phase execution with --phase flag
+- [ ] T008: Implement --resume flag loading checkpoint
+- [ ] T009: Implement --no-checkpoint flag suppression
+- [ ] T010: Implement --dry-run flag preview mode
+- [ ] T011: Add pre-design checkpoint questions
+- [ ] T012: Add post-design checkpoint questions
+- [ ] T013: Auto-generate summary.md from template
+- [ ] T014: Auto-generate meta.yaml from template
+- [ ] T015: Auto-generate spec.json from template
+- [ ] T016: Implement Linear issue creation on approval
+- [ ] T017: Store Linear identifier in spec.json
+- [ ] T018: Display Linear issue link in output
+- [ ] T019: Implement implement.md reading summary.md
+- [ ] T020: Implement implement.md reading spec.json
+- [ ] T021: Update plan-agent.md with new output files
+- [ ] T022: Full system integration and E2E testing
+
 ---
 
 ## Phase 1: Foundation
