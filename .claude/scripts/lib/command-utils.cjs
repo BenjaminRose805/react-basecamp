@@ -4,6 +4,7 @@
  * Shared utilities for command detection and flag parsing.
  * Used by user-prompt hooks to standardize command handling.
  * T009: Standardize Flag Parsing
+ * T001: Extend parseFlags() for string-typed flags
  */
 
 /**
@@ -39,6 +40,8 @@ function detectCommand(userPrompt) {
  * Parse flags from user prompt
  * @param {string} userPrompt - The user's input
  * @param {Object} flagDefinitions - Map of flag names to their types
+ *   - For boolean flags: { flagName: 'boolean' }
+ *   - For string flags: { flagName: { type: 'string', values?: string[] } }
  * @returns {Object} - Parsed flags with values
  *
  * @example
@@ -49,6 +52,12 @@ function detectCommand(userPrompt) {
  *   yes: 'boolean'
  * })
  * // Returns: { full: true, security: true, force: false, yes: false }
+ *
+ * @example
+ * parseFlags('/design feat --phase=research', {
+ *   phase: { type: 'string', values: ['research', 'write', 'validate'] }
+ * })
+ * // Returns: { phase: 'research' }
  */
 function parseFlags(userPrompt, flagDefinitions) {
   const flags = {};
@@ -59,10 +68,12 @@ function parseFlags(userPrompt, flagDefinitions) {
   }
 
   if (!userPrompt || typeof userPrompt !== 'string') {
-    // Return all flags as false for invalid input
+    // Return defaults for invalid input
     for (const [flagName, flagType] of Object.entries(flagDefinitions)) {
       if (flagType === 'boolean') {
         flags[flagName] = false;
+      } else if (typeof flagType === 'object' && flagType.type === 'string') {
+        flags[flagName] = null;
       }
     }
     return flags;
@@ -73,6 +84,30 @@ function parseFlags(userPrompt, flagDefinitions) {
       // Handle flags with hyphens (e.g., --skip-cr)
       const pattern = new RegExp(`--${flagName}\\b`, 'i');
       flags[flagName] = pattern.test(userPrompt);
+    } else if (typeof flagType === 'object' && flagType.type === 'string') {
+      // Handle string flags with --flag=value format
+      const pattern = new RegExp(`--${flagName}=(\\S+)`, 'i');
+      const match = userPrompt.match(pattern);
+
+      if (match) {
+        const capturedValue = match[1];
+
+        // If values array is provided, validate the captured value
+        if (flagType.values && Array.isArray(flagType.values)) {
+          if (flagType.values.includes(capturedValue)) {
+            flags[flagName] = capturedValue;
+          } else {
+            console.warn(`Warning: Invalid value "${capturedValue}" for --${flagName}. Valid values: ${flagType.values.join(', ')}`);
+            flags[flagName] = null;
+          }
+        } else {
+          // No values array = accept any string
+          flags[flagName] = capturedValue;
+        }
+      } else {
+        // Flag not present or no value provided
+        flags[flagName] = null;
+      }
     }
   }
 
