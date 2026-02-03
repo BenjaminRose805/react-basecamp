@@ -151,7 +151,7 @@ Return: { "passed": true/false, "issues": [...] }`,
 
 1. **Resolve spec path** - Use spec-resolver to resolve the spec directory:
    ```javascript
-   const { resolveSpecPath } = require(".claude/scripts/lib/spec-resolver.cjs");
+   const { resolveSpecPath } = require("./.claude/scripts/lib/spec-resolver.cjs");
    const { path: specPath, type, name } = resolveSpecPath(feature);
    // specPath is absolute with trailing slash
    // type is 'project'|'feature'|'spec'

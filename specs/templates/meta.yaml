@@ -13,5 +13,5 @@ created: "{{created}}"
 updated: "{{updated}}"
 
 # Progress
-tasks_total: { { tasks_total } }
-tasks_complete: { { tasks_complete } }
+tasks_total: {{tasks_total}}
+tasks_complete: {{tasks_complete}}

@@ -39,13 +39,6 @@ function validateAndNormalizeName(name) {
     throw new Error('Spec name cannot be empty after normalization.');
   }
 
-  // Check for reserved names BEFORE normalization (case-insensitive)
-  if (RESERVED_NAMES.includes(name.toLowerCase())) {
-    throw new Error(
-      `Reserved spec name '${name}'. Reserved names: ${RESERVED_NAMES.join(', ')}`
-    );
-  }
-
   // Normalization: collapse multiple hyphens and remove leading/trailing hyphens
   const normalized = name
     .replace(/--+/g, '-')
@@ -54,6 +47,15 @@ function validateAndNormalizeName(name) {
   // Check if empty after normalization
   if (!normalized) {
     throw new Error('Spec name cannot be empty after normalization.');
+  }
+
+  // Check for reserved names AFTER normalization (case-insensitive)
+  // This check happens before character validation to provide a more specific error message
+  // This prevents bypass via names like "--node-modules--" or "Node-Modules"
+  if (RESERVED_NAMES.includes(normalized.toLowerCase())) {
+    throw new Error(
+      `Reserved spec name '${name}'. Reserved names: ${RESERVED_NAMES.join(', ')}`
+    );
   }
 
   // Character validation - must match kebab-case pattern (no forward slash allowed)

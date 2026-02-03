@@ -24,11 +24,17 @@
 - [ ] Quality checks pass (`pnpm lint && pnpm typecheck && pnpm test:run`)
 - [ ] Security review completed (if auth/API changes)
 
-## Related
+## Linked Issues
 
-<!-- Link to related issues, specs, or PRs -->
+<!-- Link to GitHub issues this PR closes -->
 
 - Fixes #
+- Closes #
+
+## Related Specs
+
+<!-- Reference spec paths for context (informational, not issue links) -->
+
 - Spec: `specs/{path}/` (e.g., `specs/project/feature/` for nested, `specs/my-feature/` for standalone)
 
 ---

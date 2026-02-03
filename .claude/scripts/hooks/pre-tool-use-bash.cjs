@@ -128,6 +128,16 @@ async function main() {
 
     // Check for git commit - run quality gate
     if (/^git\s+commit\b/.test(command)) {
+      // Skip quality checks if package.json doesn't exist (workflow template)
+      const fs = require('fs');
+      const path = require('path');
+      const packageJsonPath = path.join(process.cwd(), 'package.json');
+
+      if (!fs.existsSync(packageJsonPath)) {
+        logError('[Hook] Skipping quality checks (no package.json - workflow template)');
+        process.exit(0);
+      }
+
       logError('[Hook] Running pre-commit quality checks...');
 
       try {

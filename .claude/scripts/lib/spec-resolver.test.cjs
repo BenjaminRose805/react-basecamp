@@ -128,6 +128,26 @@ describe('validateAndNormalizeName', () => {
     );
   });
 
+  it('rejects reserved names after normalization', () => {
+    // This test proves the bypass bug: names with extra hyphens that normalize to reserved names
+    // should be rejected after hyphen normalization
+    assert.throws(
+      () => validateAndNormalizeName('--node_modules--'),
+      /Reserved spec name/,
+      '--node_modules-- normalizes to node_modules (reserved) and should be rejected'
+    );
+    assert.throws(
+      () => validateAndNormalizeName('---dist---'),
+      /Reserved spec name/,
+      '---dist--- normalizes to dist (reserved) and should be rejected'
+    );
+    assert.throws(
+      () => validateAndNormalizeName('build--'),
+      /Reserved spec name/,
+      'build-- normalizes to build (reserved) and should be rejected'
+    );
+  });
+
   it('rejects segment longer than 50 characters', () => {
     const longSegment = 'a'.repeat(51);
     assert.throws(
