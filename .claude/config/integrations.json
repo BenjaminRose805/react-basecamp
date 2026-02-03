@@ -1,12 +1,13 @@
 {
+  "_comment": "Configure your project integrations. Set enabled: true for services you use.",
   "linear": {
-    "enabled": true,
-    "team": "Basecamp",
+    "enabled": false,
+    "team": "",
     "branch_prefix": "feature",
     "use_native_automation": true
   },
   "vercel": {
-    "enabled": true,
+    "enabled": false,
     "wait_for_preview": true,
     "preview_timeout_ms": 300000,
     "require_preview_success": false

@@ -163,7 +163,10 @@ Orchestrator: Parse command, create handoff request
 
 ### BUILD (via ui-builder)
 
-1. Read spec from `specs/{feature}/`
+1. Receive `spec_path` - a full resolved absolute path with trailing slash
+   - Resolved via `resolveSpecPath()`. Do not concatenate or manipulate.
+   - Path may be `{project}/{feature}` or `{feature}` format
+   - Example: `/home/user/project/specs/acme/auth/` (nested) or `/home/user/project/specs/user-authentication/` (standalone)
 2. Receive context_summary from research (NOT raw findings)
 3. For each UI task:
    - Check if base component exists in shadcn
@@ -278,6 +281,10 @@ When ui-validator finds issues:
 - Card, CardHeader, CardContent
 - Button
 - Badge
+
+### Spec Location
+
+- `specs/{resolved_path}/` (resolved via resolveSpecPath())
 ```
 
 ### After VALIDATE
@@ -403,7 +410,7 @@ When Figma designs exist:
 
 ## Context Compaction (Orchestrator)
 
-When using sub-agents, follow the [orchestrator memory rules](../sub-agents/protocols/orchestration.md#orchestrator-memory-rules).
+When using sub-agents, follow the [orchestrator memory rules](../protocols/orchestration.md#orchestrator-memory-rules).
 
 ### After Each Phase
 

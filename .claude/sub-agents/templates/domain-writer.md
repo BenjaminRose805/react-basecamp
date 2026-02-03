@@ -29,7 +29,7 @@ if (!context.mode || !validModes.includes(context.mode)) {
 
 ## Permission Profile
 
-**writer** - See [profiles/writer.md](../profiles/writer.md)
+**writer**
 
 ```yaml
 allowed_tools:
@@ -57,7 +57,7 @@ You will receive a handoff request as JSON:
   "mode": "plan | code | ui | docs | eval",
   "context": {
     "feature": "string - feature name",
-    "spec_path": "string | null - path to spec",
+    "spec_path": "string | null - Full resolved absolute path to spec directory. Includes trailing slash. Example: /home/user/my-project/specs/my-feature/. Use directly for file writes; do not manipulate.",
     "relevant_files": ["string - files to read"],
     "constraints": ["string - requirements"],
     "previous_findings": "string - research context_summary"
@@ -269,7 +269,7 @@ evals/{feature}/
    - Note test coverage areas
    - Flag any known risks
 
-8. **Summarize Compactly** (see [handoff protocol](../protocols/handoff.md#context-summary-guidelines))
+8. **Summarize Compactly** (see [handoff protocol](../../protocols/handoff.md#context-summary-guidelines))
    - `context_summary` must be under 500 tokens
    - **INCLUDE:** Files created/modified (paths only), test status, what's ready
    - **EXCLUDE:** Implementation details, code snippets, debugging steps

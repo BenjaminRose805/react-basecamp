@@ -223,7 +223,7 @@ This guide shows you how to create and manage prompts.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - pnpm
 
 ## Steps

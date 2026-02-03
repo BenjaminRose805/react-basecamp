@@ -1,0 +1,17 @@
+{
+  "_note": "Template for project-level feature manifest. Fill {{placeholders}} with actual values.",
+  "_note_usage": "This file lists all features in the project with rough spec estimates. See feature.md and specs.json for detailed breakdowns.",
+  "project": "{{project_name}}",
+  "features": [
+    {
+      "name": "{{feature_name_1}}",
+      "description": "{{brief_description_of_what_this_feature_delivers}}",
+      "rough_specs": "{{feature_1_rough_specs_2_to_4_sentences}}"
+    },
+    {
+      "name": "{{feature_name_2}}",
+      "description": "{{brief_description_of_what_this_feature_delivers}}",
+      "rough_specs": "{{feature_2_rough_specs_2_to_4_sentences}}"
+    }
+  ]
+}

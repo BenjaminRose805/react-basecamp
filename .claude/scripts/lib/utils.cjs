@@ -2,7 +2,7 @@
  * Cross-platform utility functions for Claude Code hooks and scripts
  * Works on Windows, macOS, and Linux
  *
- * Adapted from everything-claude-code for react-basecamp
+ * Part of claude-workflow-template
  */
 
 const fs = require('fs');
@@ -407,6 +407,27 @@ function appendFile(filePath, content) {
 }
 
 /**
+ * Replace content in a file
+ * @param {string} filePath - Path to the file
+ * @param {string|RegExp} search - String or regex to search for
+ * @param {string} replacement - Replacement string
+ * @returns {boolean} - True if replacement was made
+ */
+function replaceInFile(filePath, search, replacement) {
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const newContent = content.replace(search, replacement);
+    if (content !== newContent) {
+      fs.writeFileSync(filePath, newContent, 'utf8');
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Check if a command exists in PATH
  * @param {string} cmd - Command name to check
  * @returns {boolean} - True if command exists in PATH
@@ -476,6 +497,8 @@ module.exports = {
   findFiles,
   readFile,
   writeFile,
+  appendFile,
+  replaceInFile,
 
   // Hook I/O
   readStdinJson,

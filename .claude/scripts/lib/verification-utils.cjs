@@ -5,6 +5,7 @@
  */
 
 const { execSync } = require('child_process');
+const { getRunCommand } = require('./package-manager.cjs');
 
 // Timeout constants for verification commands
 const TIER1_TIMEOUT = 30000;  // 30 seconds for fast checks (lint, typecheck)
@@ -16,7 +17,7 @@ const TIER2_TIMEOUT = 120000; // 2 minutes for slow checks (tests, build)
  */
 function runLint() {
   try {
-    const output = execSync('pnpm lint', {
+    const output = execSync(getRunCommand('lint'), {
       encoding: 'utf8',
       timeout: TIER1_TIMEOUT,
       stdio: ['pipe', 'pipe', 'pipe']
@@ -37,7 +38,7 @@ function runLint() {
  */
 function runTypecheck() {
   try {
-    const output = execSync('pnpm typecheck', {
+    const output = execSync(getRunCommand('typecheck'), {
       encoding: 'utf8',
       timeout: TIER1_TIMEOUT,
       stdio: ['pipe', 'pipe', 'pipe']
@@ -59,7 +60,7 @@ function runTypecheck() {
  * @returns {{ passed: boolean, output?: string, testCount?: number, coverage?: number }}
  */
 function runTests(options = {}) {
-  const cmd = options.coverage ? 'pnpm test:run --coverage' : 'pnpm test:run';
+  const cmd = options.coverage ? `${getRunCommand('test:run')} --coverage` : getRunCommand('test:run');
   try {
     const output = execSync(cmd, {
       encoding: 'utf8',
@@ -82,7 +83,7 @@ function runTests(options = {}) {
  */
 function runBuild() {
   try {
-    const output = execSync('pnpm build', {
+    const output = execSync(getRunCommand('build'), {
       encoding: 'utf8',
       timeout: TIER2_TIMEOUT,
       stdio: ['pipe', 'pipe', 'pipe']

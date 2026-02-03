@@ -1,10 +1,17 @@
 # Shared metadata for feature specification
-# Source of truth for spec_id, feature name, status, and timestamps
+# Source of truth for spec ID, hierarchy, status, and timestamps
 
-spec_id: "{{id}}"
-feature: "{{name}}"
+# Identifiers
+id: "{{id}}"
+parent_project: "{{parent_project}}" # Optional: ID of parent project (for FEATURE level specs only)
+parent_feature: "{{parent_feature}}" # Optional: ID of parent feature (for nested features only, rare)
+# Note: Omit parent_project and parent_feature for PROJECT and STANDALONE levels
+
+# Lifecycle
 status: "{{status}}"
 created: "{{created}}"
 updated: "{{updated}}"
-author: "{{agent}}"
-version: "{{semver}}"
+
+# Progress
+tasks_total: { { tasks_total } }
+tasks_complete: { { tasks_complete } }

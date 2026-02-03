@@ -29,7 +29,7 @@
 <!-- Link to related issues, specs, or PRs -->
 
 - Fixes #
-- Spec: `specs/`
+- Spec: `specs/{path}/` (e.g., `specs/project/feature/` for nested, `specs/my-feature/` for standalone)
 
 ---
 

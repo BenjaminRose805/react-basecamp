@@ -1,11 +1,10 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_comment": "Environment configuration. Verification commands are auto-detected from package manager.",
   "requiredTools": [
     {
       "name": "coderabbit",
       "check": "coderabbit --version",
       "install": "curl -fsSL https://cli.coderabbit.ai/install.sh | sh",
-      "_comment": "This uses the official CodeRabbit install method. Users can inspect the script at https://cli.coderabbit.ai/install.sh before running, or manually install from https://docs.coderabbit.ai/cli/installation",
       "installPrompt": "Install CodeRabbit CLI for local code review?",
       "authCheck": "coderabbit auth status",
       "platforms": ["linux", "darwin"]
@@ -21,22 +20,22 @@
   ],
   "verification": {
     "lint": {
-      "command": "pnpm lint --quiet",
-      "autoFix": "pnpm lint --fix",
+      "command": "lint",
+      "autoFix": "lint --fix",
       "required": true
     },
     "typecheck": {
-      "command": "pnpm typecheck",
+      "command": "typecheck",
       "autoFix": null,
       "required": true
     },
     "tests": {
-      "command": "pnpm test --run",
+      "command": "test --run",
       "autoFix": null,
       "required": false
     },
     "build": {
-      "command": "pnpm build",
+      "command": "build",
       "autoFix": null,
       "required": false,
       "fullOnly": true

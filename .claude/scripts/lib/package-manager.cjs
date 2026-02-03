@@ -4,7 +4,7 @@
  *
  * Supports: npm, pnpm, yarn, bun
  *
- * Adapted from everything-claude-code for react-basecamp
+ * Part of claude-workflow-template
  */
 
 const fs = require('fs');

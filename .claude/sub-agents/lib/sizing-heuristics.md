@@ -390,5 +390,5 @@ context = {
 ## References
 
 - **Sub-Agent System:** `.claude/sub-agents/README.md`
-- **Orchestrator Patterns:** `.claude/sub-agents/protocols/orchestration-patterns.md`
-- **Handoff Protocol:** `.claude/sub-agents/protocols/handoff-protocol.md`
+- **Orchestrator Patterns:** `.claude/protocols/orchestration.md`
+- **Handoff Protocol:** `.claude/protocols/handoff.md`

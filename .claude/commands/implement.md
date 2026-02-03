@@ -58,7 +58,7 @@ Task({
   prompt: `You are a code-researcher sub-agent.
 
 TASK: Research existing patterns for [feature]
-SPEC: specs/[feature]/
+SPEC: ${specPath}
 SUMMARY: ${summary_from_summary_md} // Passed from summary.md if available
 
 STEPS:
@@ -89,7 +89,7 @@ Task({
   prompt: `You are a code-writer sub-agent.
 
 TASK: Implement backend for [feature] using TDD
-SPEC: specs/[feature]/tasks.md
+SPEC: ${specPath}tasks.md
 CONTEXT: ${research_summary}
 
 TDD WORKFLOW (MANDATORY):
@@ -110,13 +110,13 @@ Return: { "files_changed": [...], "context_summary": "..." }`,
 });
 ```
 
-### Spawn Code Validator
+### Spawn Quality Validator
 
 ```typescript
 Task({
   subagent_type: "general-purpose",
   description: "Validate implementation",
-  prompt: `You are a code-validator sub-agent.
+  prompt: `You are a quality-validator sub-agent.
 
 TASK: Validate the implementation
 FILES_CHANGED: ${files_changed}
@@ -149,33 +149,41 @@ Return: { "passed": true/false, "issues": [...] }`,
 
 ## What Happens
 
-1. **Check spec exists** - Verify specs/{feature}/tasks.md exists
-2. **Read summary (optional)** - If specs/{feature}/summary.md exists:
+1. **Resolve spec path** - Use spec-resolver to resolve the spec directory:
+   ```javascript
+   const { resolveSpecPath } = require(".claude/scripts/lib/spec-resolver.cjs");
+   const { path: specPath, type, name } = resolveSpecPath(feature);
+   // specPath is absolute with trailing slash
+   // type is 'project'|'feature'|'spec'
+   // name is normalized feature name
+   ```
+2. **Check spec exists** - Resolver throws if spec not found (no manual check needed)
+3. **Read summary (optional)** - If `${specPath}summary.md` exists:
    - Read the file and extract the one-paragraph summary (text between `## Summary` and `---`)
    - Pass summary as initial context to researcher sub-agent (as `SUMMARY:` field in prompt)
    - Display summary in preview CONTEXT section as `Summary: {first_sentence}...`
    - If absent, skip this step (no error)
-3. **Read spec.json (optional)** - If specs/{feature}/spec.json exists:
+4. **Read spec.json (optional)** - If `${specPath}spec.json` exists:
    - Parse JSON and use `spec.json.phases` array for phase enumeration instead of parsing tasks.md section headers
    - Use `spec.json.tasks` array for task listing (id, title, status, assignee)
    - If `spec.json.linear.identifier` exists, include it in checkpoint data and progress output (e.g., "Linear: BASE-123")
-   - If absent, use task-parser as alternative (no error)
+   - If absent, parse tasks.md directly (no error)
    - **Note:** `spec.json` is authoritative when present, with `tasks.md` as fallback alternative
-4. **Parse tasks** - Use task-parser.parseTasks() to get structured tasks (if spec.json not available)
-5. **Load checkpoint** - If --resume, load .claude/state/implement-{feature}.json
-6. **Merge status** - Merge checkpoint status with parsed tasks
-7. **Apply filters** - Filter tasks based on --task or --phase flags
-8. **Route agents** - Analyze tasks to determine which agents needed
-9. **Show preview** - Display unified preview with PROGRESS section
-10. **Save pre-checkpoint** - Save initial checkpoint before first task
-11. **Execute tasks** - For each task:
+5. **Parse tasks** - Get structured tasks from spec.json or by parsing tasks.md
+6. **Load checkpoint** - If --resume, load .claude/state/implement-{feature}.json
+7. **Merge status** - Merge checkpoint status with parsed tasks
+8. **Apply filters** - Filter tasks based on --task or --phase flags
+9. **Route agents** - Analyze tasks to determine which agents needed
+10. **Show preview** - Display unified preview with PROGRESS section
+11. **Save pre-checkpoint** - Save initial checkpoint before first task
+12. **Execute tasks** - For each task:
 
 - Route to appropriate agent (code/ui/docs/eval)
 - Update checkpoint with task completion
 - Update tasks.md checkbox
 
-12. **Verify** - Run quality checks (lint, typecheck, tests)
-13. **Complete checkpoint** - Mark checkpoint as complete and report
+13. **Verify** - Run quality checks (lint, typecheck, tests)
+14. **Complete checkpoint** - Mark checkpoint as complete and report
 
 ## Routing Logic
 
@@ -226,191 +234,9 @@ Before executing the first task, a light checkpoint is saved containing all task
 
 If checkpoint doesn't exist, report error and suggest running without --resume.
 
-## Checkpoint Integration
-
-The orchestrating agent uses checkpoint-manager.cjs to track progress across all tasks.
-
-### Step 3: Load Checkpoint (--resume)
-
-```javascript
-const {
-  loadCheckpoint,
-} = require(".claude/scripts/lib/checkpoint-manager.cjs");
-const checkpoint = loadCheckpoint("implement", feature);
-
-if (!checkpoint) {
-  throw new Error("Checkpoint not found. Run without --resume to start fresh.");
-}
-
-// Validate schema version
-if (checkpoint.version !== 1) {
-  throw new Error(`Unsupported checkpoint version: ${checkpoint.version}`);
-}
-
-// Warn if head_commit differs (stale checkpoint)
-const currentCommit = execSync("git rev-parse HEAD").toString().trim();
-if (checkpoint.head_commit !== currentCommit) {
-  console.warn("Warning: Checkpoint was created at a different commit.");
-  console.warn(`Checkpoint: ${checkpoint.head_commit}`);
-  console.warn(`Current: ${currentCommit}`);
-}
-```
-
-### Step 4: Merge Checkpoint Status with Parsed Tasks
-
-```javascript
-// After parsing tasks with task-parser.parseTasks()
-for (const phase of parsedTasks.phases) {
-  const phaseKey = `phase-${phase.number}`;
-  const checkpointPhase = checkpoint?.phases?.[phaseKey];
-
-  if (checkpointPhase) {
-    for (const task of phase.tasks) {
-      const checkpointTask = checkpointPhase.tasks?.[task.id];
-      if (checkpointTask?.status === "complete") {
-        task.status = "complete";
-      }
-    }
-  }
-}
-
-// Find first incomplete task
-const firstIncomplete = parsedTasks.phases
-  .flatMap((p) => p.tasks)
-  .find((t) => t.status !== "complete");
-```
-
-### Step 8: Save Pre-Checkpoint (Before First Task)
-
-```javascript
-const {
-  saveCheckpoint,
-} = require(".claude/scripts/lib/checkpoint-manager.cjs");
-const { execSync } = require("child_process");
-
-// Build initial checkpoint structure
-const initialCheckpoint = {
-  version: 1,
-  command: "implement",
-  feature,
-  head_commit: execSync("git rev-parse HEAD").toString().trim(),
-  state: {
-    current_phase: null,
-    completed_phases: [],
-    pending_phases: parsedTasks.phases.map((p) => `phase-${p.number}`),
-  },
-  phases: {},
-};
-
-// Populate phases from parsed tasks
-for (const phase of parsedTasks.phases) {
-  const phaseKey = `phase-${phase.number}`;
-  initialCheckpoint.phases[phaseKey] = {
-    status: "pending",
-    tasks: {},
-  };
-
-  for (const task of phase.tasks) {
-    initialCheckpoint.phases[phaseKey].tasks[task.id] = {
-      status: task.status || "pending",
-      description: task.description,
-    };
-  }
-}
-
-// Save checkpoint before execution starts
-saveCheckpoint("implement", initialCheckpoint, feature);
-```
-
-### Step 9: Update Checkpoint Per Task
-
-```javascript
-const { updatePhase } = require(".claude/scripts/lib/checkpoint-manager.cjs");
-const { updateTaskCheckbox } = require(".claude/scripts/lib/task-parser.cjs");
-
-// After a task completes successfully
-const phaseKey = `phase-${phase.number}`;
-const taskId = task.id;
-
-// Update checkpoint
-updatePhase(
-  "implement",
-  phaseKey,
-  {
-    status: "in_progress",
-    tasks: {
-      [taskId]: { status: "complete" },
-    },
-  },
-  feature
-);
-
-// Update tasks.md checkbox
-const tasksPath = `specs/${feature}/tasks.md`;
-updateTaskCheckbox(tasksPath, taskId, true);
-
-// If all tasks in phase complete, mark phase complete
-const allComplete = phase.tasks.every((t) => t.status === "complete");
-if (allComplete) {
-  updatePhase(
-    "implement",
-    phaseKey,
-    {
-      status: "complete",
-    },
-    feature
-  );
-}
-```
-
-### Step 11: Complete Checkpoint
-
-```javascript
-const {
-  completeCheckpoint,
-} = require(".claude/scripts/lib/checkpoint-manager.cjs");
-
-// After all tasks complete successfully
-completeCheckpoint("implement", feature);
-
-// This moves checkpoint to .completed/ archive
-```
-
-### Checkpoint State Schema
-
-```json
-{
-  "version": 1,
-  "command": "implement",
-  "feature": "user-authentication",
-  "head_commit": "abc123def456...",
-  "state": {
-    "current_phase": "phase-2",
-    "completed_phases": ["phase-1"],
-    "pending_phases": ["phase-3", "phase-4"]
-  },
-  "phases": {
-    "phase-1": {
-      "status": "complete",
-      "tasks": {
-        "T001": { "status": "complete", "description": "Create User model" },
-        "T002": { "status": "complete", "description": "Create migration" }
-      }
-    },
-    "phase-2": {
-      "status": "in_progress",
-      "tasks": {
-        "T003": { "status": "complete", "description": "Create router" },
-        "T004": { "status": "pending", "description": "Implement login" }
-      }
-    }
-  }
-}
-```
-
 ## Preview
 
-**Template:** Read `.claude/skills/preview/templates/command-preview.md` for base layout.
+**Template:** Read `.claude/skills/core/preview/templates/command-preview.md` for base layout.
 
 **Variables:**
 
@@ -421,6 +247,7 @@ completeCheckpoint("implement", feature);
 | `{{dir}}`               | Working directory                               |
 | `{{branch}}`            | Current git branch                              |
 | `{{feature}}`           | Feature name from spec                          |
+| `{{spec_path}}`         | Resolved spec path from spec-resolver           |
 | `{{checkpoint}}`        | `.claude/state/implement-{{feature}}.json`      |
 | `{{first_sentence}}`    | First sentence from summary.md (if available)   |
 | `{{linear_identifier}}` | Linear issue ID from spec.json (if available)   |
@@ -440,7 +267,7 @@ completeCheckpoint("implement", feature);
 
 ```text
 │ CONTEXT                                                              │
-│   Spec: specs/{{feature}}/ (approved)                                │
+│   Spec: {{spec_path}} (resolved)                                     │
 │   Summary: {{first_sentence}}...                                     │
 │   Tasks: {{total}} across {{phase_count}} phases                     │
 │   Linear: {{linear_identifier}} (if available)                       │
@@ -478,7 +305,7 @@ Each stage contains nested TDD phases with sub-agent and model assignments:
 │         → {{test_tasks}}                                             │
 │      3. TDD-GREEN     code-writer / Sonnet                           │
 │         → {{impl_tasks}}                                             │
-│      4. VALIDATE      code-validator / Haiku                         │
+│      4. VALIDATE      quality-validator / Haiku                       │
 │         → Verify tests pass                                          │
 │                                                                      │
 │   N. FINAL VERIFICATION (check-agent / parallel)                     │
@@ -504,7 +331,7 @@ Each stage contains nested TDD phases with sub-agent and model assignments:
 
 ## Progress Display
 
-**Template:** Read `.claude/skills/progress/templates/stage-progress.md` for base layout and Unicode indicators.
+**Template:** Read `.claude/skills/core/progress/templates/stage-progress.md` for base layout and Unicode indicators.
 
 During execution, render progress using the stage-progress template. Each stage maps to a TDD phase within the current implementation task.
 
@@ -515,7 +342,7 @@ During execution, render progress using the stage-progress template. Each stage 
 | 1     | `[RESEARCH]`  | code-researcher | Opus   |
 | 2     | `[TDD-RED]`   | code-writer     | Sonnet |
 | 3     | `[TDD-GREEN]` | code-writer     | Sonnet |
-| 4     | `[VALIDATE]`  | code-validator  | Haiku  |
+| 4     | `[VALIDATE]`  | quality-validator | Haiku  |
 
 **Example** (multi-stage structure per template format):
 
@@ -587,7 +414,7 @@ Always includes (parallel execution):
 
 ## Error Handling
 
-**Template:** Read `.claude/skills/preview/templates/error-report.md` for error display format.
+**Template:** Read `.claude/skills/core/preview/templates/error-report.md` for error display format.
 
 All errors during execution should be rendered using the error-report template.
 
@@ -596,7 +423,7 @@ All errors during execution should be rendered using the error-report template.
 | Variable              | Value                                                                             |
 | --------------------- | --------------------------------------------------------------------------------- |
 | `{{stage_name}}`      | Which stage failed: RESEARCH, TDD-RED, TDD-GREEN, VALIDATE, VERIFICATION          |
-| `{{sub_agent}}`       | Which sub-agent failed: code-researcher, code-writer, code-validator, check-agent |
+| `{{sub_agent}}`       | Which sub-agent failed: code-researcher, code-writer, quality-validator, check-agent |
 | `{{model}}`           | Model of the failed sub-agent: Opus, Sonnet, Haiku                                |
 | `{{message}}`         | Error message from the failed operation                                           |
 | `{{file_line}}`       | File and line number where error occurred (if applicable)                         |
@@ -634,6 +461,6 @@ All errors during execution should be rendered using the error-report template.
 
 1. Review the files created
 2. Run `/ship` to commit and create PR
-3. Or run `/guide` to see current status
+3. Or check `CLAUDE.md` for available commands
 
 $ARGUMENTS

@@ -12,7 +12,7 @@ You are a QA specialist. Your job is to run comprehensive quality checks on impl
 
 ## Permission Profile
 
-**read-only + Bash** - See [profiles/read-only.md](../profiles/read-only.md)
+**read-only + Bash**
 
 ```yaml
 allowed_tools:
@@ -141,7 +141,7 @@ Return a JSON response:
    - Report everything to orchestrator
    - Let orchestrator decide on retries
 
-8. **Summarize Compactly** (see [handoff protocol](../protocols/handoff.md#context-summary-guidelines))
+8. **Summarize Compactly** (see [handoff protocol](../../protocols/handoff.md#context-summary-guidelines))
    - `context_summary` must be under 500 tokens
    - **INCLUDE:** Pass/fail status per check, coverage %, blocking issues
    - **EXCLUDE:** Full error logs, command outputs, resolved issues
