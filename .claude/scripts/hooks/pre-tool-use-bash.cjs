@@ -131,7 +131,17 @@ async function main() {
       // Skip quality checks if package.json doesn't exist (workflow template)
       const fs = require('fs');
       const path = require('path');
-      const packageJsonPath = path.join(process.cwd(), 'package.json');
+
+      let repoRoot;
+      try {
+        repoRoot = execSync('git rev-parse --show-toplevel', {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+        }).trim();
+      } catch {
+        repoRoot = process.cwd();
+      }
+      const packageJsonPath = path.join(repoRoot, 'package.json');
 
       if (!fs.existsSync(packageJsonPath)) {
         logError('[Hook] Skipping quality checks (no package.json - workflow template)');
