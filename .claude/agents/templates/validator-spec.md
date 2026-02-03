@@ -102,7 +102,7 @@ function hasPromptBlock(task):
 
 ## Permission Profile
 
-**read-only** - See [profiles/read-only.md](../profiles/read-only.md)
+**read-only**
 
 ```yaml
 allowed_tools:

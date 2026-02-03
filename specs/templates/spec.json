@@ -1,5 +1,5 @@
 {
-  "_note": "Template for machine-readable spec metadata. Fill {{placeholders}} with actual values. For nested specs: parent_project='basecamp', name='authentication'. For standalone: omit parent_project and parent_feature.",
+  "_note": "Template for machine-readable spec metadata. Fill {{placeholders}} with actual values. For nested specs: parent_project='acme', name='authentication'. For standalone: omit parent_project and parent_feature.",
   "_note_linear": "Optional: Remove linear block if Linear is not configured",
   "name": "{{feature}}",
   "parent_project": "{{parent_project}}",

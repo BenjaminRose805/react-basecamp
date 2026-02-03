@@ -1,6 +1,6 @@
-# My App
+# {{Project Name}}
 
-Next.js 15 + TypeScript + Vitest + Playwright + pnpm
+{{Tech stack description}}
 
 ## Core Rule
 
@@ -31,31 +31,43 @@ Next.js 15 + TypeScript + Vitest + Playwright + pnpm
 
 ## Commands
 
-| Command      | Agent                      |
-| ------------ | -------------------------- |
-| `/start`     | git-agent                  |
-| `/design`    | plan-agent                 |
-| `/reconcile` | plan-agent                 |
-| `/research`  | plan-agent                 |
-| `/implement` | code/ui/docs/eval (routes) |
-| `/ship`      | git-agent + check-agent    |
+| Command      | Agent                       | Description                         |
+| ------------ | --------------------------- | ----------------------------------- |
+| `/start`     | git-agent                   | Create worktree for feature         |
+| `/design`    | plan-agent                  | Create spec from requirements       |
+| `/implement` | code/ui/docs/eval (routed)  | Build from approved spec            |
+| `/ship`      | prune-agent + git-agent + check-agent | Prune, commit, PR, verify |
+| `/review`    | plan-agent                  | 4-loop quality review               |
+| `/reconcile` | plan-agent                  | Address review feedback             |
+| `/research`  | plan-agent                  | Gather context before writing       |
 
-## Key Commands
+## Workflow
 
-```bash
-pnpm dev        # Dev server
-pnpm build      # Build
-pnpm test       # Unit tests
-pnpm lint && pnpm typecheck  # Quality
+```
+/start → /design → /implement → /review → /ship
 ```
 
 ## Structure
 
 ```
-src/app/          # Pages
-src/components/   # React
-src/lib/          # Utils
-specs/            # Specs
-.claude/agents/   # Agent files
-.claude/docs/     # Rules
+.claude/
+├── agents/           # 8 agents + templates/
+├── commands/         # 7 commands
+├── config/           # Agent configs
+├── protocols/        # Communication protocols
+├── scripts/          # Hooks + libs
+├── skills/           # Core + stack skills
+└── sub-agents/       # Templates + sizing heuristics
+specs/
+├── templates/        # 10 spec templates
+└── README.md
+```
+
+## Key Commands
+
+```bash
+{{dev_command}}      # Dev server
+{{build_command}}    # Build
+{{test_command}}     # Unit tests
+{{lint_command}} && {{typecheck_command}}  # Quality
 ```

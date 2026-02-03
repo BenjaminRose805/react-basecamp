@@ -347,7 +347,7 @@ git worktree remove ../repo--feature-name
 
 ```bash
 # Check what's missing
-node --version   # Should be 18+
+node --version   # Should be 20+
 pnpm --version   # Should be installed
 git --version    # Should be 2.0+
 
@@ -402,7 +402,7 @@ When working with nested specs, branch names use dash-separated format:
 
 | Spec Path              | Branch Name            |
 | ---------------------- | ---------------------- |
-| `specs/basecamp/auth/` | `design-basecamp-auth` |
+| `specs/acme/auth/` | `design-acme-auth` |
 | `specs/api/v2/users/`  | `design-api-v2-users`  |
 | `specs/my-feature/`    | `design-my-feature`    |
 
@@ -414,4 +414,4 @@ Branch names use dash-separated format; the CI workflow resolves these to the co
 
 1. Restart session in new worktree directory
 2. Run `/design` to plan your feature
-3. Run `/guide` to see available commands
+3. Check `CLAUDE.md` for available commands

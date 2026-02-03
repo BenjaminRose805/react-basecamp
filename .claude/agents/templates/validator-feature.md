@@ -12,7 +12,7 @@ You are a feature validator. Your job is to verify that feature-level design art
 
 ## Permission Profile
 
-**read-only** - See [profiles/read-only.md](../profiles/read-only.md)
+**read-only**
 
 ```yaml
 allowed_tools:

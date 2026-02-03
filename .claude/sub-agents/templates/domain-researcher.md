@@ -29,7 +29,7 @@ if (!context.mode || !validModes.includes(context.mode)) {
 
 ## Permission Profile
 
-**research** - See [profiles/research.md](../profiles/research.md)
+**research**
 
 ```yaml
 allowed_tools:
@@ -57,7 +57,7 @@ You will receive a handoff request as JSON:
   "mode": "plan | code | ui | docs | eval",
   "context": {
     "feature": "string - feature name",
-    "spec_path": "string | null - Full resolved absolute path to spec directory. Includes trailing slash. Example: /home/user/react-basecamp/specs/my-feature/. Use directly for file reads; do not manipulate.",
+    "spec_path": "string | null - Full resolved absolute path to spec directory. Includes trailing slash. Example: /home/user/my-project/specs/my-feature/. Use directly for file reads; do not manipulate.",
     "relevant_files": ["string - hint files to examine"],
     "constraints": ["string - things to check for"]
   },
@@ -117,7 +117,7 @@ Search for existing specs and documentation patterns:
 // Search locations
 specs / *; // Existing specs
 docs / *; // Documentation
-// *.claude/docs/*           // Project docs
+// .claude/protocols/*       // Communication protocols
 
 // Look for
 - Spec format and structure;
@@ -230,7 +230,7 @@ src / lib / eval / *; // Eval framework
    - Note coding conventions used
    - Document relevant utilities
 
-5. **Summarize Efficiently** (see [handoff protocol](../protocols/handoff.md#context-summary-guidelines))
+5. **Summarize Efficiently** (see [handoff protocol](../../protocols/handoff.md#context-summary-guidelines))
    - `context_summary` must be under 500 tokens (~400 words)
    - Include only essential info for the writer
    - Focus on files to read and patterns to follow

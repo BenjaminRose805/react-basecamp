@@ -5,15 +5,11 @@
  * Purpose: Session initialization and user-facing status messages via stderr only.
  *
  * IMPORTANT: This hook performs ZERO context injection (0 tokens to stdout).
- * All context loading is now handled by role-specific hooks:
- * - inject-rules.cjs: Loads relevant .claude/docs/rules/*.md based on agent role
- * - load-orchestrator-rules.cjs: Loads agents.md for /plan, /implement, /ship
  *
  * Why zero injection?
- * - Eliminates massive upfront context load (sessions, skills, git status, CONTEXT.md, TODO.md)
+ * - Eliminates massive upfront context load
  * - Reduces initial token waste significantly
- * - Role-specific hooks load only what's needed when needed
- * - Session metadata (previous sessions, skills) rarely affects immediate behavior
+ * - Command-specific hooks load only what's needed when needed
  *
  * What this hook DOES do:
  * - Ensures necessary directories exist (.claude/sessions, .claude/learned)

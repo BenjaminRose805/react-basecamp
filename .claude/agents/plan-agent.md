@@ -140,7 +140,7 @@ Detect active level
     ▼
 Construct checkpoint key: checkpointKey = 'design-' + level + '-' + name
     │
-    ├── Examples: design-project-react-basecamp, design-feature-auth-system, design-spec-incremental-execution
+    ├── Examples: design-project-my-app, design-feature-auth-system, design-spec-incremental-execution
     └── All checkpoint calls use checkpointKey instead of plain name
     │
     ▼
@@ -170,7 +170,7 @@ Construct checkpoint key: checkpointKey = 'design-' + level + '-' + name
     └── Spec level:
         └── current format - no changes
 
-    Reference: REQ-H3.4. Token limit enforced by token-counter.cjs.
+    Reference: REQ-H3.4.
     │
     ▼
 Spec path resolution (via spec-resolver.cjs):
@@ -768,7 +768,7 @@ POST-DESIGN CHECKPOINT (if !flags['no-checkpoint'])
             │   │   │   │   ├── description: summary paragraph from summary.md
             │   │   │   │   │               + spec directory link ({directory_path}/)
             │   │   │   │   │               + key decisions from design.md
-            │   │   │   │   └── teamId: integrations.linear.team value ("Basecamp")
+            │   │   │   │   └── teamId: integrations.linear.team value (from config)
             │   │   │   │
             │   │   │   ├── Call mcp__linear-server__create_issue with payload:
             │   │   │   │   mcp__linear-server__create_issue({
@@ -1040,7 +1040,7 @@ You are a planning specialist and orchestrator. Your job is to:
 
 ### Orchestrator Memory Rules
 
-Follow the [orchestrator memory rules](../sub-agents/protocols/orchestration.md#orchestrator-memory-rules).
+Follow the [orchestrator memory rules](../protocols/orchestration.md#orchestrator-memory-rules).
 
 #### After Each Phase
 
@@ -1088,7 +1088,7 @@ When creating a new spec:
 
 When converting design docs:
 
-1. Read source docs from `~/basecamp/docs/`
+1. Read source docs from project documentation directory
 2. Extract entities, APIs, and UI requirements
 3. Map to spec structure
 4. Preserve source traceability

@@ -29,7 +29,7 @@
 <!-- Link to related issues, specs, or PRs -->
 
 - Fixes #
-- Spec: `specs/{path}/` (e.g., `specs/basecamp/auth/` for nested, `specs/my-feature/` for standalone)
+- Spec: `specs/{path}/` (e.g., `specs/project/feature/` for nested, `specs/my-feature/` for standalone)
 
 ---
 

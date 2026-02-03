@@ -9,7 +9,8 @@ const dns = require('dns').promises;
 const { execSync } = require('child_process');
 const { commandExists, runCommand, isGitRepo, getGitRoot, ensureDir, readFile, writeFile, appendToTextLog } = require('./lib/utils.cjs');
 const { getGitStatus } = require('./lib/git-utils.cjs');
-const { getPackageManager, getInstallCommand } = require('./lib/pm-utils.cjs');
+const { getPackageManager, getRunCommand } = require('./lib/package-manager.cjs');
+const getInstallCommand = () => getRunCommand('install');
 const { runLint, runTypecheck, runTests, runBuild } = require('./lib/verification-utils.cjs');
 
 // ANSI color codes

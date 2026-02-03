@@ -120,7 +120,7 @@ Orchestrator: Parse command, create handoff request
     │     └── Receives: context_summary from researcher
     │     └── Returns: files_changed, context_summary
     │
-    ├── Task(code-validator, model: haiku)
+    ├── Task(quality-validator, model: haiku)
     │     └── Receives: files_changed from writer
     │     └── Returns: PASS or FAIL with issues
     │
@@ -144,7 +144,7 @@ Orchestrator: Parse command, create handoff request
 
 **VALIDATE Phase:**
 
-1. Spawn code-validator sub-agent
+1. Spawn quality-validator sub-agent
 2. Report check results
 
 ## Phases
@@ -162,7 +162,7 @@ Orchestrator: Parse command, create handoff request
 1. Receive `spec_path` - a full resolved absolute path with trailing slash
    - Resolved via `resolveSpecPath()`. Do not concatenate or manipulate.
    - Path may be `{project}/{feature}` or `{feature}` format
-   - Example: `/home/user/project/specs/basecamp/auth/` (nested) or `/home/user/project/specs/user-authentication/` (standalone)
+   - Example: `/home/user/project/specs/acme/auth/` (nested) or `/home/user/project/specs/user-authentication/` (standalone)
 2. Receive context_summary from research (NOT raw findings)
 3. For each task in `tasks.md`:
    - Write failing test first (RED)
@@ -173,7 +173,7 @@ Orchestrator: Parse command, create handoff request
 5. Follow `coding-standards` for quality
 6. Return files_changed and context_summary
 
-### VALIDATE (via code-validator)
+### VALIDATE (via quality-validator)
 
 1. Receive files_changed from writer
 2. Run `pnpm typecheck`
@@ -211,7 +211,7 @@ When code-researcher needs more information:
 
 ### Validation Returns STOP (Retry Logic)
 
-When code-validator finds issues:
+When quality-validator finds issues:
 
 1. **Attempt 1**: Re-run code-writer with failure details
    ```json
@@ -298,7 +298,7 @@ Ready for `/ship`
 >
 > - Using Read, Grep, Glob directly (spawn code-researcher)
 > - Using Edit, Write directly (spawn code-writer)
-> - Using Bash directly for pnpm commands (spawn code-validator)
+> - Using Bash directly for pnpm commands (spawn quality-validator)
 > - Using MCP tools directly (spawn appropriate sub-agent)
 >
 > **Required pattern:**
@@ -388,7 +388,7 @@ throw new TRPCError({
 
 ## Context Compaction (Orchestrator)
 
-When using sub-agents, follow the [orchestrator memory rules](../sub-agents/protocols/orchestration.md#orchestrator-memory-rules).
+When using sub-agents, follow the [orchestrator memory rules](../protocols/orchestration.md#orchestrator-memory-rules).
 
 ### After Each Phase
 

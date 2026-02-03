@@ -232,19 +232,29 @@ Return: { status, report, next_steps }`,
 });
 ```
 
+## Skills Used
+
+- **git-operations** - Git commands, branching, worktrees
+- **pr-operations** - PR lifecycle, CI monitoring, reviews
+
 ## /ship Flow
 
 ```text
 /ship
   │
-  ├─► 1. Respect Gate: Check context for gate result
+  ├─► 0. Respect Gate: Check context for gate result
   │
-  ├─► git-writer (Sonnet)
+  ├─► 1. PRUNE ARTIFACTS — see prune-agent.md
+  │   ├─ prune-scanner (Haiku) — read-only scan
+  │   ├─ PREVIEW → AskUserQuestion: Prune / Skip / Cancel
+  │   └─ prune-executor (Sonnet) — execute if confirmed
+  │
+  ├─► 2. git-writer (Sonnet)
   │   └─ git diff, git log
   │   └─ Generate commit message
   │   └─ git add, git commit, git push
   │
-  └─► git-executor (Haiku)
+  └─► 3. git-executor (Haiku)
       └─ gh pr create
       └─ Poll CI status (30s interval)
       └─ Poll CodeRabbit (30s interval)
@@ -258,7 +268,29 @@ Return: { status, report, next_steps }`,
 > Use Task tool to spawn sub-agents. DO NOT execute git/gh directly.
 >
 > ```typescript
-> // Stage 1: Commit
+> // Stage 1: Prune — scan, preview, confirm, execute
+>> // See prune-agent.md for full workflow details.
+>> // 1a. Scan (read-only)
+> Task({
+>   subagent_type: "general-purpose",
+>   description: "Scan for prunable artifacts",
+>   prompt: `Read .claude/agents/prune-agent.md. Execute Stage 1 (SCAN) only.
+> Return: { to_delete[], to_trim[], safe_skips[] }`,
+>   model: "haiku",
+> });
+> // 1b. Preview + Confirm (orchestrator renders preview, calls AskUserQuestion)
+> // 1c. Execute (only if user selected "Prune")
+> Task({
+>   subagent_type: "general-purpose",
+>   description: "Execute approved prune operations",
+>   prompt: `Read .claude/agents/prune-agent.md. Execute Stage 3 (EXECUTE).
+> Approved deletions: ${JSON.stringify(scan_results.to_delete)}
+> Approved trims: ${JSON.stringify(scan_results.to_trim)}
+> Return: { removed[], trimmed[], errors[] }`,
+>   model: "sonnet",
+> });
+>
+> // Stage 2: Commit
 > Task({
 >   subagent_type: "general-purpose",
 >   description: "Analyze and commit changes",
@@ -268,7 +300,7 @@ Return: { status, report, next_steps }`,
 >   model: "sonnet",
 > });
 >
-> // Stage 2: PR + Monitor
+> // Stage 3: PR + Monitor
 > Task({
 >   subagent_type: "general-purpose",
 >   description: "Create PR and monitor CI",

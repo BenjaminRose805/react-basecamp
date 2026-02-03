@@ -9,7 +9,7 @@ Specs are organized as directories (not single files) and support two organizati
 1. **Nested Hierarchy** - Group related features under project directories
 2. **Standalone Specs** - Top-level feature directories
 
-The centralized path resolver (`spec-path-resolver.cjs`) automatically handles both formats.
+The centralized path resolver (`spec-resolver.cjs`) automatically handles both formats.
 
 ## Spec Directory Structure
 
@@ -17,7 +17,7 @@ The centralized path resolver (`spec-path-resolver.cjs`) automatically handles b
 
 ```
 specs/
-├── basecamp/                  # PROJECT level
+├── acme/                  # PROJECT level
 │   ├── project.md            # Project overview
 │   ├── requirements.md       # Project requirements
 │   ├── meta.yaml             # Project metadata
@@ -107,11 +107,11 @@ Standalone specs are top-level feature directories without a project parent.
 
 ## Path Resolution
 
-The centralized path resolver (`.claude/scripts/lib/spec-path-resolver.cjs`) automatically detects whether a spec is nested or standalone:
+The centralized path resolver (`.claude/scripts/lib/spec-resolver.cjs`) automatically detects whether a spec is nested or standalone:
 
 **Resolution Examples:**
 
-- `basecamp/auth` → `specs/basecamp/auth/`
+- `acme/auth` → `specs/acme/auth/`
 - `user-authentication` → `specs/user-authentication/`
 - Detects format by checking for `project.md` in parent directory
 
@@ -134,20 +134,20 @@ ls specs/
 ### View Project Overview
 
 ```bash
-cat specs/basecamp/project.md
+cat specs/acme/project.md
 ```
 
 ### List Features in a Project
 
 ```bash
-ls specs/basecamp/
+ls specs/acme/
 ```
 
 ### View Feature Specification
 
 ```bash
-cat specs/basecamp/auth/requirements.md
-cat specs/basecamp/auth/design.md
+cat specs/acme/auth/requirements.md
+cat specs/acme/auth/design.md
 ```
 
 ### Find All Feature Specs

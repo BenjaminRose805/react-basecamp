@@ -15,10 +15,10 @@ Handle code review feedback from 4-loop review system (Claude, local, or GitHub 
 
 **Examples:**
 
-- `/reconcile basecamp/auth` - Nested feature (specs/basecamp/auth/)
+- `/reconcile acme/auth` - Nested feature (specs/acme/auth/)
 - `/reconcile my-feature` - Standalone feature (specs/my-feature/)
 
-Path can be a standalone feature (e.g., 'my-feature') or a nested feature (e.g., 'basecamp/auth'). The centralized path resolver handles both formats.
+Path can be a standalone feature (e.g., 'my-feature') or a nested feature (e.g., 'acme/auth'). The centralized path resolver handles both formats.
 
 ## Source Detection
 
@@ -205,4 +205,4 @@ Each tasks.md contains:
 
 ## Path Resolution
 
-Path resolution is handled by `spec-path-resolver.cjs`, which supports both nested (e.g., `specs/project/feature/`) and standalone (e.g., `specs/feature/`) formats. The resolver automatically detects the correct format based on directory structure.
+Path resolution is handled by `spec-resolver.cjs`, which supports both nested (e.g., `specs/project/feature/`) and standalone (e.g., `specs/feature/`) formats. The resolver automatically detects the correct format based on directory structure.

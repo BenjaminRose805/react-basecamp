@@ -18,6 +18,11 @@ check-agent (orchestrator)
 | -------------- | ----- | --------------------------------------- |
 | quality-runner | Haiku | Run build, types, lint, tests, security |
 
+## Skills Used
+
+- **qa-checks** - Build, types, lint, tests
+- **security-patterns** - Secret detection, input validation
+
 ## Execution Flow
 
 ```text

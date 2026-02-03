@@ -2,7 +2,7 @@
 /**
  * Command mode detection hook
  *
- * Detects when user runs /plan, /implement, /ship and:
+ * Detects when user runs /design, /implement, /ship and:
  * 1. Sets a state file indicating "command mode"
  * 2. Injects a reminder to use Task tool for sub-agents
  *
@@ -25,9 +25,6 @@ const {
 
 // Commands that should trigger command mode (require sub-agent spawning)
 const COMMAND_PATTERNS = [
-  // DEPRECATED: /plan is being replaced by /design, /reconcile, /research
-  // Kept for backward compatibility - routes to plan-agent which will prompt user to use new commands
-  { pattern: /^\/plan\b/i, command: 'plan', agents: ['plan-agent'] },
   { pattern: /^\/design\b/i, command: 'design', agents: ['plan-agent'] },
   { pattern: /^\/reconcile\b/i, command: 'reconcile', agents: ['plan-agent'] },
   { pattern: /^\/research\b/i, command: 'research', agents: ['plan-agent'] },
@@ -108,8 +105,6 @@ You MUST follow the MANDATORY steps:
 3. **Load agent file** - Read \`.claude/agents/${agents[0]}.md\`
 4. **Follow CRITICAL EXECUTION REQUIREMENT** in that file
 5. **Use Task tool** - Spawn sub-agents, NEVER execute directly
-
-Quick reference: \`.claude/sub-agents/QUICK-REFERENCE.md\`
 ---
 `);
 

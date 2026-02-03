@@ -8,7 +8,7 @@ Commit, create PR, wait for CI and CodeRabbit.
 >
 > 1. **Show preview** - Display execution plan
 > 2. **Get confirmation** - Wait for [Enter] or [Esc]
-> 3. **Read** `.claude/agents/git-agent.md`
+> 3. **Read** `.claude/agents/git-agent.md` and `.claude/agents/prune-agent.md`
 > 4. **Use Task tool** - Spawn sub-agents, NEVER execute directly
 
 ## Ship Gate Validation
@@ -49,10 +49,15 @@ The `user-prompt-ship.cjs` hook validates review state BEFORE this command execu
 │  │ 0. VALIDATE GATE                                        ││
 │  │    └─ Check review state from user-prompt-ship.cjs      ││
 │  ├─────────────────────────────────────────────────────────┤│
-│  │ 1. ANALYZE & COMMIT                                     ││
+│  │ 1. PRUNE ARTIFACTS                                      ││
+│  │    ├─ prune-scanner (Haiku) - Scan for artifacts         ││
+│  │    ├─ PREVIEW → Confirm / Skip / Cancel                  ││
+│  │    └─ prune-executor (Sonnet) - Execute if confirmed     ││
+│  ├─────────────────────────────────────────────────────────┤│
+│  │ 2. ANALYZE & COMMIT                                     ││
 │  │    └─ git-writer (Sonnet) - Diff → commit → push        ││
 │  ├─────────────────────────────────────────────────────────┤│
-│  │ 2. CREATE PR & MONITOR                                  ││
+│  │ 3. CREATE PR & MONITOR                                  ││
 │  │    └─ git-executor (Haiku) - PR → CI → CodeRabbit       ││
 │  └─────────────────────────────────────────────────────────┘│
 │                                                             │
@@ -60,22 +65,31 @@ The `user-prompt-ship.cjs` hook validates review state BEFORE this command execu
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Sub-Agents (2 total)
+## Sub-Agents (4 total)
 
-| Phase | Agent        | Model  | Purpose                       |
-| ----- | ------------ | ------ | ----------------------------- |
-| 1     | git-writer   | Sonnet | Analyze diff, commit, push    |
-| 2     | git-executor | Haiku  | Create PR, poll CI/CodeRabbit |
+| Phase | Agent          | Model  | Purpose                              |
+| ----- | -------------- | ------ | ------------------------------------ |
+| 1a    | prune-scanner  | Haiku  | Scan for removable artifacts         |
+| 1b    | prune-executor | Sonnet | Execute removals (after confirmation)|
+| 2     | git-writer     | Sonnet | Analyze diff, commit, push           |
+| 3     | git-executor   | Haiku  | Create PR, poll CI/CodeRabbit        |
 
 ## Progress
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  STAGE 1: ANALYZE & COMMIT                     [COMPLETE]   │
+│  STAGE 1: PRUNE ARTIFACTS                      [COMPLETE]   │
+│  ├─ ✓ prune-scanner (Haiku)                    [1.2s]       │
+│  │   Found: 3 to delete, 1 to trim                         │
+│  ├─ ✓ User confirmed pruning                                │
+│  └─ ✓ prune-executor (Sonnet)                  [0.8s]       │
+│      3 removed, 1 trimmed                                   │
+│                                                             │
+│  STAGE 2: ANALYZE & COMMIT                     [COMPLETE]   │
 │  └─ ✓ git-writer (Sonnet)                      [3.2s]       │
 │      Commit: abc1234 - feat: add feature                    │
 │                                                             │
-│  STAGE 2: CREATE PR & MONITOR                  [RUNNING]    │
+│  STAGE 3: CREATE PR & MONITOR                  [RUNNING]    │
 │  └─ ● git-executor (Haiku)                                  │
 │      PR: #42 created                                        │
 │      CI: ██████████░░░░░░░░░░ Build PASS | Tests RUNNING    │
@@ -113,7 +127,7 @@ The `user-prompt-ship.cjs` hook validates review state BEFORE this command execu
 │  CI: ✓ PASS                                                 │
 │  CodeRabbit: ⚠ 3 comments                                   │
 │                                                             │
-│  Run /plan to reconcile feedback.                           │
+│  Run /reconcile to reconcile feedback.                      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -126,7 +140,7 @@ The `user-prompt-ship.cjs` hook validates review state BEFORE this command execu
 │  PR: #42                                                    │
 │  CI: ✗ FAILED (test job)                                    │
 │                                                             │
-│  Run /plan to investigate and fix.                          │
+│  Run /design to investigate and fix.                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 

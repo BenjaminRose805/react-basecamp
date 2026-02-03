@@ -9,7 +9,6 @@ Conversational spec creation - turn ideas into implementation specs.
 /design feature --phase=research  # Research phase only
 /design feature --phase=write     # Write phase only
 /design feature --phase=validate  # Validate phase only
-/design feature --resume          # Continue from checkpoint
 /design feature --no-checkpoint   # Skip interactive prompts
 /design feature --dry-run        # Preview without executing
 
@@ -27,14 +26,14 @@ Conversational spec creation - turn ideas into implementation specs.
 | ---------------- | ----------------------------------- | ---------------- |
 | --phase=research | Execute research phase only         | --phase=research |
 | --phase=write    | Execute write phase only            | --phase=write    |
-| --resume         | Resume from checkpoint              | --resume         |
+
 | --no-checkpoint  | Skip interactive checkpoint prompts | --no-checkpoint  |
 | --dry-run        | Show preview and exit (no action)   | --dry-run        |
 | --project        | Project-level design                | --project        |
 | --feature        | Feature-level design                | --feature        |
 | --spec           | Spec-level design                   | --spec           |
 
-**Flag combinations:** `--phase` and `--resume` can be combined to resume at a specific phase. `--no-checkpoint` skips interactive checkpoint prompts while still saving checkpoint files. `--dry-run` renders the preview and exits without making any changes.
+**Flag combinations:** `--no-checkpoint` skips interactive checkpoint prompts while still saving checkpoint files. `--dry-run` renders the preview and exits without making any changes.
 
 **Level flags:** `--project`, `--feature`, and `--spec` are mutually exclusive. Only one may be specified. If no level flag is provided, the user will be prompted to select a level interactively.
 
@@ -87,7 +86,7 @@ Create spec files in specs/{resolved_path}/ (path resolved via resolveSpecPath()
 
 Note: The path may be nested (e.g., specs/project/feature/) or standalone (e.g., specs/feature/).
 
-Follow templates from .claude/templates/.
+Follow templates from specs/templates/.
   `,
   model: "sonnet",
 });
@@ -114,7 +113,7 @@ Report any gaps or inconsistencies.
 
 ## Preview
 
-**Template:** Read `.claude/skills/preview/templates/command-preview.md` for base layout.
+**Template:** Read `.claude/skills/core/preview/templates/command-preview.md` for base layout.
 
 **Variables:**
 
@@ -133,7 +132,7 @@ Report any gaps or inconsistencies.
 │ CONTEXT                                                              │
 │   Feature: {{feature}}                                               │
 │   Level: {{level}}                                                   │
-│   Checkpoint: {{checkpoint}} (if --resume)                           │
+│   Checkpoint: {{checkpoint}}                                         │
 │   Flags: {{active_flags}}                                            │
 ```
 
