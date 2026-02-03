@@ -13,7 +13,7 @@ title = "Gitleaks Config"
     '''specs/.*\.txt$''',
   ]
 
-  # Specific commits that contain example secrets in documentation
-  commits = [
-    "fabde6178d95830b2623f1c39548b82b294e0837",
-  ]
+  # Add specific commit hashes to allowlist if needed
+  # commits = [
+  #   "abc123...",
+  # ]

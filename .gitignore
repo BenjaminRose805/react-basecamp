@@ -1,8 +1,40 @@
+# Dependencies
 node_modules/
-.env*
-coverage/
+
+# Build output
 dist/
+build/
+out/
+.next/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Test & coverage
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code runtime
 .claude/logs/
 .claude/state/
 .claude/package-manager.json
-*.tsbuildinfo
+.claude/settings.local.json
+
+# Lock files (template - users add their own)
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
