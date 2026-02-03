@@ -25,7 +25,7 @@ Analyze spec content and route `/implement` to appropriate agents based on what 
     ▼
 ┌────────────────────────────────────────────────────┐
 │  1. FIND: Locate approved spec                     │
-│     Check: specs/{feature}/design.md               │
+│     Resolve: resolveSpecPath(feature)              │
 │     Verify: "Status: Approved" in frontmatter      │
 └────────────────────────────────────────────────────┘
     │
@@ -104,9 +104,9 @@ When `/implement` is called but no approved spec exists:
 │                                                                  │
 │  ERROR: No approved spec found                                   │
 │                                                                  │
-│  Checked locations:                                              │
-│  • specs/{feature}/design.md - Not found                         │
-│  • specs/{feature}/requirements.md - Not found                   │
+│  Searched using: resolveSpecPath(feature)                        │
+│  • Checked project and feature directories                       │
+│  • No design.md or requirements.md found                         │
 │                                                                  │
 │  To create a spec, run:                                          │
 │  /plan                                                           │
@@ -162,17 +162,20 @@ interface RoutingResult {
   spec: { path: string; sections: string[] };
 }
 
-function routeImplement(specPath: string): RoutingResult {
-  // 1. Read and parse spec
+function routeImplement(feature: string): RoutingResult {
+  // 1. Resolve spec path
+  const { path: specPath } = resolveSpecPath(feature);
+
+  // 2. Read and parse spec
   const spec = readSpec(specPath);
   if (!spec) {
     throw new Error("No approved spec found. Run /plan first.");
   }
 
-  // 2. Detect sections
+  // 3. Detect sections
   const sections = detectSections(spec.content);
 
-  // 3. Build agent sequence
+  // 4. Build agent sequence
   const agents: RoutingResult["agents"] = [];
 
   if (hasBackendIndicators(sections)) {
@@ -191,7 +194,7 @@ function routeImplement(specPath: string): RoutingResult {
     agents.push("eval-agent");
   }
 
-  // 4. Handle ambiguous case
+  // 5. Handle ambiguous case
   if (agents.length === 0) {
     throw new Error(
       "Unable to determine implementation type. Please clarify: backend, frontend, full-stack, docs, or eval?"
@@ -240,7 +243,7 @@ function detectSections(content: string): string[] {
 ```markdown
 ## Routing: SUCCESS
 
-**Spec:** specs/user-authentication/design.md
+**Spec:** /home/user/project/specs/user-authentication/design.md (resolved)
 **Detected:** Full-stack (backend + frontend)
 
 ### Execution Chain
@@ -248,10 +251,12 @@ function detectSections(content: string): string[] {
 1. **code-agent** (backend)
    - code-researcher → code-writer → code-validator
    - Scope: Prisma schema, tRPC router
+   - spec_path: /home/user/project/specs/user-authentication/
 
 2. **ui-agent** (frontend)
    - ui-researcher → ui-builder → ui-validator
    - Scope: Login form, auth context
+   - spec_path: /home/user/project/specs/user-authentication/
 
 3. **check-agent** (verification)
    - Parallel: build, types, lint, tests, security
@@ -276,7 +281,7 @@ function detectSections(content: string): string[] {
 ```markdown
 ## Routing: CLARIFY
 
-**Spec:** specs/utils/design.md
+**Spec:** /home/user/project/specs/utils/design.md (resolved)
 **Reason:** Unable to determine implementation type
 
 ### Detected Content

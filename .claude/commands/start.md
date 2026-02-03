@@ -394,6 +394,22 @@ coderabbit auth login
 # The worktree will still be created
 ```
 
+## Branch Naming for Nested Specs
+
+When working with nested specs, branch names use dash-separated format:
+
+**Naming Convention:**
+
+| Spec Path              | Branch Name            |
+| ---------------------- | ---------------------- |
+| `specs/basecamp/auth/` | `design-basecamp-auth` |
+| `specs/api/v2/users/`  | `design-api-v2-users`  |
+| `specs/my-feature/`    | `design-my-feature`    |
+
+**Pattern:** `design-{project}-{feature}` or `design-{feature}`
+
+Branch names use dash-separated format; the CI workflow resolves these to the corresponding directory structure in the `specs/` directory.
+
 ## After /start
 
 1. Restart session in new worktree directory

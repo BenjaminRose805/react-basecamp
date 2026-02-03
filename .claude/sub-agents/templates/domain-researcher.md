@@ -57,7 +57,7 @@ You will receive a handoff request as JSON:
   "mode": "plan | code | ui | docs | eval",
   "context": {
     "feature": "string - feature name",
-    "spec_path": "string | null - path to spec",
+    "spec_path": "string | null - Full resolved absolute path to spec directory. Includes trailing slash. Example: /home/user/react-basecamp/specs/my-feature/. Use directly for file reads; do not manipulate.",
     "relevant_files": ["string - hint files to examine"],
     "constraints": ["string - things to check for"]
   },

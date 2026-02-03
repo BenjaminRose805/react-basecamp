@@ -42,7 +42,7 @@ loop2:
   spawn_fresh_context: true
 
   # Include spec files in review context
-  include_specs: true
+  include_specs: true # Supports nested specs (specs/project/feature/) and standalone (specs/feature/)
 
   # Number of recent commits to include for context
   include_commits: 5

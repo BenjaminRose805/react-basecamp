@@ -8,7 +8,7 @@ body:
       value: |
         ## Feature Request
 
-        Before submitting, check if a spec already exists in `specs/`.
+        Before submitting, check if a spec already exists in `specs/` (may be nested: `specs/project/feature/`).
 
   - type: textarea
     id: goal
@@ -62,4 +62,4 @@ body:
       label: Spec Checklist
       options:
         - label: I have checked that no existing spec covers this feature
-        - label: I am willing to create a detailed spec in `specs/` before implementation
+        - label: "I am willing to create a detailed spec in `specs/` (may be nested: `specs/project/feature/`) before implementation"

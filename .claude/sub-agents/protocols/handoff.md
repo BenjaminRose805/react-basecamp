@@ -34,18 +34,18 @@ Orchestrator → Sub-Agent
 
 ### Request Fields
 
-| Field                      | Type   | Required | Description                                                          |
-| -------------------------- | ------ | -------- | -------------------------------------------------------------------- |
-| `task_id`                  | string | Yes      | Unique identifier for tracking                                       |
-| `phase`                    | enum   | Yes      | Current phase (research/write/validate/parallel)                     |
-| `mode`                     | enum   | Yes      | Sub-agent specialization (plan/code/ui/docs/eval/reconcile/research) |
-| `context.feature`          | string | Yes      | Feature name being worked on                                         |
-| `context.spec_path`        | string | No       | Path to specification if exists                                      |
-| `context.relevant_files`   | array  | No       | Files to examine or modify                                           |
-| `context.constraints`      | array  | No       | Requirements or restrictions                                         |
-| `context.previous_summary` | string | No       | Summary from previous phase (≤500 tokens, validated)                 |
-| `instructions`             | string | Yes      | Specific task for sub-agent                                          |
-| `expected_output`          | enum   | Yes      | Output format expected                                               |
+| Field                      | Type   | Required | Description                                                                                                                                                                                                                                     |
+| -------------------------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task_id`                  | string | Yes      | Unique identifier for tracking                                                                                                                                                                                                                  |
+| `phase`                    | enum   | Yes      | Current phase (research/write/validate/parallel)                                                                                                                                                                                                |
+| `mode`                     | enum   | Yes      | Sub-agent specialization (plan/code/ui/docs/eval/reconcile/research)                                                                                                                                                                            |
+| `context.feature`          | string | Yes      | Feature name being worked on                                                                                                                                                                                                                    |
+| `context.spec_path`        | string | No       | Full resolved absolute path to spec directory with trailing slash. Obtained via `resolveSpecPath(feature).path` from `.claude/scripts/lib/spec-resolver.cjs`. Do not construct manually. Example: `/home/user/react-basecamp/specs/my-feature/` |
+| `context.relevant_files`   | array  | No       | Files to examine or modify                                                                                                                                                                                                                      |
+| `context.constraints`      | array  | No       | Requirements or restrictions                                                                                                                                                                                                                    |
+| `context.previous_summary` | string | No       | Summary from previous phase (≤500 tokens, validated)                                                                                                                                                                                            |
+| `instructions`             | string | Yes      | Specific task for sub-agent                                                                                                                                                                                                                     |
+| `expected_output`          | enum   | Yes      | Output format expected                                                                                                                                                                                                                          |
 
 ## Response Schema
 
@@ -378,7 +378,7 @@ Sub-agent responses are validated at **warning level** — the orchestrator deci
   "mode": "research",
   "context": {
     "feature": "jwt-authentication",
-    "spec_path": "specs/auth/requirements.md",
+    "spec_path": "/home/user/react-basecamp/specs/auth/",
     "relevant_files": ["src/lib/", "src/server/routers/"],
     "constraints": ["no breaking changes", "follow existing patterns"]
   },
@@ -428,7 +428,7 @@ Sub-agent responses are validated at **warning level** — the orchestrator deci
   "mode": "code",
   "context": {
     "feature": "jwt-authentication",
-    "spec_path": "specs/auth/requirements.md",
+    "spec_path": "/home/user/react-basecamp/specs/auth/",
     "relevant_files": ["src/lib/auth.ts", "src/server/routers/user.ts"],
     "constraints": ["TDD", "30 line functions"],
     "previous_summary": "Existing auth at src/lib/auth.ts (sessions). Pattern: src/server/routers/user.ts. No conflicts. Extend auth.ts with JWT, create auth router."

@@ -11,6 +11,15 @@ Handle code review feedback from 4-loop review system (Claude, local, or GitHub 
 - `/reconcile --source local` - Combined findings from all loops
 - `/reconcile --source pr` - GitHub PR review comments (Loop 4)
 
+**Note:** The first argument is the spec identifier (not the --source flag).
+
+**Examples:**
+
+- `/reconcile basecamp/auth` - Nested feature (specs/basecamp/auth/)
+- `/reconcile my-feature` - Standalone feature (specs/my-feature/)
+
+Path can be a standalone feature (e.g., 'my-feature') or a nested feature (e.g., 'basecamp/auth'). The centralized path resolver handles both formats.
+
 ## Source Detection
 
 When no `--source` flag is provided, auto-detection runs in priority order:
@@ -193,3 +202,7 @@ Each tasks.md contains:
 - Severity categorization
 
 **Note:** Use `/implement` to execute the fix tasks after reconciliation.
+
+## Path Resolution
+
+Path resolution is handled by `spec-path-resolver.cjs`, which supports both nested (e.g., `specs/project/feature/`) and standalone (e.g., `specs/feature/`) formats. The resolver automatically detects the correct format based on directory structure.

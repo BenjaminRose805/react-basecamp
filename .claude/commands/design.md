@@ -12,6 +12,11 @@ Conversational spec creation - turn ideas into implementation specs.
 /design feature --resume          # Continue from checkpoint
 /design feature --no-checkpoint   # Skip interactive prompts
 /design feature --dry-run        # Preview without executing
+
+# Level flags (mutually exclusive)
+/design feature --project        # Project-level design
+/design feature --feature        # Feature-level design
+/design feature --spec           # Spec-level design
 ```
 
 ---
@@ -25,8 +30,13 @@ Conversational spec creation - turn ideas into implementation specs.
 | --resume         | Resume from checkpoint              | --resume         |
 | --no-checkpoint  | Skip interactive checkpoint prompts | --no-checkpoint  |
 | --dry-run        | Show preview and exit (no action)   | --dry-run        |
+| --project        | Project-level design                | --project        |
+| --feature        | Feature-level design                | --feature        |
+| --spec           | Spec-level design                   | --spec           |
 
 **Flag combinations:** `--phase` and `--resume` can be combined to resume at a specific phase. `--no-checkpoint` skips interactive checkpoint prompts while still saving checkpoint files. `--dry-run` renders the preview and exits without making any changes.
+
+**Level flags:** `--project`, `--feature`, and `--spec` are mutually exclusive. Only one may be specified. If no level flag is provided, the user will be prompted to select a level interactively.
 
 **Dry run behavior:** When `--dry-run` is used, the preview is displayed and the command exits immediately with the message: "Dry run complete. No changes made."
 
@@ -70,10 +80,12 @@ You are a domain-writer sub-agent (mode=design).
 
 Context: [context_summary from Phase 1]
 
-Create spec files in specs/[feature]/:
+Create spec files in specs/{resolved_path}/ (path resolved via resolveSpecPath()):
 - requirements.md (what and why)
 - design.md (how and architecture)
 - tasks.md (step-by-step implementation)
+
+Note: The path may be nested (e.g., specs/project/feature/) or standalone (e.g., specs/feature/).
 
 Follow templates from .claude/templates/.
   `,
@@ -87,10 +99,12 @@ Task({
   prompt: `
 You are a quality-validator sub-agent (mode=design).
 
-Verify specs/[feature]/ contains:
+Verify specs/{resolved_path}/ (path resolved via resolveSpecPath()) contains:
 - requirements.md with clear acceptance criteria
 - design.md with architecture decisions
 - tasks.md with actionable steps
+
+Note: The path may be nested or standalone format.
 
 Report any gaps or inconsistencies.
   `,
@@ -104,20 +118,21 @@ Report any gaps or inconsistencies.
 
 **Variables:**
 
-| Variable          | Value                                   |
-| ----------------- | --------------------------------------- |
-| `{{command}}`     | `design`                                |
-| `{{description}}` | Conversational Spec Creation            |
-| `{{dir}}`         | Working directory                       |
-| `{{branch}}`      | Current git branch                      |
-| `{{feature}}`     | Feature name from arguments             |
-| `{{checkpoint}}`  | `.claude/state/design-{{feature}}.json` |
+| Variable          | Value                                             |
+| ----------------- | ------------------------------------------------- |
+| `{{command}}`     | `design`                                          |
+| `{{description}}` | Conversational Spec Creation                      |
+| `{{dir}}`         | Working directory                                 |
+| `{{branch}}`      | Current git branch                                |
+| `{{feature}}`     | Feature name from arguments                       |
+| `{{checkpoint}}`  | `.claude/state/design-{{level}}-{{feature}}.json` |
 
 **CONTEXT section** (extends template lines 15-20):
 
 ```text
 │ CONTEXT                                                              │
 │   Feature: {{feature}}                                               │
+│   Level: {{level}}                                                   │
 │   Checkpoint: {{checkpoint}} (if --resume)                           │
 │   Flags: {{active_flags}}                                            │
 ```
@@ -127,13 +142,13 @@ Report any gaps or inconsistencies.
 ```text
 │ STAGES                                                               │
 │   1. RESEARCH (domain-researcher / Opus)                             │
-│      → Analyze requirements and gather context                       │
+│      → Analyze requirements and gather context for {{level}}         │
 │                                                                      │
 │   2. WRITE (domain-writer / Sonnet)                                  │
-│      → Create requirements.md, design.md, tasks.md                   │
+│      → Create {{level}}-appropriate spec files                       │
 │                                                                      │
 │   3. VALIDATE (quality-validator / Haiku)                            │
-│      → Verify spec completeness                                      │
+│      → Verify {{level}} spec completeness                            │
 ```
 
 **OUTPUT section** (extends template lines 27-29):
@@ -141,12 +156,22 @@ Report any gaps or inconsistencies.
 ```text
 │ OUTPUT                                                               │
 │   specs/{{feature}}/                                                 │
-│     ├── requirements.md                                              │
-│     ├── design.md                                                    │
-│     ├── tasks.md                                                     │
+│     {{#if level == 'project'}}                                       │
+│     ├── project.md (project vision and scope)                        │
+│     ├── features.json (feature manifest)                             │
+│     └── .project-marker                                              │
+│     {{else if level == 'feature'}}                                   │
+│     ├── feature.md (feature overview and spec list)                  │
+│     ├── specs.json (spec manifest with depends_on DAG)               │
+│     └── .feature-marker                                              │
+│     {{else if level == 'spec'}}                                      │
+│     ├── requirements.md (detailed acceptance criteria)               │
+│     ├── design.md (component/API contracts)                          │
+│     ├── tasks.md (granular implementation steps)                     │
 │     ├── summary.md                                                   │
 │     ├── spec.json                                                    │
 │     └── meta.yaml                                                    │
+│     {{/if}}                                                          │
 ```
 
 **Rendering steps:**
@@ -158,13 +183,25 @@ Report any gaps or inconsistencies.
 
 ## Output
 
-Creates spec directory with:
+Creates spec directory with level-appropriate files:
 
-- `specs/{feature}/requirements.md` - What and why
-- `specs/{feature}/design.md` - How and architecture
-- `specs/{feature}/tasks.md` - Step-by-step implementation
-- `specs/{feature}/summary.md` - Human-readable summary with status and key decisions
-- `specs/{feature}/spec.json` - Machine-readable metadata with phases, tasks, and Linear identifier
+**Project level** (`--project`):
+
+- `specs/{feature}/project.md` - Project vision and scope
+- `specs/{feature}/features.json` - Feature manifest
+
+**Feature level** (`--feature`):
+
+- `specs/{feature}/feature.md` - Feature overview and spec list
+- `specs/{feature}/specs.json` - Spec manifest with depends_on DAG
+
+**Spec level** (`--spec`):
+
+- `specs/{feature}/requirements.md` - Detailed acceptance criteria
+- `specs/{feature}/design.md` - Component/API contracts and implementation details
+- `specs/{feature}/tasks.md` - Granular implementation steps with dependencies
+- `specs/{feature}/summary.md` - Detailed summary with trade-offs
+- `specs/{feature}/spec.json` - Complete metadata with task dependencies
 - `specs/{feature}/meta.yaml` - Build metadata with task counts
 
 $ARGUMENTS

@@ -159,7 +159,10 @@ Orchestrator: Parse command, create handoff request
 
 ### IMPLEMENT (via code-writer)
 
-1. Read spec from `specs/{feature}/`
+1. Receive `spec_path` - a full resolved absolute path with trailing slash
+   - Resolved via `resolveSpecPath()`. Do not concatenate or manipulate.
+   - Path may be `{project}/{feature}` or `{feature}` format
+   - Example: `/home/user/project/specs/basecamp/auth/` (nested) or `/home/user/project/specs/user-authentication/` (standalone)
 2. Receive context_summary from research (NOT raw findings)
 3. For each task in `tasks.md`:
    - Write failing test first (RED)
@@ -264,7 +267,8 @@ When code-validator finds issues:
 
 ### Changes Summary
 
-- Files tracked in spec: `specs/{feature}/tasks.md`
+- Spec location: `specs/{resolved_path}/` (resolved via resolveSpecPath())
+- Files tracked in spec: `tasks.md`
 ```
 
 ### After VALIDATE

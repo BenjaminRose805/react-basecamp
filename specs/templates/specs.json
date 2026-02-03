@@ -1,0 +1,22 @@
+{
+  "_note": "Template for feature-level spec manifest. Fill {{placeholders}} with actual values.",
+  "_note_depends_on": "Use 'project/feature/spec' format for cross-feature deps, 'spec-name' for within-feature deps, [] for no deps.",
+  "feature": "{{feature_name}}",
+  "specs": [
+    {
+      "name": "{{spec_name_1}}",
+      "description": "{{brief_description_of_spec_deliverable}}",
+      "depends_on": []
+    },
+    {
+      "name": "{{spec_name_2}}",
+      "description": "{{brief_description_of_spec_deliverable}}",
+      "depends_on": ["{{spec_name_1}}"]
+    },
+    {
+      "name": "{{spec_name_3}}",
+      "description": "{{brief_description_of_spec_deliverable}}",
+      "depends_on": ["{{project}}/{{other_feature}}/{{other_spec}}"]
+    }
+  ]
+}

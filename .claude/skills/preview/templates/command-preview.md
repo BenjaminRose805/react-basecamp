@@ -5,6 +5,12 @@ Agents use this to render execution plans before running commands.
 
 Variable substitution uses `{{double_brace}}` syntax.
 
+**Spec Path Format:**
+
+- Nested: `specs/basecamp/auth/` (project/feature)
+- Standalone: `specs/my-feature/` (feature only)
+- Box width: 70 chars (accommodates up to 60-char paths)
+
 ---
 
 ```text
@@ -15,7 +21,7 @@ Variable substitution uses `{{double_brace}}` syntax.
 │ CONTEXT                                                              │
 │   Working Dir: {{dir}}                                               │
 │   Branch: {{branch}}                            (if applicable)      │
-│   Feature: {{feature}}                          (if applicable)      │
+│   Spec: {{spec_path}}                           (if applicable)      │
 │   Gate: {{gate}}                                (if applicable)      │
 │   Checkpoint: {{checkpoint}}                    (if applicable)      │
 │                                                                      │

@@ -9,6 +9,7 @@ Variable substitution uses `{{double_brace}}` syntax.
 
 ```text
 /{{command}} - {{description}}
+Spec: {{spec_path}}   <!-- Paths can be up to 60 chars for nested specs (e.g., specs/project/feature/) -->
 
 Stage {{n}}/{{total}}: {{stage_name}}
   ● Running: {{sub_agent}} ({{model}})

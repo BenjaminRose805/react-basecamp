@@ -1,60 +1,173 @@
 # Specifications
 
-This directory contains feature specifications for the project.
+This directory contains feature specifications for the project using a **directory-based format** with optional **nested hierarchy**.
 
-## When to Write a Spec
+## Overview
 
-Write a spec when:
-- Adding a new feature
-- Making significant changes to existing functionality
-- The change affects multiple parts of the system
-- You need to document decisions and trade-offs
+Specs are organized as directories (not single files) and support two organizational patterns:
 
-Skip specs for:
-- Bug fixes with clear reproduction steps
-- Simple refactoring
-- Dependency updates
-- Documentation-only changes
+1. **Nested Hierarchy** - Group related features under project directories
+2. **Standalone Specs** - Top-level feature directories
 
-## How to Create a Spec
+The centralized path resolver (`spec-path-resolver.cjs`) automatically handles both formats.
 
-1. Copy `spec-template.md` to a new file (e.g., `user-authentication.md`)
-2. Fill in all required sections
-3. Get approval before implementing
-4. Update the spec as implementation reveals new details
+## Spec Directory Structure
 
-## Spec Lifecycle
+### Nested Hierarchy Example
 
-1. **Draft** - Initial version, open for feedback
-2. **In Review** - Being reviewed by stakeholders
-3. **Approved** - Ready for implementation
-4. **Implemented** - Code is complete and merged
+```
+specs/
+├── basecamp/                  # PROJECT level
+│   ├── project.md            # Project overview
+│   ├── requirements.md       # Project requirements
+│   ├── meta.yaml             # Project metadata
+│   ├── auth/                 # FEATURE level
+│   │   ├── feature.md        # Feature overview
+│   │   ├── requirements.md   # Feature requirements
+│   │   ├── design.md         # Technical design
+│   │   ├── tasks.md          # Implementation tasks
+│   │   ├── meta.yaml         # Feature metadata
+│   │   ├── summary.md        # Executive summary
+│   │   └── spec.json         # Structured spec data
+│   └── dashboard/            # FEATURE level
+│       ├── feature.md
+│       ├── requirements.md
+│       ├── design.md
+│       ├── tasks.md
+│       ├── meta.yaml
+│       ├── summary.md
+│       └── spec.json
+└── user-profile/             # Standalone FEATURE
+    ├── requirements.md
+    ├── design.md
+    ├── tasks.md
+    ├── meta.yaml
+    ├── summary.md
+    └── spec.json
+```
 
-## Template Sections
+### Standalone Example
 
-### Required
+```
+specs/
+├── user-authentication/      # Standalone FEATURE
+│   ├── requirements.md
+│   ├── design.md
+│   ├── tasks.md
+│   ├── meta.yaml
+│   ├── summary.md
+│   └── spec.json
+└── payment-integration/      # Standalone FEATURE
+    ├── requirements.md
+    ├── design.md
+    ├── tasks.md
+    ├── meta.yaml
+    ├── summary.md
+    └── spec.json
+```
 
-- **Goal** - What we're building and why (1-2 sentences)
-- **User Stories** - Who uses this and how
-- **Success Criteria** - Measurable outcomes
-- **Out of Scope** - What we're NOT building
+## Nested Hierarchy
 
-### Optional
+### PROJECT Level
 
-- **Technical Constraints** - Stack, performance, etc.
-- **Edge Cases** - Tricky scenarios
-- **Dependencies** - What this requires
-- **Risks** - What could go wrong
+Project directories group related features and provide high-level context.
 
-## Naming Convention
+**Required Files:**
 
-Use descriptive names that summarize the feature:
-- `user-authentication.md`
-- `dashboard-analytics.md`
-- `payment-integration.md`
+- `project.md` - Project overview and goals
+- `requirements.md` - Cross-feature requirements
+- `meta.yaml` - Project metadata
 
-## Integration with PRs
+### FEATURE Level
 
-- Link the spec in your PR description
-- Reference spec sections in commit messages
-- Update the spec if requirements change during implementation
+Feature directories contain detailed specifications for individual features.
+
+**Required Files:**
+
+- `feature.md` - Feature overview (nested only)
+- `requirements.md` - Feature requirements
+- `design.md` - Technical design
+- `tasks.md` - Implementation tasks
+- `meta.yaml` - Feature metadata
+- `summary.md` - Executive summary
+- `spec.json` - Structured spec data
+
+## Standalone Specs
+
+Standalone specs are top-level feature directories without a project parent.
+
+**Required Files:**
+
+- `requirements.md` - Feature requirements
+- `design.md` - Technical design
+- `tasks.md` - Implementation tasks
+- `meta.yaml` - Feature metadata
+- `summary.md` - Executive summary
+- `spec.json` - Structured spec data
+
+## Path Resolution
+
+The centralized path resolver (`.claude/scripts/lib/spec-path-resolver.cjs`) automatically detects whether a spec is nested or standalone:
+
+**Resolution Examples:**
+
+- `basecamp/auth` → `specs/basecamp/auth/`
+- `user-authentication` → `specs/user-authentication/`
+- Detects format by checking for `project.md` in parent directory
+
+## Required Files
+
+| Level      | Required Files                                                                                                 |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| PROJECT    | `project.md`, `requirements.md`, `meta.yaml`                                                                   |
+| FEATURE    | `feature.md` (nested only), `requirements.md`, `design.md`, `tasks.md`, `meta.yaml`, `summary.md`, `spec.json` |
+| STANDALONE | `requirements.md`, `design.md`, `tasks.md`, `meta.yaml`, `summary.md`, `spec.json`                             |
+
+## Finding Specs
+
+### List All Projects
+
+```bash
+ls specs/
+```
+
+### View Project Overview
+
+```bash
+cat specs/basecamp/project.md
+```
+
+### List Features in a Project
+
+```bash
+ls specs/basecamp/
+```
+
+### View Feature Specification
+
+```bash
+cat specs/basecamp/auth/requirements.md
+cat specs/basecamp/auth/design.md
+```
+
+### Find All Feature Specs
+
+```bash
+find specs -name 'meta.yaml'
+```
+
+### Search Within Specs
+
+```bash
+grep -r "authentication" specs/
+```
+
+## Backward Compatibility
+
+Existing standalone specs remain fully valid. The system supports both nested and standalone formats:
+
+- **New projects** can use nested hierarchy for better organization
+- **Existing specs** continue to work as standalone features
+- **Mixed usage** is supported - use nested or standalone as appropriate
+
+The path resolver handles both formats transparently, so agents and commands work identically regardless of organization pattern.

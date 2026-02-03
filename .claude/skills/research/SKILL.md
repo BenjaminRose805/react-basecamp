@@ -80,20 +80,26 @@ cat specs/<feature>/requirements.md
 cat specs/<feature>/design.md
 cat specs/<feature>/tasks.md
 
-# Search all specs by status
-grep -r "Status:" specs/*/requirements.md
+# Search all specs by status (recursive, `**` matches zero or more directory levels)
+grep -r "Status:" specs/**/requirements.md
 ```
 
 **Spec Directory Structure:**
 
 ```text
 specs/
-├── {feature}/
-│   ├── requirements.md   # Status: Draft | In Review | Approved | In Progress | Implemented
-│   ├── design.md         # Architecture and component design
-│   └── tasks.md          # Implementation tasks with checkboxes
+├── {project}/                  # Project-level specs (nested hierarchy)
+│   ├── project.md              # Project overview
+│   └── {feature}/              # Features within project
+│       ├── requirements.md     # Status: Draft | In Review | Approved | In Progress | Implemented
+│       ├── design.md           # Architecture and component design
+│       └── tasks.md            # Implementation tasks with checkboxes
+├── {feature}/                  # Standalone feature specs (flat hierarchy)
+│   ├── requirements.md
+│   ├── design.md
+│   └── tasks.md
 └── templates/
-    ├── requirements.md   # Template for new specs
+    ├── requirements.md         # Template for new specs
     ├── design.md
     └── tasks.md
 ```
@@ -111,6 +117,28 @@ Status is tracked in the `requirements.md` header:
 ```
 
 **Note:** The spec-workflow MCP server has been replaced with file-based specs in `specs/` directory.
+
+## Common Search Patterns
+
+When searching for specs across the hierarchy:
+
+```bash
+# Find all features in a project
+ls specs/basecamp/*/requirements.md
+
+# Find project requirements
+cat specs/*/project.md
+
+# Find all specs (nested and standalone), `**` matches zero or more directory levels
+grep -r "Status:" specs/**/requirements.md
+```
+
+## Path Resolution
+
+Spec paths are resolved by `spec-path-resolver.cjs` in `.claude/scripts/lib/`. The resolver handles both:
+
+- **Nested format:** `{project}/{feature}` (e.g., `specs/basecamp/auth/`)
+- **Standalone format:** `{feature}` (e.g., `specs/my-feature/`)
 
 **Understand dependencies:**
 

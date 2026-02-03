@@ -1,0 +1,133 @@
+{
+  "name": "design-hierarchy-downstream",
+  "status": "complete",
+  "created": "2026-02-01",
+  "updated": "2026-02-02",
+  "author": "plan-agent",
+  "version": "1.0.0",
+  "files": {
+    "requirements": "requirements.md",
+    "design": "design.md",
+    "tasks": "tasks.md",
+    "summary": "summary.md",
+    "meta": "meta.yaml"
+  },
+  "phases": [
+    "Template Reconciliation",
+    "CI/CD Workflow",
+    "Skill Documentation",
+    "Agent Documentation",
+    "GitHub and Commands",
+    "Infrastructure"
+  ],
+  "tasks": [
+    {
+      "id": "T001",
+      "title": "Reconcile meta.yaml template fields",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T002",
+      "title": "Add hierarchy fields to spec.json template",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T003",
+      "title": "Add hierarchy fields to meta.yaml template",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T004",
+      "title": "Update spec discovery to recursive find",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T005",
+      "title": "Add level detection to CI validation",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T006",
+      "title": "Update branch-to-path mapping",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T007",
+      "title": "Update PR comment path display",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T008",
+      "title": "Update research skill glob patterns and examples",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T009",
+      "title": "Update preview skill path display width",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T010",
+      "title": "Update progress skill path display width",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T011",
+      "title": "Update code-agent.md path note",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T012",
+      "title": "Update ui-agent.md path note",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T013",
+      "title": "Update PR template spec path placeholder",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T014",
+      "title": "Update issue templates",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T015",
+      "title": "Update reconcile command documentation",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T016",
+      "title": "Update start command branch naming docs",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T017",
+      "title": "Rewrite specs/README.md for directory-based + nested hierarchy",
+      "status": "complete",
+      "assignee": null
+    },
+    {
+      "id": "T018",
+      "title": "Add review-config.yaml nested support comment",
+      "status": "complete",
+      "assignee": null
+    }
+  ]
+}

@@ -54,31 +54,103 @@ jobs:
           BRANCH="${{ steps.branch-check.outputs.branch }}"
           SPECS_DIR="${{ inputs.specs-directory }}"
 
-          # Extract feature name from branch (e.g., feature/user-auth -> user-auth)
-          FEATURE_NAME=$(echo "$BRANCH" | sed -E 's/^(feature|feat)\///' | sed 's/\//-/g')
+          # Extract feature name from branch
+          # Supports: feature/user-auth, feat/project-feature, feat-project-feature-specs
+          FEATURE_NAME=$(echo "$BRANCH" | sed -E 's/^(feature|feat)[\/\-]//' | sed 's/-specs$//' | sed 's/\//-/g')
 
           echo "Looking for spec related to: $FEATURE_NAME"
 
-          # Search for spec directory matching feature name
+          # T004: Recursive meta.yaml discovery (informational - shows all specs)
+          echo "Available specs (recursive discovery):"
+          if [ -d "$SPECS_DIR" ]; then
+            # Recursively find all meta.yaml files to discover nested spec directories
+            find "$SPECS_DIR" -type f -name 'meta.yaml' 2>/dev/null | while read -r meta_file; do
+              spec_path=$(dirname "$meta_file")
+              echo "  - $spec_path"
+            done
+          fi
+
+          # T006: Enhanced branch-to-path mapping with nested path support
+          # Note: Dash-separated branch names create ambiguity for nested paths.
+          # Example: 'design-hierarchy-downstream' could map to either:
+          #   - Nested: specs/design/hierarchy/ (project=design, feature=hierarchy)
+          #   - Flat: specs/design-hierarchy-downstream/ (feature=design-hierarchy-downstream)
+          # Resolution strategy: Try nested path first (specs/{first-part}/{second-part}/);
+          # if not found, fall back to flat path (specs/{entire-name}/). The flat fallback
+          # handles most cases correctly, including features with multi-dash names.
           SPEC_DIR=""
           if [ -d "$SPECS_DIR" ]; then
-            # Look for directory matching feature name (with or without 's' suffix)
-            SPEC_DIR=$(find "$SPECS_DIR" -type d -name "*${FEATURE_NAME}*" 2>/dev/null | head -1)
+            # Parse potential project/feature structure from branch name
+            # Try patterns: {prefix}-{project}-{feature}, {prefix}/{project}/{feature}, etc.
+            IFS='-' read -ra PARTS <<< "$FEATURE_NAME"
+
+            if [ ${#PARTS[@]} -ge 2 ]; then
+              # Try nested path first: specs/{project}/{feature}/
+              NESTED_PATH="${SPECS_DIR}${PARTS[0]}/${PARTS[1]}"
+              if [ -d "$NESTED_PATH" ]; then
+                SPEC_DIR="$NESTED_PATH"
+                echo "Found nested spec directory: $SPEC_DIR"
+              fi
+            fi
+
+            # Fall back to flat structure if nested not found
+            if [ -z "$SPEC_DIR" ]; then
+              FLAT_PATH="${SPECS_DIR}${FEATURE_NAME}"
+              if [ -d "$FLAT_PATH" ]; then
+                SPEC_DIR="$FLAT_PATH"
+                echo "Found flat spec directory: $SPEC_DIR"
+              else
+                # Legacy: Look for directory matching feature name (partial match)
+                SPEC_DIR=$(find "$SPECS_DIR" -type d -name "*${FEATURE_NAME}*" 2>/dev/null | head -1)
+                [ -n "$SPEC_DIR" ] && echo "Found spec directory (partial match): $SPEC_DIR"
+              fi
+            fi
           fi
 
           if [ -n "$SPEC_DIR" ] && [ -d "$SPEC_DIR" ]; then
-            echo "Found spec directory: $SPEC_DIR"
             echo "spec_found=true" >> $GITHUB_OUTPUT
             echo "spec_dir=$SPEC_DIR" >> $GITHUB_OUTPUT
 
-            # Check for individual spec files
-            [ -f "$SPEC_DIR/requirements.md" ] && echo "has_requirements=true" >> $GITHUB_OUTPUT || echo "has_requirements=false" >> $GITHUB_OUTPUT
-            [ -f "$SPEC_DIR/design.md" ] && echo "has_design=true" >> $GITHUB_OUTPUT || echo "has_design=false" >> $GITHUB_OUTPUT
-            [ -f "$SPEC_DIR/tasks.md" ] && echo "has_tasks=true" >> $GITHUB_OUTPUT || echo "has_tasks=false" >> $GITHUB_OUTPUT
+            # T005: Detect spec level by checking for project.md or feature.md
+            SPEC_LEVEL="STANDALONE"
+            if [ -f "$SPEC_DIR/project.md" ]; then
+              SPEC_LEVEL="PROJECT"
+            elif [ -f "$SPEC_DIR/feature.md" ]; then
+              SPEC_LEVEL="FEATURE"
+            fi
+            echo "spec_level=$SPEC_LEVEL" >> $GITHUB_OUTPUT
+            echo "Detected spec level: $SPEC_LEVEL"
+
+            # T005: Check for required files based on level
+            case "$SPEC_LEVEL" in
+              PROJECT)
+                [ -f "$SPEC_DIR/project.md" ] && echo "has_project=true" >> $GITHUB_OUTPUT || echo "has_project=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/requirements.md" ] && echo "has_requirements=true" >> $GITHUB_OUTPUT || echo "has_requirements=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/meta.yaml" ] && echo "has_meta=true" >> $GITHUB_OUTPUT || echo "has_meta=false" >> $GITHUB_OUTPUT
+                ;;
+              FEATURE)
+                [ -f "$SPEC_DIR/feature.md" ] && echo "has_feature=true" >> $GITHUB_OUTPUT || echo "has_feature=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/requirements.md" ] && echo "has_requirements=true" >> $GITHUB_OUTPUT || echo "has_requirements=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/design.md" ] && echo "has_design=true" >> $GITHUB_OUTPUT || echo "has_design=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/tasks.md" ] && echo "has_tasks=true" >> $GITHUB_OUTPUT || echo "has_tasks=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/meta.yaml" ] && echo "has_meta=true" >> $GITHUB_OUTPUT || echo "has_meta=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/summary.md" ] && echo "has_summary=true" >> $GITHUB_OUTPUT || echo "has_summary=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/spec.json" ] && echo "has_spec_json=true" >> $GITHUB_OUTPUT || echo "has_spec_json=false" >> $GITHUB_OUTPUT
+                ;;
+              STANDALONE)
+                [ -f "$SPEC_DIR/requirements.md" ] && echo "has_requirements=true" >> $GITHUB_OUTPUT || echo "has_requirements=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/design.md" ] && echo "has_design=true" >> $GITHUB_OUTPUT || echo "has_design=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/tasks.md" ] && echo "has_tasks=true" >> $GITHUB_OUTPUT || echo "has_tasks=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/meta.yaml" ] && echo "has_meta=true" >> $GITHUB_OUTPUT || echo "has_meta=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/summary.md" ] && echo "has_summary=true" >> $GITHUB_OUTPUT || echo "has_summary=false" >> $GITHUB_OUTPUT
+                [ -f "$SPEC_DIR/spec.json" ] && echo "has_spec_json=true" >> $GITHUB_OUTPUT || echo "has_spec_json=false" >> $GITHUB_OUTPUT
+                ;;
+            esac
           else
             echo "No spec directory found for feature: $FEATURE_NAME"
             echo "spec_found=false" >> $GITHUB_OUTPUT
             echo "spec_dir=" >> $GITHUB_OUTPUT
+            echo "spec_level=" >> $GITHUB_OUTPUT
           fi
 
       - name: Validate spec files
@@ -86,12 +158,42 @@ jobs:
         id: validate-spec
         run: |
           SPEC_DIR="${{ steps.find-spec.outputs.spec_dir }}"
+          SPEC_LEVEL="${{ steps.find-spec.outputs.spec_level }}"
           ERRORS=""
           WARNINGS=""
 
-          echo "Validating specs in: $SPEC_DIR"
+          echo "Validating specs in: $SPEC_DIR (Level: $SPEC_LEVEL)"
 
-          # Validate requirements.md
+          # T005: Level-based validation with required files per level
+          case "$SPEC_LEVEL" in
+            PROJECT)
+              # PROJECT level: project.md, requirements.md, meta.yaml
+              [ ! -f "$SPEC_DIR/project.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: project.md"
+              [ ! -f "$SPEC_DIR/requirements.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: requirements.md"
+              [ ! -f "$SPEC_DIR/meta.yaml" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: meta.yaml"
+              ;;
+            FEATURE)
+              # FEATURE level: feature.md, requirements.md, design.md, tasks.md, meta.yaml, summary.md, spec.json
+              [ ! -f "$SPEC_DIR/feature.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: feature.md"
+              [ ! -f "$SPEC_DIR/requirements.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: requirements.md"
+              [ ! -f "$SPEC_DIR/design.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: design.md"
+              [ ! -f "$SPEC_DIR/tasks.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: tasks.md"
+              [ ! -f "$SPEC_DIR/meta.yaml" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: meta.yaml"
+              [ ! -f "$SPEC_DIR/summary.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: summary.md"
+              [ ! -f "$SPEC_DIR/spec.json" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: spec.json"
+              ;;
+            STANDALONE)
+              # STANDALONE level: requirements.md, design.md, tasks.md, meta.yaml, summary.md, spec.json
+              [ ! -f "$SPEC_DIR/requirements.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: requirements.md"
+              [ ! -f "$SPEC_DIR/design.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: design.md"
+              [ ! -f "$SPEC_DIR/tasks.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: tasks.md"
+              [ ! -f "$SPEC_DIR/meta.yaml" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: meta.yaml"
+              [ ! -f "$SPEC_DIR/summary.md" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: summary.md"
+              [ ! -f "$SPEC_DIR/spec.json" ] && ERRORS="$ERRORS\n- [$SPEC_LEVEL] Missing required file: spec.json"
+              ;;
+          esac
+
+          # Validate requirements.md content (if present)
           if [ -f "$SPEC_DIR/requirements.md" ]; then
             echo "Validating requirements.md..."
             REQUIRED_SECTIONS=("Goal" "User Stories" "Success Criteria" "Technical Constraints" "Out of Scope")
@@ -112,11 +214,9 @@ jobs:
                 WARNINGS="$WARNINGS\n- requirements.md: Consider adding section: $section"
               fi
             done
-          else
-            ERRORS="$ERRORS\n- Missing required file: requirements.md"
           fi
 
-          # Validate design.md (if exists)
+          # Validate design.md content (if present)
           if [ -f "$SPEC_DIR/design.md" ]; then
             echo "Validating design.md..."
             DESIGN_SECTIONS=("Overview" "Architecture" "Component Design")
@@ -127,7 +227,7 @@ jobs:
             done
           fi
 
-          # Validate tasks.md (if exists)
+          # Validate tasks.md content (if present)
           if [ -f "$SPEC_DIR/tasks.md" ]; then
             echo "Validating tasks.md..."
             TASKS_SECTIONS=("Progress" "Phase")
@@ -165,29 +265,62 @@ jobs:
             const isFeature = '${{ steps.branch-check.outputs.is_feature }}' === 'true';
             const specFound = '${{ steps.find-spec.outputs.spec_found }}' === 'true';
             const specDir = '${{ steps.find-spec.outputs.spec_dir }}';
-            const hasRequirements = '${{ steps.find-spec.outputs.has_requirements }}' === 'true';
-            const hasDesign = '${{ steps.find-spec.outputs.has_design }}' === 'true';
-            const hasTasks = '${{ steps.find-spec.outputs.has_tasks }}' === 'true';
+            const specLevel = '${{ steps.find-spec.outputs.spec_level }}';
             const specValid = '${{ steps.validate-spec.outputs.valid }}' === 'true';
             const errors = `${{ steps.validate-spec.outputs.errors }}`;
             const warnings = `${{ steps.validate-spec.outputs.warnings }}`;
             const requireSpec = '${{ inputs.require-spec-for-features }}' === 'true';
+
+            // T005: Get level-specific file checks
+            const hasProject = '${{ steps.find-spec.outputs.has_project }}' === 'true';
+            const hasFeature = '${{ steps.find-spec.outputs.has_feature }}' === 'true';
+            const hasRequirements = '${{ steps.find-spec.outputs.has_requirements }}' === 'true';
+            const hasDesign = '${{ steps.find-spec.outputs.has_design }}' === 'true';
+            const hasTasks = '${{ steps.find-spec.outputs.has_tasks }}' === 'true';
+            const hasMeta = '${{ steps.find-spec.outputs.has_meta }}' === 'true';
+            const hasSummary = '${{ steps.find-spec.outputs.has_summary }}' === 'true';
+            const hasSpecJson = '${{ steps.find-spec.outputs.has_spec_json }}' === 'true';
 
             let body = '## 📋 Spec Validation\n\n';
 
             if (!isFeature) {
               body += '✅ Not a feature branch - spec not required.\n';
             } else if (specFound) {
-              body += `✅ Found spec directory: \`${specDir}\`\n\n`;
+              // T007: Use full spec directory path in PR comment
+              body += `✅ Found spec at: \`${specDir}\`\n`;
+              body += `📁 Level: **${specLevel}**\n\n`;
               body += '**Files found:**\n';
-              body += `- requirements.md: ${hasRequirements ? '✅' : '❌'}\n`;
-              body += `- design.md: ${hasDesign ? '✅' : '⚠️ (optional)'}\n`;
-              body += `- tasks.md: ${hasTasks ? '✅' : '⚠️ (optional)'}\n\n`;
+
+              // T005: Display required files based on level
+              if (specLevel === 'PROJECT') {
+                body += `- project.md: ${hasProject ? '✅' : '❌ (required)'}\n`;
+                body += `- requirements.md: ${hasRequirements ? '✅' : '❌ (required)'}\n`;
+                body += `- meta.yaml: ${hasMeta ? '✅' : '❌ (required)'}\n`;
+              } else if (specLevel === 'FEATURE') {
+                body += `- feature.md: ${hasFeature ? '✅' : '❌ (required)'}\n`;
+                body += `- requirements.md: ${hasRequirements ? '✅' : '❌ (required)'}\n`;
+                body += `- design.md: ${hasDesign ? '✅' : '❌ (required)'}\n`;
+                body += `- tasks.md: ${hasTasks ? '✅' : '❌ (required)'}\n`;
+                body += `- meta.yaml: ${hasMeta ? '✅' : '❌ (required)'}\n`;
+                body += `- summary.md: ${hasSummary ? '✅' : '❌ (required)'}\n`;
+                body += `- spec.json: ${hasSpecJson ? '✅' : '❌ (required)'}\n`;
+              } else { // STANDALONE
+                body += `- requirements.md: ${hasRequirements ? '✅' : '❌ (required)'}\n`;
+                body += `- design.md: ${hasDesign ? '✅' : '❌ (required)'}\n`;
+                body += `- tasks.md: ${hasTasks ? '✅' : '❌ (required)'}\n`;
+                body += `- meta.yaml: ${hasMeta ? '✅' : '❌ (required)'}\n`;
+                body += `- summary.md: ${hasSummary ? '✅' : '❌ (required)'}\n`;
+                body += `- spec.json: ${hasSpecJson ? '✅' : '❌ (required)'}\n`;
+              }
+
+              body += '\n';
 
               if (specValid) {
-                body += '✅ Spec format is valid.\n';
+                // T007: Include path in success message
+                body += `✅ Spec at \`${specDir}\` is valid.\n`;
               } else {
-                body += '❌ Spec format issues:\n' + errors + '\n';
+                // T007: Include path in failure message
+                body += `❌ Spec at \`${specDir}\` has issues:\n` + errors + '\n';
               }
 
               if (warnings && warnings.trim()) {
@@ -196,10 +329,10 @@ jobs:
             } else {
               if (requireSpec) {
                 body += '❌ No spec directory found for this feature branch.\n\n';
-                body += 'Please create a spec directory in `${{ inputs.specs-directory }}{feature-name}/` with at least `requirements.md`.\n';
+                body += 'Please create a spec directory in `${{ inputs.specs-directory }}{feature-name}/` or `${{ inputs.specs-directory }}{project}/{feature}/`.\n';
               } else {
                 body += '⚠️ No spec directory found for this feature branch.\n\n';
-                body += 'Consider creating a spec directory in `${{ inputs.specs-directory }}{feature-name}/`.\n';
+                body += 'Consider creating a spec directory in `${{ inputs.specs-directory }}{feature-name}/` or `${{ inputs.specs-directory }}{project}/{feature}/`.\n';
               }
             }
 
