@@ -4,6 +4,32 @@
 > **Created:** 2026-02-01
 > **Spec ID:** design-hierarchy
 
+## Goal
+
+Extend the `/design` command to support a 3-tier design hierarchy (project, feature, spec) with level-specific routing, artifacts, checkpoints, validation logic, and Linear integration only at spec level.
+
+## User Stories
+
+- As a project lead, I want to design a high-level project with vision and feature list so I can communicate the overall direction
+- As a feature designer, I want to design a feature with a spec dependency graph so I can understand build order and cross-feature dependencies
+- As a spec author, I want to design individual specs with full requirements and validation so I can implement with clarity
+
+## Success Criteria
+
+- All three hierarchy levels (project, feature, spec) can be created with `/design {name} --level` flags
+- Level-specific routing directs research, write, and validate phases appropriately
+- Nested directories support both `specs/{project}/{feature}/` and `specs/{feature}/` (standalone) paths
+- Level-prefixed checkpoints distinguish between design-project, design-feature, and design-spec artifacts
+- Linear integration applies only to spec-level designs
+
+## Technical Constraints
+
+- Preserve backward compatibility with existing 12 standalone specs
+- Reuse existing 3-phase pipeline (research, write, validate) without redesign
+- Support both hierarchical and flat directory structures simultaneously
+- Limit checkpoint context summaries to 500 tokens per phase
+- No new npm dependencies required
+
 ## Overview
 
 Extend the `/design` command to support a 3-tier design hierarchy: project-level (produces `project.md` + `features.json`), feature-level (produces `feature.md` + `specs.json` with DAG dependencies), and spec-level (current 6-file behavior, unchanged). Each level uses the same 3-phase pipeline (research, write, validate) with level-specific routing, artifacts, checkpoint questions, and validation logic. Adds `--project`, `--feature`, `--spec` flags (mutually exclusive), `--parent=X` for disambiguation, nested directory creation with collision detection, and Linear integration only at spec level.

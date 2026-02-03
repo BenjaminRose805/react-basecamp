@@ -4,6 +4,32 @@
 > **Created:** 2026-02-01
 > **Spec ID:** spec-path-resolution
 
+## Goal
+
+Centralize spec path handling to support both flat (`specs/{feature}/`) and hierarchical (`specs/{project}/{feature}/`) directory layouts with a unified resolver utility that validates names, detects directory types, and handles ambiguity.
+
+## User Stories
+
+- As a developer, I want a centralized resolver so I don't have to hardcode paths in 15+ different files
+- As a tool author, I want to query spec existence with `resolveSpecPath(name)` and get back the full path and type
+- As a system maintainer, I want ambiguous paths to fail fast with clear error messages instead of silently selecting the wrong spec
+
+## Success Criteria
+
+- Resolver utility at `.claude/scripts/lib/spec-resolver.cjs` exports `resolveSpecPath()` and `validateAndNormalizeName()` functions
+- All 12 existing standalone specs resolve correctly without changes to directory structure
+- Ambiguity detection catches cases where spec names appear in multiple locations
+- Support for nested `specs/{project}/{feature}/` alongside flat `specs/{feature}/` layouts
+- Name validation enforces kebab-case with deny-list for reserved names (node_modules, dist, build)
+
+## Technical Constraints
+
+- CommonJS module format (.cjs) for compatibility with existing scripts
+- Synchronous resolution (no async/await) to keep integration simple
+- Only built-in Node.js modules (fs, path) - no new npm dependencies
+- Comprehensive unit tests using node:test and node:assert
+- O(n) performance acceptable for up to 100 spec directories
+
 ## Overview
 
 Centralize spec path handling for 15+ files that currently hardcode `specs/${feature}/` patterns. Create a unified resolver utility at `.claude/scripts/lib/spec-resolver.cjs` that validates spec names, resolves paths across flat and hierarchical layouts (standalone, project-scoped, and feature-scoped specs), detects directory types via marker files, and handles ambiguity with actionable error messages. Update all consumers (implement.md, routing skill, agents, sub-agent templates, protocols) to use the resolver instead of hardcoded paths.

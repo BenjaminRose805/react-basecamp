@@ -4,6 +4,33 @@
 > **Created:** 2026-02-01
 > **Spec ID:** design-hierarchy-downstream
 
+## Goal
+
+Adopt the nested spec hierarchy across 14 downstream files in CI/CD, skills, agents, GitHub templates, and command documentation while maintaining full backward compatibility with existing standalone specs.
+
+## User Stories
+
+- As a DevOps engineer, I want the CI workflow to automatically discover nested specs at any depth so that new spec structures are validated immediately
+- As a CLI tool user, I want branch names like `design-basecamp-auth` to automatically map to `specs/basecamp/auth/` so I don't need to specify full paths
+- As a documentation reader, I want clear examples of both nested and standalone spec usage so I understand what directory structure to use
+- As a tool maintainer, I want templates to reconcile with actual field usage so generated specs match validation expectations
+
+## Success Criteria
+
+- CI workflow uses recursive discovery (`find specs -type f -name 'meta.yaml'`) instead of flat patterns
+- Branch name to nested spec mapping supports patterns like `design-project-feature` -> `specs/project/feature/`
+- All 14 downstream files (skills, agents, GitHub templates, command docs) updated with hierarchy awareness
+- Level-aware validation rules applied (PROJECT, FEATURE, STANDALONE with different required files)
+- Existing standalone specs continue to work without modification
+
+## Technical Constraints
+
+- No breaking changes to existing command logic or agent execution
+- Shell script branch name parsing uses simple dash-based segmentation
+- All documentation examples use realistic project/feature names
+- Path handling accommodates paths up to 60 characters without UI breakage
+- Review config and template reconciliation are documentation-only updates
+
 ## Overview
 
 Adopt the nested spec hierarchy (from specs 1-2) across the downstream tooling ecosystem. This spec updates 14 files across 6 areas: CI/CD workflow validation, skill documentation, agent documentation, GitHub templates, command documentation, and spec infrastructure. The core challenge: existing tools assume flat `specs/{feature}/` paths, while the new hierarchy introduces `specs/{project}/{feature}/` nesting and distinct spec types (`project.md`, `feature.md`, standalone specs). All changes preserve backward compatibility with existing standalone specs.
