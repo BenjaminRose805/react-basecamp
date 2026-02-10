@@ -1,394 +1,407 @@
 # Sizing Heuristics
 
-Algorithm for determining optimal sub-agent count based on task complexity.
+Guidelines for determining appropriate sizing at each level of the hierarchy (project → feature → spec → task).
 
 ## Overview
 
-**Purpose:** Help orchestrators decide how many sub-agents to spawn (1-7) instead of hardcoded counts.
+**Purpose:** Ensure work is decomposed at the correct level of abstraction based on implementation decisions required, not file counts or conceptual categories.
 
-**When to Use:**
+**Core Principle:** The presence of **implementation decisions** determines the appropriate level, not volume of work.
 
-- Before spawning sub-agents in any orchestrator
-- When task complexity varies significantly
-- When optimizing context window usage and cost
-
-**Benefits:**
-
-- Simple tasks (1 file) use 1 sub-agent (saves context/cost)
-- Complex tasks (20 files) use up to 7 sub-agents (prevents overflow)
-- Adaptive to task characteristics (files, tasks, modules, effort)
+> "If a unit of work can be fully described as a single bash command or file write, it belongs at a lower level."
 
 ---
 
-## Algorithm
+## Level Definitions
 
-```javascript
-/**
- * Determine optimal sub-agent count based on task complexity.
- *
- * @param context - Task complexity metrics
- * @param context.fileCount - Number of files to touch (0 = unknown)
- * @param context.taskCount - Number of discrete tasks/steps
- * @param context.moduleCount - Number of distinct modules/domains
- * @param context.effort - Effort estimate ("small" | "medium" | "large")
- * @returns Sub-agent count (1-7)
- */
-function determineSubAgentCount(context) {
-  let count = 1; // Start with minimum (1 sub-agent)
+| Level | Definition | Minimum Threshold |
+|-------|-----------|-------------------|
+| **Project** | A body of work requiring multiple features with distinct deliverables | 3+ features, each with implementation decisions |
+| **Feature** | A shippable capability requiring multiple specs | 2+ specs, each requiring implementation decisions |
+| **Spec** | A coherent unit requiring multiple tasks with non-trivial choices | 3+ tasks AND implementation decisions during execution |
+| **Task** | A single prompt completable within one agent's context window | Fits in <50% of context budget (input + output) |
 
-  // FILE COUNT CONTRIBUTION (40% weight)
-  // Files are the strongest signal of complexity
-  if (context.fileCount === 1) {
-    count += 0; // Single file = simple task
-  } else if (context.fileCount <= 3) {
-    count += 1; // Few files = moderate task
-  } else if (context.fileCount <= 7) {
-    count += 2; // Many files = complex task
-  } else {
-    count += 3; // Massive files = very complex
-  }
+---
 
-  // TASK COUNT CONTRIBUTION (30% weight)
-  // Number of discrete steps to complete
-  if (context.taskCount <= 2) {
-    count += 0; // 1-2 tasks = simple
-  } else if (context.taskCount <= 5) {
-    count += 1; // 3-5 tasks = moderate
-  } else {
-    count += 2; // 6+ tasks = complex
-  }
+## The Decision Test
 
-  // MODULE SPREAD CONTRIBUTION (20% weight)
-  // Cross-module work increases coordination overhead
-  if (context.moduleCount > 1) {
-    count += 1; // Multiple modules = add 1
-  }
+Before creating any breakdown, apply this test:
 
-  // EFFORT ESTIMATE CONTRIBUTION (10% weight)
-  // Subjective complexity assessment
-  if (context.effort === "large") {
-    count += 1; // Large effort = add 1
-  }
+### Project Level
+```
+Q: "How many specs with implementation decisions will this project require?"
+A: If fewer than 3 specs total across all features → This is a feature, not a project
+```
 
-  // CAP AT MAXIMUM
-  // Never exceed 7 sub-agents (context/coordination limits)
-  return Math.min(count, 7);
-}
+### Feature Level
+```
+Q: "Does each proposed spec require 3+ tasks AND non-trivial implementation choices?"
+A: If a spec can be implemented with a single bash command → It's a task, not a spec
+A: If all specs combined have <6 tasks → This is a single spec, not a feature
+```
+
+### Spec Level
+```
+Q: "Will implementing this require decisions during execution?"
+A: If the implementation is predetermined (just copy files, run commands) → It's a task list, not a spec
+A: If it can be done in <5 minutes of Claude Code time → Collapse into parent
+```
+
+### Task Level
+```
+Q: "Can this be described, executed, and verified within 50% of the agent's context budget?"
+A: If it requires multiple agent turns to complete → Split into multiple tasks
+A: Tasks should be 5-15 minutes of agent execution time
 ```
 
 ---
 
-## Heuristics Table
+## Decision-Based Sizing (Primary Heuristic)
 
-| Factor         | Weight | Contribution Logic                                   |
-| -------------- | ------ | ---------------------------------------------------- |
-| **File Count** | 40%    | 1 file = +0, 2-3 files = +1, 4-7 files = +2, 8+ = +3 |
-| **Task Count** | 30%    | 1-2 tasks = +0, 3-5 tasks = +1, 6+ tasks = +2        |
-| **Modules**    | 20%    | 1 module = +0, 2+ modules = +1                       |
-| **Effort**     | 10%    | small/medium = +0, large = +1                        |
+**Key insight:** Decisions, not volume, determine complexity.
 
-**Why These Weights?**
+| Work Type | Has Decisions? | Correct Level |
+|-----------|---------------|---------------|
+| "Copy 38 files to new directory" | No (predetermined list) | Task |
+| "Design a JSON schema for profiles" | Yes (structure choices) | Spec |
+| "Implement assembly script" | Yes (algorithm choices) | Spec |
+| "Run `mkdir -p` and `cp` commands" | No (mechanical) | Task |
+| "Choose between overlay vs generator approach" | Yes (architectural) | Feature |
 
-- **Files dominate** because each file = context, testing, integration
-- **Tasks matter** but some tasks affect the same files
-- **Modules indicate** coordination overhead (cross-domain changes)
-- **Effort is subjective** and least reliable (lowest weight)
+### Red Flags: Over-Decomposition
+
+If you see these patterns, the work is over-decomposed:
+
+- **Spec that's a single bash command** → Should be a task
+- **Feature with specs that have no decisions** → Should be a single spec
+- **Project where all features are mechanical** → Should be a single feature
+- **Tasks estimated at "2 minutes each"** → Probably over-split
+
+### Red Flags: Under-Decomposition
+
+If you see these patterns, the work needs more breakdown:
+
+- **Task requiring 20+ minutes of agent time** → Should be multiple tasks
+- **Spec requiring 10+ implementation decisions** → Should be multiple specs
+- **Feature touching 5+ distinct domains** → Should be multiple features
+
+---
+
+## Context Window Sizing (Task Level)
+
+Tasks must fit within an agent's effective context window.
+
+### Context Budget Allocation
+
+```
+Total Context Window: 200K tokens (example)
+├── System prompt + instructions: ~10K tokens
+├── Codebase context (files read): ~40K tokens
+├── Task description + requirements: ~5K tokens
+├── Working memory (intermediate results): ~20K tokens
+├── Output generation: ~25K tokens
+└── Safety margin: ~100K tokens (50% reserved)
+```
+
+**Rule:** A task should be completable with <50% of the context budget consumed.
+
+### Task Duration Heuristic
+
+Based on [Augment Code's research](https://www.augmentcode.com/blog/how-we-built-tasklist):
+
+> "Agents plan, execute, and report in a way that mirrors how you chunk work into 5-15 minute steps"
+
+| Task Duration | Interpretation |
+|---------------|----------------|
+| < 1 minute | Too granular (combine with related tasks) |
+| 1-5 minutes | Simple task (appropriate for mechanical work) |
+| 5-15 minutes | Standard task (appropriate for most implementation) |
+| 15-30 minutes | Complex task (verify it can't be split) |
+| > 30 minutes | Over-scoped (must be split) |
+
+---
+
+## Sizing Validation Gates
+
+### Gate 1: Project Creation
+
+Before creating a project, verify:
+
+```markdown
+## PROJECT SIZING VALIDATION
+
+1. List all features this project will contain:
+   - Feature A: [description]
+   - Feature B: [description]
+   - Feature C: [description]
+
+2. For each feature, does it require 2+ specs with decisions?
+   - Feature A: [yes/no] - [why]
+   - Feature B: [yes/no] - [why]
+   - Feature C: [yes/no] - [why]
+
+3. Decision:
+   - If 3+ features with decisions → Create project
+   - If <3 features → Collapse to feature level
+   - If all work is mechanical → Collapse to single spec
+```
+
+### Gate 2: Feature Creation
+
+Before creating a feature, verify:
+
+```markdown
+## FEATURE SIZING VALIDATION
+
+1. List all specs this feature will contain:
+   - Spec A: [description]
+   - Spec B: [description]
+
+2. For each spec, what implementation decisions are required?
+   - Spec A: [list decisions or "none - mechanical"]
+   - Spec B: [list decisions or "none - mechanical"]
+
+3. Can any spec be implemented with a single command?
+   - Spec A: [yes/no]
+   - Spec B: [yes/no]
+
+4. Decision:
+   - If 2+ specs with decisions → Create feature
+   - If <2 specs with decisions → Collapse to spec level
+   - If all specs are single commands → Collapse to task list
+```
+
+### Gate 3: Spec Creation
+
+Before creating a spec, verify:
+
+```markdown
+## SPEC SIZING VALIDATION
+
+1. List all tasks this spec will require:
+   - Task 1: [description]
+   - Task 2: [description]
+   - Task 3: [description]
+
+2. What implementation decisions will be made during execution?
+   - [List decisions, or "none - work is predetermined"]
+
+3. Estimated total implementation time: [X minutes]
+
+4. Can the entire spec be done with a single bash command?
+   - [yes/no] - Command: [command if yes]
+
+5. Decision:
+   - If 3+ tasks AND decisions required → Create spec
+   - If <3 tasks or no decisions → Collapse to task in parent spec
+   - If single command → Add as task to parent, not standalone spec
+```
+
+### Gate 4: Task Creation
+
+Before creating a task, verify:
+
+```markdown
+## TASK SIZING VALIDATION
+
+1. Can this task be completed in a single agent turn?
+   - [yes/no]
+
+2. Estimated context consumption:
+   - Files to read: [count] (~[X]K tokens)
+   - Output to generate: (~[X]K tokens)
+   - Total: [X]K tokens ([X]% of budget)
+
+3. Estimated duration: [X] minutes
+
+4. Decision:
+   - If <50% context budget AND 5-15 min → Appropriate task size
+   - If >50% context budget → Split into subtasks
+   - If <1 min → Combine with related task
+```
+
+---
+
+## Collapse-Upward Recommendation
+
+When validation fails, recommend collapsing:
+
+```markdown
+## SIZING RECOMMENDATION: COLLAPSE UPWARD
+
+The proposed [project/feature/spec] does not meet minimum thresholds.
+
+**Reason:** [Specific reason - e.g., "All specs can be implemented with single commands"]
+
+**Recommendation:** Collapse this [level] into [parent level] as:
+- [How it should be restructured]
+
+**Example:**
+Instead of:
+  Feature: core-reorganization
+    Spec: directory-structure
+    Spec: agent-migration
+    Spec: config-migration
+
+Recommend:
+  Spec: core-reorganization
+    Task: Create directory structure
+    Task: Copy agent files
+    Task: Copy config files
+```
 
 ---
 
 ## Examples
 
-### Scenario 1: Fix Typo in README
+### Example 1: Over-Decomposed (BAD)
 
-```javascript
-context = {
-  fileCount: 1,
-  taskCount: 1,
-  moduleCount: 1,
-  effort: "small",
-};
-// Calculation: 1 (base) + 0 (1 file) + 0 (1-2 tasks) + 0 (1 module) + 0 (small) = 1
-// Result: 1 sub-agent
+```
+Project: multi-stack-template
+  Feature: core-reorganization          ← No decisions, just file copying
+    Spec: directory-structure           ← Single mkdir command
+    Spec: agent-migration               ← Single cp command
+    Spec: config-migration              ← Single cp command
+  Feature: stack-profile-system         ← Has decisions (schema design)
+    Spec: profile-schema                ← Has decisions
+    Spec: profile-reader                ← Has decisions
 ```
 
-### Scenario 2: Add Simple Endpoint
+**Problem:** `core-reorganization` feature has no implementation decisions.
 
-```javascript
-context = {
-  fileCount: 2,
-  taskCount: 2,
-  moduleCount: 1,
-  effort: "small",
-};
-// Calculation: 1 (base) + 1 (2-3 files) + 0 (1-2 tasks) + 0 (1 module) + 0 (small) = 2
-// Result: 2 sub-agents
+**Fix:** Collapse `core-reorganization` to a single task within another spec.
+
+### Example 2: Correctly Sized (GOOD)
+
+```
+Project: multi-stack-template
+  Feature: template-extraction
+    Spec: core-and-overlay-structure    ← Decisions: directory layout, what's generic vs specific
+      Task: Create core directory and copy generic files
+      Task: Create react-nextjs overlay directory
+      Task: Design and implement stack-profile.json schema
+      Task: Build assembly script (init.cjs)
+      Task: Validate round-trip assembly
+    Spec: python-fastapi-overlay        ← Decisions: Python patterns, security rules
+      Task: Create Python-specific agent overrides
+      Task: Create Python coding standards skill
+      Task: Create Python security patterns skill
+      Task: Validate Python stack assembly
+  Feature: update-mechanism             ← Decisions: merge strategy, conflict resolution
+    Spec: upgrade-system
+      Task: Design 3-way merge approach
+      Task: Implement diff detection
+      Task: Implement update.cjs script
+      Task: Handle conflict resolution UX
 ```
 
-### Scenario 3: Add Feature (5 Tasks, 3 Files)
+**Why this works:**
+- Each spec requires implementation decisions during execution
+- Tasks are 5-15 minute chunks
+- No spec is a single bash command
+- Features deliver distinct, shippable capabilities
 
-```javascript
-context = {
-  fileCount: 3,
-  taskCount: 5,
-  moduleCount: 2,
-  effort: "medium",
-};
-// Calculation: 1 (base) + 1 (2-3 files) + 1 (3-5 tasks) + 1 (2 modules) + 0 (medium) = 4
-// Result: 4 sub-agents
-```
+### Example 3: File Copying is a Task, Not a Spec
 
-### Scenario 4: Refactor Module (10 Files)
+```markdown
+## INCORRECT (Over-decomposed)
+Spec: agent-migration
+  Task: Copy plan-agent.md
+  Task: Copy git-agent.md
+  Task: Copy prune-agent.md
+  Task: Copy docs-agent.md
+  Task: Copy eval-agent.md
 
-```javascript
-context = {
-  fileCount: 10,
-  taskCount: 3,
-  moduleCount: 1,
-  effort: "medium",
-};
-// Calculation: 1 (base) + 3 (8+ files) + 1 (3-5 tasks) + 0 (1 module) + 0 (medium) = 5
-// Result: 5 sub-agents
-```
-
-### Scenario 5: Large Feature (20 Files, 12 Tasks)
-
-```javascript
-context = {
-  fileCount: 20,
-  taskCount: 12,
-  moduleCount: 4,
-  effort: "large",
-};
-// Calculation: 1 (base) + 3 (8+ files) + 2 (6+ tasks) + 1 (4 modules) + 1 (large) = 8
-// Capped: min(8, 7) = 7
-// Result: 7 sub-agents (maximum)
-```
-
-### Scenario 6: /ship Commit + PR
-
-```javascript
-context = {
-  fileCount: 0, // Unknown/not applicable
-  taskCount: 1, // Single task (commit or PR)
-  moduleCount: 1,
-  effort: "small",
-};
-// Calculation: 1 (base) + 0 (fileCount=0) + 0 (1 task) + 0 (1 module) + 0 (small) = 1
-// Result: 1 sub-agent
+## CORRECT (Right-sized)
+Task: Copy generic agent files to core/
+  Command: cp .claude/agents/{plan,git,prune,docs,eval}-agent.md core/.claude/agents/
 ```
 
 ---
 
-## Usage in Orchestrators
+## Integration with Plan Agent
 
-### Step 1: Analyze Task Complexity
+The plan-agent MUST apply sizing validation at each level:
 
-Before spawning sub-agents, gather complexity metrics:
+1. **Before project-level research:** "Will this require 3+ features with decisions?"
+2. **Before feature-level research:** "Will this require 2+ specs with decisions?"
+3. **Before spec-level research:** "Will this require 3+ tasks with decisions?"
+4. **Before task decomposition:** "Can each task fit in 50% of context budget?"
 
-```markdown
-## PHASE 1: ANALYZE COMPLEXITY
-
-Determine task complexity:
-
-- How many files will this task touch? (estimate or use cclsp/Grep)
-- How many discrete tasks/steps are there?
-- How many modules/domains are involved?
-- What's the effort estimate? (small/medium/large)
-```
-
-### Step 2: Apply Sizing Heuristics
-
-Use the algorithm to determine sub-agent count:
-
-```markdown
-## PHASE 2: DETERMINE SUB-AGENT COUNT
-
-Using sizing heuristics from `.claude/sub-agents/lib/sizing-heuristics.md`:
-
-Context:
-
-- fileCount: 5
-- taskCount: 4
-- moduleCount: 2
-- effort: medium
-
-Calculation:
-1 (base) + 2 (4-7 files) + 1 (3-5 tasks) + 1 (2 modules) + 0 (medium) = 5
-
-**Decision: Spawn 5 sub-agents**
-```
-
-### Step 3: Log Decision Rationale
-
-Always log the reasoning for tuning:
-
-```markdown
-## SUB-AGENT SIZING
-
-**Context:**
-
-- Files: 5 (src/server/routers/workItem.ts, src/components/WorkItemCard.tsx, ...)
-- Tasks: 4 (schema, API, UI, tests)
-- Modules: 2 (backend, frontend)
-- Effort: medium
-
-**Calculation:** 1 + 2 + 1 + 1 + 0 = 5 sub-agents
-
-**Rationale:**
-
-- 5 files require significant context
-- Cross-module work (backend + frontend)
-- 4 tasks benefit from parallel execution
-```
-
-### Step 4: Spawn Sub-Agents
-
-Use the calculated count:
-
-```markdown
-## PHASE 3: SPAWN SUB-AGENTS
-
-Launch 5 sub-agents in parallel:
-
-1. **researcher-backend** (Opus) - Research backend patterns
-2. **researcher-frontend** (Opus) - Research UI patterns
-3. **writer-backend** (Sonnet) - Implement API
-4. **writer-frontend** (Sonnet) - Implement UI
-5. **validator** (Haiku) - Verify integration
-```
+If validation fails, the plan-agent should:
+1. Log the sizing validation result
+2. Recommend collapsing to the appropriate level
+3. Ask the user to confirm before proceeding with a smaller scope
 
 ---
 
-## Logging
+## Auto-Sizing Heuristics (for /work command)
 
-### Mandatory Logging Format
+When sizing work from a natural language description, use these signals:
 
-Always log sizing decisions in this format:
+### Quick Keyword Signals
 
-```markdown
-**SUB-AGENT SIZING**
+| Signal                                    | Likely Level |
+|-------------------------------------------|--------------|
+| "add", "fix", "update" + single thing     | Task         |
+| "implement", "create" + bounded feature   | Spec         |
+| "build", "design" + system/capability     | Feature      |
+| "platform", "suite", "complete", "migrate"| Project      |
 
-- Files: [count] ([file1, file2, ...])
-- Tasks: [count] ([task1, task2, ...])
-- Modules: [count] ([module1, module2, ...])
-- Effort: [small|medium|large]
-- **Calculated:** [count] sub-agents
-- **Rationale:** [why this number makes sense]
-```
+### Decision Count Estimation
 
-### Why Log?
+| Decisions Required | Level    |
+|--------------------|----------|
+| 0-1                | Task     |
+| 2-5                | Spec     |
+| 6-15               | Feature  |
+| 15+                | Project  |
 
-1. **Transparency** - User understands why N sub-agents were spawned
-2. **Tuning** - Collect data to adjust weights over time
-3. **Debugging** - Diagnose under/over-spawning issues
-4. **Auditability** - Review orchestrator decisions
+### Confidence Levels
 
----
+**High Confidence** - Clear signals, matches patterns:
+- "fix typo in header" --> Task (100%)
+- "add Stripe payment integration" --> Spec (95%)
+- "build user auth with OAuth, magic links, and 2FA" --> Feature (90%)
 
-## Tuning Guidelines
+**Medium Confidence** - Ambiguous scope:
+- "improve performance" --> Could be task (one fix) or spec (systematic)
+- "add search" --> Could be spec (basic) or feature (full-text + facets)
 
-### When to Adjust Weights
+**Low Confidence** - Needs clarification:
+- "make it better" --> Ask for specifics
+- "do the thing from the meeting" --> Insufficient context
 
-| Observation                      | Adjustment                    |
-| -------------------------------- | ----------------------------- |
-| Simple tasks spawn too many      | Increase file count threshold |
-| Complex tasks spawn too few      | Decrease file count threshold |
-| Cross-module work underestimated | Increase module weight        |
-| Effort estimate unreliable       | Decrease effort weight        |
-| Consistent over/under-spawning   | Adjust base count or cap      |
+### Complexity Indicators
 
-### Adjustment Example
+**Task-level (0-1 decisions):**
+- Single file change
+- Follows existing pattern exactly
+- "Fix", "tweak", "adjust"
+- Clear, predetermined solution
 
-If "add simple endpoint" (2 files, 2 tasks) spawns 2 sub-agents but 1 is sufficient:
+**Spec-level (2-5 decisions):**
+- Multiple related files
+- Some design choices needed
+- "Implement", "add feature"
+- Bounded scope, single capability
 
-**Before:**
+**Feature-level (6-15 decisions):**
+- Multiple components/modules
+- Architectural choices
+- "Build system", "add capability"
+- Shippable unit, multiple specs
 
-```javascript
-if (context.fileCount <= 3) count += 1; // 2-3 files = +1
-```
-
-**After:**
-
-```javascript
-if (context.fileCount <= 2)
-  count += 0; // 1-2 files = +0
-else if (context.fileCount <= 5) count += 1; // 3-5 files = +1
-```
-
-### Data Collection
-
-Track these metrics over time:
-
-- **Actual sub-agents spawned** vs **complexity metrics**
-- **Context overflow incidents** (too few sub-agents)
-- **Wasted context** (too many sub-agents for simple tasks)
-- **User feedback** ("Why did this spawn 5 agents?")
-
----
-
-## Integration Checklist
-
-Before using sizing heuristics in an orchestrator:
-
-- [ ] Read this document (`.claude/sub-agents/lib/sizing-heuristics.md`)
-- [ ] Analyze task complexity (files, tasks, modules, effort)
-- [ ] Apply algorithm to determine count
-- [ ] Log decision in orchestrator output
-- [ ] Spawn the calculated number of sub-agents
-- [ ] Review sizing after completion (was it correct?)
-
----
-
-## Special Cases
-
-### Unknown File Count
-
-When file count cannot be estimated (e.g., /ship commit):
-
-```javascript
-context = {
-  fileCount: 0, // Unknown
-  taskCount: 1,
-  moduleCount: 1,
-  effort: "small",
-};
-// Result: 1 sub-agent (safe default)
-```
-
-### Single Complex File
-
-When 1 file is very complex (e.g., 1000-line refactor):
-
-```javascript
-context = {
-  fileCount: 1,
-  taskCount: 8, // Many tasks in one file
-  moduleCount: 1,
-  effort: "large",
-};
-// Calculation: 1 + 0 (1 file) + 2 (6+ tasks) + 0 (1 module) + 1 (large) = 4
-// Result: 4 sub-agents (task count dominates)
-```
-
-### Cross-Cutting Refactor
-
-When touching many files but simple changes (e.g., rename):
-
-```javascript
-context = {
-  fileCount: 15, // Many files
-  taskCount: 1, // Single task (rename)
-  moduleCount: 3, // Spread across modules
-  effort: "small", // Simple changes
-};
-// Calculation: 1 + 3 (8+ files) + 0 (1 task) + 1 (3 modules) + 0 (small) = 5
-// Result: 5 sub-agents (file count dominates)
-```
+**Project-level (15+ decisions):**
+- Cross-cutting concerns
+- Multiple features
+- "Platform", "migrate", "rewrite"
+- Weeks of work, multiple features
 
 ---
 
 ## References
 
-- **Sub-Agent System:** `.claude/sub-agents/README.md`
-- **Orchestrator Patterns:** `.claude/protocols/orchestration.md`
-- **Handoff Protocol:** `.claude/protocols/handoff.md`
+- [Augment Code: How We Built Tasklist](https://www.augmentcode.com/blog/how-we-built-tasklist) - 5-15 minute task sizing
+- [Anthropic: Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Context budget management
+- [Factory.ai: The Context Window Problem](https://factory.ai/news/context-window-problem) - Scaling beyond token limits

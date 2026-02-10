@@ -18,6 +18,17 @@ Conversational spec creation - turn ideas into implementation specs.
 /design feature --spec           # Spec-level design
 ```
 
+## Entry Points
+
+/design can be invoked:
+1. **Directly:** `/design feature-name --spec`
+2. **Via /work:** Routed after auto-sizing (level already determined)
+
+When routed from `/work`:
+- Skip level selection prompt (already determined)
+- Include sizing context in research phase
+- Use level-appropriate decision format from `.claude/templates/decisions/`
+
 ---
 
 ## Flags

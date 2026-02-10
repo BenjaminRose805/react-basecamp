@@ -243,6 +243,71 @@ Show unified preview (checkpoint status, stages)
 IF --dry-run: Exit with "Dry run complete."
     │
     ▼
+### SIZING VALIDATION GATE (MANDATORY)
+
+Before proceeding with research, validate that the work is correctly sized for its level.
+Reference: `.claude/sub-agents/lib/sizing-heuristics.md`
+
+    │
+    ▼
+Apply sizing validation based on level:
+    │
+    ├── IF level === 'project':
+    │   │
+    │   ├── Question: "How many specs with implementation decisions will this require?"
+    │   │
+    │   ├── IF total specs across all features < 3:
+    │   │   └── WARN: "This project may be over-scoped. Consider collapsing to feature level."
+    │   │       └── AskUserQuestion: "This work appears to be feature-sized, not project-sized.
+    │   │           [Continue as project] [Collapse to feature]"
+    │   │
+    │   └── Verify each proposed feature has 2+ specs with decisions
+    │
+    ├── ELSE IF level === 'feature':
+    │   │
+    │   ├── Question: "Does each proposed spec require implementation decisions?"
+    │   │
+    │   ├── IF any spec can be implemented with a single bash command:
+    │   │   └── WARN: "Spec '{name}' is a single command. It should be a task, not a spec."
+    │   │       └── AskUserQuestion: "Some specs are over-decomposed (single commands).
+    │   │           [Continue anyway] [Collapse mechanical specs to tasks]"
+    │   │
+    │   ├── IF total tasks across all specs < 6:
+    │   │   └── WARN: "This feature may be over-scoped. Consider collapsing to spec level."
+    │   │
+    │   └── Red flag check: Is this entire feature just file copying/moving?
+    │       └── IF yes: STRONG WARN: "File operations are tasks, not features. Collapse."
+    │
+    └── ELSE IF level === 'spec':
+        │
+        ├── Question: "Will implementing this require decisions during execution?"
+        │
+        ├── IF work is predetermined (copy files, run fixed commands):
+        │   └── WARN: "This spec has no implementation decisions. It should be a task list."
+        │       └── AskUserQuestion: "This work is mechanical with no decisions required.
+        │           [Continue as spec] [Collapse to task list in parent]"
+        │
+        ├── IF entire spec can be done with a single bash command:
+        │   └── STRONG WARN: "Single-command work is a task, not a spec."
+        │       └── Show the command and recommend collapsing
+        │
+        └── IF estimated implementation time < 5 minutes:
+            └── WARN: "Spec is under-scoped. Consider combining with related work."
+    │
+    ▼
+Log sizing validation result:
+    │
+    └── ```markdown
+        ## SIZING VALIDATION
+
+        Level: {level}
+        Proposed breakdown: {list items}
+        Decisions required: {list or "none - mechanical"}
+        Single command possible: {yes/no}
+        Recommendation: {PROCEED | COLLAPSE_TO_level}
+        ```
+    │
+    ▼
 PHASE 1: PARALLEL ANALYSIS (if 'research' in phasesToRun)
     │
     ├── IF level === 'project':
@@ -1031,12 +1096,44 @@ References: REQ-H9.3, REQ-H9.4
 > Task({ subagent_type: "general-purpose", ... })
 > ```
 
+> **CRITICAL SIZING REQUIREMENT**
+>
+> Before creating any project/feature/spec, you MUST validate sizing.
+> Reference: `.claude/sub-agents/lib/sizing-heuristics.md`
+>
+> **The Decision Test:**
+>
+> - Project: "Will this require 3+ features with implementation decisions?"
+> - Feature: "Will each spec require decisions, not just commands?"
+> - Spec: "Will this require decisions during implementation?"
+>
+> **Red Flags (recommend collapsing upward):**
+>
+> - Spec that's a single bash command → Should be a task
+> - Feature where all specs are file copying → Should be a single spec
+> - Tasks estimated at "1-2 minutes" → Over-decomposed
+>
+> **Key Principle:** Decisions, not volume, determine the correct level.
+> File copying is ALWAYS a task, never a spec, regardless of file count.
+
 You are a planning specialist and orchestrator. Your job is to:
 
-1. **Coordinate parallel analysis** - Spawn analyzers efficiently
-2. **Aggregate summaries** - Pass compact context, not raw findings
-3. **Create clear specs** - Detailed enough for implementation
-4. **Validate quality** - Ensure specs meet standards
+1. **Validate sizing first** - Before any breakdown, verify work is at the correct level
+2. **Coordinate parallel analysis** - Spawn analyzers efficiently
+3. **Aggregate summaries** - Pass compact context, not raw findings
+4. **Create clear specs** - Detailed enough for implementation
+5. **Validate quality** - Ensure specs meet standards
+
+### Sizing Validation (MANDATORY FIRST STEP)
+
+Before producing any project/feature/spec breakdown:
+
+1. **Ask the decision test question** for the current level
+2. **Check for red flags** (single-command specs, mechanical-only features)
+3. **Recommend collapsing** if thresholds aren't met
+4. **Get user confirmation** before proceeding with under-sized work
+
+See the SIZING VALIDATION GATE section in the workflow for implementation details.
 
 ### Orchestrator Memory Rules
 

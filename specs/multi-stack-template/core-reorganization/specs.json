@@ -1,0 +1,62 @@
+{
+  "_note": "Spec manifest for core-reorganization feature. Sequential build order: directory-structure-and-agents → workflow-migration → content-migration.",
+  "_note_depends_on": "Use 'project/feature/spec' format for cross-feature deps, 'spec-name' for within-feature deps, [] for no deps.",
+  "feature": "core-reorganization",
+  "specs": [
+    {
+      "name": "directory-structure-and-agents",
+      "description": "Create core/.claude/ directory hierarchy and migrate 5 generic agents (plan-agent, git-agent, prune-agent, docs-agent, eval-agent), 3 validator templates, and settings.json",
+      "depends_on": [],
+      "complexity": "medium",
+      "effort": "2-3 hours",
+      "deliverables": [
+        "core/.claude/ directory tree mirroring current structure",
+        "5 generic agent files moved to core/.claude/agents/",
+        "3 validator templates moved to core/.claude/agents/templates/",
+        "settings.json moved to core/.claude/config/"
+      ]
+    },
+    {
+      "name": "workflow-migration",
+      "description": "Migrate all 7 commands, 2 protocols, ~18 scripts and hooks, and 3 config files (integrations.json, review-config.yaml, environment.json base)",
+      "depends_on": ["directory-structure-and-agents"],
+      "complexity": "medium",
+      "effort": "2-3 hours",
+      "deliverables": [
+        "7 command files moved to core/.claude/commands/",
+        "2 protocol files moved to core/.claude/protocols/",
+        "~18 scripts and hooks moved to core/.claude/scripts/",
+        "3 config files moved to core/.claude/config/"
+      ]
+    },
+    {
+      "name": "content-migration",
+      "description": "Migrate ~10 generic skills, 2 sub-agent files (sizing-heuristics.md, quality-validator.md), all 10 spec templates, and create MANIFEST.md documenting core contents",
+      "depends_on": ["workflow-migration"],
+      "complexity": "medium",
+      "effort": "2-3 hours",
+      "deliverables": [
+        "~10 generic skill files moved to core/.claude/skills/",
+        "2 sub-agent templates moved to core/.claude/sub-agents/",
+        "10 spec templates moved to core/specs/templates/",
+        "core/MANIFEST.md documenting all core contents with descriptions"
+      ]
+    }
+  ],
+  "build_order": ["directory-structure-and-agents", "workflow-migration", "content-migration"],
+  "acceptance_criteria": [
+    "All GENERIC files (no stack-specific keywords) are moved to core/",
+    "core/ directory mirrors .claude/ structure",
+    "PARTIAL/SPECIFIC files remain in original locations",
+    "MANIFEST.md lists all core contents with purposes",
+    "No broken references in moved files",
+    "Original .claude/ contains only stack-specific files"
+  ],
+  "files_not_moved": {
+    "agents": ["code-agent.md", "ui-agent.md", "check-agent.md"],
+    "skills": ["routing/", "coding-standards/", "security-patterns/", "tdd-workflow/", "qa-checks/", "frontend-patterns/", "backend-patterns/"],
+    "sub_agents": ["domain-researcher.md", "domain-writer.md"],
+    "config": [".mcp.json", "cclsp.json", "settings.local.json", "environment.json (partial)"],
+    "scripts": ["security-patterns.cjs"]
+  }
+}

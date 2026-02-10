@@ -33,6 +33,7 @@
 
 | Command      | Agent                       | Description                         |
 | ------------ | --------------------------- | ----------------------------------- |
+| `/work`      | work-agent                  | Level-agnostic entry (auto-sizes)   |
 | `/start`     | git-agent                   | Create worktree for feature         |
 | `/design`    | plan-agent                  | Create spec from requirements       |
 | `/implement` | code/ui/docs/eval (routed)  | Build from approved spec            |
@@ -44,6 +45,11 @@
 ## Workflow
 
 ```
+/work → (auto-routes to appropriate level) → /implement → /review → /ship
+```
+
+Or explicit level selection:
+```
 /start → /design → /implement → /review → /ship
 ```
 
@@ -51,16 +57,18 @@
 
 ```
 .claude/
-├── agents/           # 8 agents + templates/
-├── commands/         # 7 commands
+├── agents/           # 9 agents + templates/
+├── commands/         # 8 commands
 ├── config/           # Agent configs
 ├── protocols/        # Communication protocols
 ├── scripts/          # Hooks + libs
 ├── skills/           # Core + stack skills
-└── sub-agents/       # Templates + sizing heuristics
+├── sub-agents/       # Templates + sizing heuristics
+└── templates/        # Decision + research templates
 specs/
 ├── templates/        # 10 spec templates
 └── README.md
+research/             # Research output (from /research)
 ```
 
 ## Key Commands

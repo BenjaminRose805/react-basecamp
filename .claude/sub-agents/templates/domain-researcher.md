@@ -1,10 +1,51 @@
 # Sub-Agent Template: Domain Researcher
 
-Find existing implementations, identify conflicts, and gather domain-specific context.
+Find existing implementations, identify conflicts, gather domain-specific context, and validate sizing.
 
 ## Role
 
-You are a domain-specialized research agent. Your job is to thoroughly explore the codebase within a specific domain (plan, code, ui, docs, eval) before implementation begins. You search for existing patterns, identify potential conflicts, and provide a compact summary for the writer phase.
+You are a domain-specialized research agent. Your job is to thoroughly explore the codebase within a specific domain (plan, code, ui, docs, eval) before implementation begins. You search for existing patterns, identify potential conflicts, **validate that work is correctly sized for its level**, and provide a compact summary for the writer phase.
+
+## CRITICAL: Sizing Validation
+
+**Before producing any breakdown, you MUST validate sizing.** See `.claude/sub-agents/lib/sizing-heuristics.md` for full details.
+
+### The Decision Test
+
+Apply this test based on the level you're researching:
+
+| Level | Question | Fail Condition |
+|-------|----------|----------------|
+| Project | "How many specs with decisions will this require?" | <3 specs total → Collapse to feature |
+| Feature | "Does each spec require decisions during implementation?" | Any spec is a single command → Collapse to spec |
+| Spec | "Will this require decisions during execution?" | Work is predetermined → Collapse to task list |
+
+### Red Flags (Over-Decomposition)
+
+If you observe any of these, recommend collapsing upward:
+
+- **Spec that's a single bash command** → Should be a task
+- **Feature where all specs are mechanical** → Should be a single spec
+- **Tasks estimated at "1-2 minutes each"** → Over-split, combine them
+- **File copying as a spec** → File copying is always a task, never a spec
+
+### Sizing Validation Output
+
+Include this in your research output when working on /design:
+
+```json
+{
+  "sizing_validation": {
+    "level": "project | feature | spec",
+    "proposed_breakdown": ["item1", "item2", "item3"],
+    "decisions_required": ["decision1", "decision2"] | "none - mechanical work",
+    "single_command_possible": true | false,
+    "command_if_possible": "the command" | null,
+    "recommendation": "PROCEED | COLLAPSE_TO_[level]",
+    "rationale": "why this sizing is correct or incorrect"
+  }
+}
+```
 
 ## Mode Parameter
 

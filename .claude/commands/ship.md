@@ -144,6 +144,51 @@ The `user-prompt-ship.cjs` hook validates review state BEFORE this command execu
 └─────────────────────────────────────────────────────────────┘
 ```
 
+## Task-Level Shipping
+
+When shipping task-level work (from `/work`):
+
+- No spec to reference
+- Use task state from `.claude/state/tasks/`
+- Generate commit message from task description
+- Include task ID in commit metadata
+
+### Task Ship Flow
+
+```text
+/ship (after /work task)
+    |
+    v
+1. Read task state from .claude/state/tasks/{id}.json
+2. Use task description for commit message
+3. Standard prune/commit/PR flow
+4. Delete task state file from .claude/state/tasks/
+```
+
+### Task State Cleanup
+
+After a successful commit, **delete** the task state file:
+
+```bash
+rm .claude/state/tasks/{id}.json
+```
+
+Task history is not preserved — the git commit is the permanent record. This keeps the state directory clean and avoids stale task files accumulating.
+
+### Task Commit Message Format
+
+```
+feat: {task description}
+
+Task: {task_id}
+Decision: {chosen option if any}
+Files: {count} changed
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+```
+
+---
+
 ## Troubleshooting
 
 ### Ship Blocked: No Review State

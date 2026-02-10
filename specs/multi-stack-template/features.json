@@ -1,0 +1,73 @@
+{
+  "_note": "Template for project-level feature manifest. Fill {{placeholders}} with actual values.",
+  "_note_usage": "This file lists all features in the project with rough spec estimates. See feature.md and specs.json for detailed breakdowns.",
+  "project": "multi-stack-template",
+  "build_order": [
+    "core-reorganization",
+    "stack-profile-system",
+    "partial-file-abstraction",
+    "assembly-script",
+    "react-nextjs-overlay",
+    "python-fastapi-overlay",
+    "runtime-profile-resolution",
+    "update-mechanism"
+  ],
+  "features": [
+    {
+      "name": "core-reorganization",
+      "description": "Move 38 generic files into core/ directory structure",
+      "rough_specs": "Foundation feature that reorganizes the existing template by identifying and moving ~38 GENERIC files (agents, commands, protocols, scripts/lib, skills/core, sub-agents) into a new core/ directory structure. This creates the base that all stack overlays will build upon. No dependencies on other features.",
+      "complexity": "Medium",
+      "dependencies": []
+    },
+    {
+      "name": "stack-profile-system",
+      "description": "Define JSON schema and build profile reader module",
+      "rough_specs": "Create stack-profile.json schema with fields for name, stack_type, package_manager, test_command, build_command, dev_command, typecheck_command, lint_command, file_extensions, and template_variables. Build profiles/react-nextjs.json as reference implementation and create stack-profile.cjs reader module following package-manager.cjs pattern.",
+      "complexity": "Medium",
+      "dependencies": ["core-reorganization"]
+    },
+    {
+      "name": "partial-file-abstraction",
+      "description": "Split 14 partial files into generic core + stack overlay versions",
+      "rough_specs": "Identify and split 14 PARTIAL files that contain mix of generic workflow and stack-specific references. Key files include code-agent.md, check-agent.md, implement.md, review.md, tdd-workflow/SKILL.md, domain-researcher.md, domain-writer.md, routing/SKILL.md, coding-standards/SKILL.md, security-patterns/SKILL.md, qa-checks/SKILL.md, environment-check.cjs, security-patterns.cjs, and .gitignore. Create generic versions in core/ and stack-specific sections in overlays/.",
+      "complexity": "Large",
+      "dependencies": ["core-reorganization", "stack-profile-system"]
+    },
+    {
+      "name": "assembly-script",
+      "description": "init.cjs for copying core, merging overlays, substituting variables",
+      "rough_specs": "Build init.cjs script that reads stack-profile.json, copies core/ directory, applies overlay-replaces-core logic for stack-specific files, substitutes template variables from profile, and generates derived files (.mcp.json, cclsp.json, settings.local.json). Outputs a valid .claude/ directory structure ready for use.",
+      "complexity": "Medium",
+      "dependencies": ["core-reorganization", "stack-profile-system", "partial-file-abstraction"]
+    },
+    {
+      "name": "react-nextjs-overlay",
+      "description": "Extract current stack into stacks/react-nextjs/ with validation",
+      "rough_specs": "Extract the existing React/Next.js stack-specific files into stacks/react-nextjs/ overlay directory. Create profiles/react-nextjs.json with current stack configuration. Validate that init.cjs assembly produces bit-identical output to current template, ensuring zero regressions and full backward compatibility.",
+      "complexity": "Medium",
+      "dependencies": ["core-reorganization", "stack-profile-system", "partial-file-abstraction", "assembly-script"]
+    },
+    {
+      "name": "python-fastapi-overlay",
+      "description": "Create Python/FastAPI overlay as proof-of-design (~15 new files)",
+      "rough_specs": "Design and implement stacks/python-fastapi/ overlay and profiles/python-fastapi.json as proof that the system works for non-Node stacks. Create ~15 new files covering Python ecosystem patterns including pytest, ruff, mypy, poetry/pip, ASGI, and Python-specific security patterns. Validate assembly produces working environment-check.cjs and routing.",
+      "complexity": "Large",
+      "dependencies": ["core-reorganization", "stack-profile-system", "partial-file-abstraction", "assembly-script"]
+    },
+    {
+      "name": "runtime-profile-resolution",
+      "description": "Extend runtime resolution pattern to stack-profile.cjs",
+      "rough_specs": "Extend the package-manager.cjs auto-detection pattern to create stack-profile.cjs for runtime profile resolution. Update routing/SKILL.md and environment-check.cjs to use profile-based routing instead of hardcoded stack assumptions. Enables dynamic stack detection in existing projects.",
+      "complexity": "Small",
+      "dependencies": ["stack-profile-system", "partial-file-abstraction"]
+    },
+    {
+      "name": "update-mechanism",
+      "description": "update.cjs for upgrading projects with 3-way merge and dry-run support",
+      "rough_specs": "Build update.cjs script for upgrading existing projects to newer template versions. Implements 3-way merge logic (old template + user changes + new template), provides diff preview before applying changes, supports --dry-run flag for safety, and handles overlay updates. Critical for template maintenance and project longevity.",
+      "complexity": "Large",
+      "dependencies": ["assembly-script", "react-nextjs-overlay"]
+    }
+  ]
+}
